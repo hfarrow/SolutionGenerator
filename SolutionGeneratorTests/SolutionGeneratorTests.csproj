@@ -13,4 +13,8 @@
   <ItemGroup>
     <ProjectReference Include="..\SolutionGeneratorLib\SolutionGeneratorLib.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\TestTemplate.txt" />
+    <EmbeddedResource Include="Resources\TestTemplate.txt" />
+  </ItemGroup>
 </Project>

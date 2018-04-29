@@ -1,9 +1,10 @@
 ﻿using System.Linq;
+using SolutionGenerator.Parsing;
 using SolutionGenerator.Parsing.Model;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseObjectElementTests
     {
@@ -35,6 +36,18 @@ namespace SolutionGenerator.Parsing.Tests
             Assert.Equal(3, array.Values.Count());
             Assert.Equal("Test/Path/A", array.Values.ElementAt(0).Value);
             Assert.Equal("Test/Path/C", array.Values.ElementAt(2).Value);
+        }
+        
+        [Fact]
+        public void CanParseComment()
+        {
+            const string input = "// My Comment";
+            ObjectElement element = DocumentParser.ObjectElement.Parse(input);
+            Assert.NotNull(element);
+            Assert.IsType<CommentElement>(element);
+
+            var comment = (CommentElement) element;
+            Assert.Equal("// My Comment", comment.Comment);
         }
     }
 }

@@ -118,12 +118,13 @@ namespace SolutionGenerator.Parsing
                     .Or((Parser<ObjectElement>)PropertyArray)
                     .Or(Configuration)
                     .Or(Object)
+                    .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
             select element;
 
         public static readonly Parser<ConfigDocument> Document =
-            (from objects in Object.Many()
-                select new ConfigDocument(objects))
-            .Token();
+            (from elements in ObjectElement.Many()
+                select new ConfigDocument(elements))
+            .Token().End();
 
         private static PropertyAction GetPropertyAction(string actionStr)
         {

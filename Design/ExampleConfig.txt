@@ -35,14 +35,12 @@ solution MySolution
 {
     set templates: glob "Templates/**/*.template.txt"
     set modules: glob "**/*.module.txt"
-
-
 }
 
 // Module Config
 module MyModule : UnityModuleTemplate
 {
-    // Additional projects not define054468d by template can be added here.
+    // Additional projects not defined by template can be added here.
 }
 
 // Unity Module Template
@@ -206,7 +204,7 @@ template UnityModuleTemplate
         set exclude paths: glob "**/Tests/"
 
         add project refs
-        [/
+        [
             $(MODULE_NAME)
         ]
 

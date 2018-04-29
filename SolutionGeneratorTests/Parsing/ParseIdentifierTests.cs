@@ -3,7 +3,7 @@ using SolutionGenerator.Parsing;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseIdentifierTests
     {
@@ -11,8 +11,10 @@ namespace SolutionGenerator.Parsing.Tests
         [InlineData("myID")]
         [InlineData("my-ID")]
         [InlineData("my_ID")]
+        [InlineData("my.ID")]
         [InlineData("myID_")]
         [InlineData("myID-")]
+        [InlineData("myID.")]
         [InlineData("my1ID")]
         [InlineData("myID1")]
         public void IdentifierIsValid(string input)

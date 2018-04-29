@@ -2,7 +2,7 @@
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseQuotedTextTests
     {

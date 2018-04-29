@@ -1,12 +1,14 @@
-﻿using SolutionGenerator.Parsing.Model;
+﻿using SolutionGenerator.Parsing;
+using SolutionGenerator.Parsing.Model;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseSimpleCommandTests
     {
-        [Fact] public void CanParseSimpleCommandWithoutConditional()
+        [Fact]
+        public void CanParseSimpleCommandWithoutConditional()
         {
             const string input = "skip";
             CommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
@@ -14,8 +16,9 @@ namespace SolutionGenerator.Parsing.Tests
             Assert.Equal("skip", cmd.CommandName);
             Assert.Equal("true", cmd.ConditionalExpression);
         }
-        
-        [Fact] public void CanParseSimpleCommandWithConditional()
+
+        [Fact]
+        public void CanParseSimpleCommandWithConditional()
         {
             const string input = "skip (my-define)";
             CommandElement cmd = DocumentParser.SimpleCommand.Parse(input);

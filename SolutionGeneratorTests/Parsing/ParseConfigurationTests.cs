@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
+using SolutionGenerator.Parsing;
 using SolutionGenerator.Parsing.Model;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseConfigurationTests
     {
@@ -24,12 +25,12 @@ namespace SolutionGenerator.Parsing.Tests
             Assert.True(config.Configurations.ContainsKey("Name2"));
 
             HashSet<string> name1 = config.Configurations["Name1"];
-            Assert.True(name1.Contains("value1"));
-            Assert.True(name1.Contains("value2"));
+            Assert.Contains("value1", name1);
+            Assert.Contains("value2", name1);
             
             HashSet<string> name2 = config.Configurations["Name2"];
-            Assert.True(name2.Contains("value1"));
-            Assert.True(name2.Contains("value2"));
+            Assert.Contains("value1", name2);
+            Assert.Contains("value2", name2);
         }
     }
 }

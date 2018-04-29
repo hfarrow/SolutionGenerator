@@ -11,7 +11,7 @@ namespace SolutionGenerator.Parsing
                 from rest in Parse.AnyChar.Until(Parse.LineTerminator).Text()
                 select first + rest)
             .Token();
-        
+       
         /// <summary>
         /// Parse an identifier without consuming trailing white space.
         /// </summary>
@@ -20,8 +20,14 @@ namespace SolutionGenerator.Parsing
         /// </remarks>
         public static readonly Parser<string> IdentifierWord =
             from first in Parse.Letter.Once()
-            from rest in Parse.LetterOrDigit.XOr(Parse.Char('-')).XOr(Parse.Char('_')).Many()
+            from rest in Parse.LetterOrDigit.XOr(Parse.Chars('-', '_', '.')).Many()
             select new string(first.Concat(rest).ToArray());
+        
+        public static readonly Parser<string> VariableExpansion =
+            from start in Parse.String("$(")
+            from id in IdentifierWord
+            from close in Parse.String(")")
+            select start + id + close;
 
         /// <summary>
         /// Parse an identifier and consume trailing white space.

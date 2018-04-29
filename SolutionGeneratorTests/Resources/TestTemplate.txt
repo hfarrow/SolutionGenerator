@@ -1,0 +1,65 @@
+// Test Comment
+template TestTemplate
+{
+    configuration everthing
+    [
+        Debug: debug,test
+        Release: release,test
+    ]
+
+    configuration no-tests
+    [
+        Debug: debug
+        Release: release
+    ]
+
+    add project $(MODULE_NAME) : project
+    add project $(MODULE_NAME) : project.tests
+
+    settings project
+    {
+        set include paths: "./"
+        set exclude paths: glob "**/Tests/"
+        set include files: glob "*.{cs,txt,json,xml,md}"
+
+        set target framework: net4.6
+        set language version: 6
+
+        add lib refs
+        [
+            Lib1.dll
+            Lib2.dll
+        ]
+
+        add define constants
+        [
+            DEFINE_A
+            DEFINE_B
+        ]
+
+        add define constants (debug)
+        [
+            DEBUG
+            TRACE
+        ]
+
+        add define constants (release)
+        [
+            RELEASE
+        ]
+    }
+
+    settings project.tests : project
+    {
+        exclude (no-tests)
+        skip (!test)
+
+        set include paths: glob "**/Tests/"
+        set exclude paths: empty
+
+        add project refs
+        [
+            $(MODULE_NAME)
+        ]
+    }
+}

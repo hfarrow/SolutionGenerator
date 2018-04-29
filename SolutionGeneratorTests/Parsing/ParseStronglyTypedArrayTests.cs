@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using SolutionGenerator.Parsing;
 using SolutionGenerator.Parsing.Model;
 using Sprache;
 using Xunit;
 using KeyValuePair = SolutionGenerator.Parsing.Model.KeyValuePair;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseStronglyTypedArrayTests
     {

@@ -1,7 +1,8 @@
-﻿using Sprache;
+﻿using SolutionGenerator.Parsing;
+using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Parsing.Tests
+namespace SolutionGenerator.Tests.Parsing
 {
     public class ParseConditionalTests
     {
