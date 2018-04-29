@@ -1,10 +1,10 @@
 ﻿namespace SolutionGenerator.Parsing.Model
 {
-    public class PropertyValue
+    public class ValueElement
     {
         public object Value { get; }
         
-        public PropertyValue(object value)
+        public ValueElement(object value)
         {
             Value = value;
         }

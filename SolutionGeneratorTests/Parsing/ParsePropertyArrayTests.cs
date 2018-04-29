@@ -34,7 +34,7 @@ namespace SolutionGenerator.Parsing.Tests
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
             var array = propertyElement.Value as ArrayValue;
             Assert.NotNull(array);
-            Assert.Equal(0, array.Values.Count());
+            Assert.Empty(array.Values);
         }
         
         [Fact]
@@ -48,7 +48,7 @@ namespace SolutionGenerator.Parsing.Tests
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
             var array = propertyElement.Value as ArrayValue;
             Assert.NotNull(array);
-            Assert.Equal(0, array.Values.Count());
+            Assert.Empty(array.Values);
         }
     }
 }

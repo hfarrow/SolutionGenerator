@@ -7,9 +7,9 @@ namespace SolutionGenerator.Parsing.Model
         public PropertyAction Action { get; }
         public IEnumerable<string> NameParts { get; }
         public string FullName { get; }
-        public PropertyValue Value { get; }
+        public ValueElement Value { get; }
 
-        public PropertyElement(PropertyAction action, IEnumerable<string> nameParts, PropertyValue value,
+        public PropertyElement(PropertyAction action, IEnumerable<string> nameParts, ValueElement value,
             string conditionalExpression)
             : base(action.ToString(), conditionalExpression)
         {

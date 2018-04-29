@@ -176,14 +176,8 @@ template UnityModuleTemplate
 
     settings project.tests : project
     {
-        if (no-tests)
-        {
-            exclude
-        }
-        if (!test)
-        {
-            skip
-        }
+        exclude (no-tests)
+        skip (!test)
 
         set include paths: glob "**/Tests/"
         set exclude paths: glob "**/Editor"
@@ -206,10 +200,7 @@ template UnityModuleTemplate
 
     settings project.editor : project
     {
-        if (runtime)
-        {
-            skip
-        }
+        skip (runtime)
 
         set include paths: glob "**/Editor/"
         set exclude paths: glob "**/Tests/"
@@ -256,14 +247,8 @@ template UnityModuleTemplate
 
     settings project.editor.tests : project.editor
     {
-        if (no-tests)
-        {
-            exclude
-        }
-        if (!test)
-        {
-            skip
-        }
+        exclude (no-tests)
+        skip (!test)
 
         set include paths: glob "**/Tests/Editor/"
         set exclude paths: none

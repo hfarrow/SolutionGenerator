@@ -2,10 +2,10 @@
 
 namespace SolutionGenerator.Parsing.Model
 {
-    public class ArrayValue : PropertyValue
+    public class ArrayValue : ValueElement
     {
-        public IEnumerable<PropertyValue> Values { get; }
-        public ArrayValue(IEnumerable<PropertyValue> values) : base(values)
+        public IEnumerable<ValueElement> Values { get; }
+        public ArrayValue(IEnumerable<ValueElement> values) : base(values)
         {
             Values = values;
         }

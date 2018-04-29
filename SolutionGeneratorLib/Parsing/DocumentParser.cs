@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using SolutionGenerator.Parsing.Model;
 using Sprache;
 using KeyValuePair = SolutionGenerator.Parsing.Model.KeyValuePair;
@@ -44,19 +43,20 @@ namespace SolutionGenerator.Parsing
                 select body.Substring(1, body.Length - 2))
             .Token();
 
-        public static readonly Parser<PropertyValue> PropertyValue =
+        public static readonly Parser<ValueElement> Value =
             (from arrayEnd in Parse.Char(']').Not()
-                from value in BasicParser.QuotedText.Select(txt => new PropertyValue(txt))
+                from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
                     .Or(BasicParser.GlobValue)
                     .Or(PairValue)
-                    .Or(Parse.AnyChar.Until(Parse.LineTerminator).Text().Select(txt => new PropertyValue(txt)))
+                    .Or(Parse.AnyChar.Except(Parse.String("]").Or(Parse.LineTerminator)).AtLeastOnce().Text()
+                        .Select(txt => new ValueElement(txt)))
                 select value)
             .Token();
 
         public static readonly Parser<KeyValuePair> PairValue =
             (from key in BasicParser.Identifier
                 from delimiter in Parse.Char(':')
-                from value in PropertyValue
+                from value in Value
                 select new KeyValuePair(key, value))
             .Token();
 
@@ -65,16 +65,21 @@ namespace SolutionGenerator.Parsing
                 from nameParts in BasicParser.IdentifierWord.DelimitedBy(Parse.Char(' '))
                 from conditional in ConditionalExpression.Optional()
                 from colon in Parse.Char(':').Token()
-                from value in PropertyValue
+                from value in Value
                 select new PropertyElement(action, nameParts, value, conditional.GetOrElse("true")))
             .Token();
+        
+        public static Parser<IEnumerable<T>> StronglyTypedArray<T>(Parser<T> valueParser)
+            where T : ValueElement
+        {
+            return (from lbraket in Parse.Char('[')
+                    from values in valueParser.Token().Many().Token()
+                    from rbracket in Parse.Char(']')
+                    select values)
+                .Token();
+        }
 
-        public static readonly Parser<IEnumerable<PropertyValue>> Array =
-            (from lbraket in Parse.Char('[')
-                from values in PropertyValue.Token().Many().Token()
-                from rbracket in Parse.Char(']')
-                select values)
-            .Token();
+        public static readonly Parser<IEnumerable<ValueElement>> Array = StronglyTypedArray(Value);
 
         // Note: Property arrays are 1 dimensional and values cannot be another array.
         public static readonly Parser<PropertyElement> PropertyArray =
@@ -85,14 +90,19 @@ namespace SolutionGenerator.Parsing
                 select new PropertyElement(action, nameParts, new ArrayValue(values),
                     conditional.GetOrElse("true")))
             .Token();
-        
-        
-        // TODO: ObjectBody
-        // TODO: ObjectElement
-        // TODO: NestedObject in ObjectBody
-        // TODO: ConditionalHeading if (true)
-        // TODO: ConditionalBody    { ... }
-        // TODO: Command -> exlude, skip, etc
+
+        public static readonly Parser<ConfigurationElement> Configuration =
+            (from cmd in Parse.String("configuration").Token()
+                from configName in BasicParser.Identifier.Token()
+                from values in StronglyTypedArray(PairValue)
+                select new ConfigurationElement(configName, values))
+            .Token();
+
+        public static readonly Parser<CommandElement> SimpleCommand =
+            (from cmd in BasicParser.Identifier
+                from conditional in ConditionalExpression.Optional()
+                select new CommandElement(cmd, conditional.GetOrElse("true")))
+            .Token();
 
         public static readonly Parser<ConfigObject> Object =
             (from heading in ObjectHeading
@@ -106,6 +116,7 @@ namespace SolutionGenerator.Parsing
             from element in
                 PropertySingleLine
                     .Or((Parser<ObjectElement>)PropertyArray)
+                    .Or(Configuration)
                     .Or(Object)
             select element;
 

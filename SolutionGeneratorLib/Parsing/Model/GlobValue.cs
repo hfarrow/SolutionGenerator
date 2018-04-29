@@ -1,6 +1,6 @@
 ﻿namespace SolutionGenerator.Parsing.Model
 {
-    public class GlobValue : PropertyValue
+    public class GlobValue : ValueElement
     {
         public string GlobStr { get; }
         

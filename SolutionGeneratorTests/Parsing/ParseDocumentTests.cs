@@ -1,7 +1,5 @@
 ﻿using System.Linq;
-using System.Reflection.Metadata;
 using SolutionGenerator.Parsing.Model;
-using SolutionGenerator.Parsing;
 using Sprache;
 using Xunit;
 
@@ -14,7 +12,7 @@ namespace SolutionGenerator.Parsing.Tests
         {
             const string input = "myType MyObject {}";
             ConfigDocument doc = DocumentParser.Document.Parse(input);
-            Assert.Equal(1, doc.Objects.Count);
+            Assert.Single(doc.Objects);
             Assert.True(doc.Objects.ContainsKey("MyObject"));
         }
 

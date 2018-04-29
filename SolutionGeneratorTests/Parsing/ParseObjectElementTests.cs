@@ -8,7 +8,7 @@ namespace SolutionGenerator.Parsing.Tests
     public class ParseObjectElementTests
     {
         [Fact]
-        public void SingleLinePropertyCanBeParsed()
+        public void CanParseSingleLineProperty()
         {
             const string input = "set include files (false): value";
             ObjectElement element = DocumentParser.ObjectElement.Parse(input);
@@ -17,7 +17,7 @@ namespace SolutionGenerator.Parsing.Tests
         }
 
         [Fact]
-        public void PropertyArrayCanBeParsed()
+        public void CanParsePropertyArray()
         {
             const string input =
                 "add lib refs\n" +
