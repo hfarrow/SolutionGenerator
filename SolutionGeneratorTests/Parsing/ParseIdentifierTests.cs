@@ -19,7 +19,7 @@ namespace SolutionGenerator.Tests.Parsing
         [InlineData("myID1")]
         public void IdentifierIsValid(string input)
         {
-            string id = BasicParser.Identifier.Parse(input);
+            string id = BasicParser.IdentifierToken.Parse(input);
             Assert.Equal(input, id);
         }
         
@@ -31,7 +31,7 @@ namespace SolutionGenerator.Tests.Parsing
         [InlineData("\"@myID")]
         public void IdentifierMustStartWithLetter(string input)
         {
-            Exception ex = Record.Exception(() => BasicParser.Identifier.Parse(input));
+            Exception ex = Record.Exception(() => BasicParser.IdentifierToken.Parse(input));
             Assert.NotNull(ex);
         }
 
@@ -39,14 +39,27 @@ namespace SolutionGenerator.Tests.Parsing
         [InlineData("my ID")]
         [InlineData("my'ID")]
         [InlineData("my\"ID")]
-        [InlineData("my$ID")]
         [InlineData("my*ID")]
         [InlineData("my[ID")]
         [InlineData("my{ID")]
         public void IdentifierMustNotIncludeInvalidChar(string input)
         {
-            string id = BasicParser.Identifier.Parse(input);
+            string id = BasicParser.IdentifierToken.Parse(input);
             Assert.Equal("my", id);
+        }
+        
+        [Theory]
+        [InlineData("$(VAR)")]
+        [InlineData("$(VAR)ID")]
+        [InlineData("$(VAR).ID")]
+        [InlineData("ID$(VAR)")]
+        [InlineData("ID.$(VAR)")]
+        [InlineData("ID.$(VAR).ID")]
+        [InlineData("$(VAR).ID.$(VAR)")]
+        public void IdentifierCanIncludeVariableExpansion(string input)
+        {
+            string id = BasicParser.IdentifierToken.Parse(input);
+            Assert.Equal(input, id);
         }
     }
 }

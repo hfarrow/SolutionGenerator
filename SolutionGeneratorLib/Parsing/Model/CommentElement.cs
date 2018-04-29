@@ -9,5 +9,10 @@
         {
             Comment = comment;
         }
+
+        public override string ToString()
+        {
+            return $"Comment{{{Comment}}}";
+        }
     }
 }

@@ -18,5 +18,10 @@ namespace SolutionGenerator.Parsing.Model
                 kvp => kvp.PairKey,
                 kvp => new HashSet<string>(kvp.PairValue.Value.ToString().Split(',')));
         }
+
+        public override string ToString()
+        {
+            return $"Configuration{{{ConfigurationName}}}";
+        }
     }
 }

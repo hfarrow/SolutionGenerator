@@ -9,5 +9,10 @@
         {
             CommandName = commandName;
         }
+
+        public override string ToString()
+        {
+            return $"Command{{{CommandName}}}";
+        }
     }
 }

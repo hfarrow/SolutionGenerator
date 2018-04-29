@@ -19,5 +19,10 @@ namespace SolutionGenerator.Parsing.Model
 
             FullName = string.Join(' ', NameParts);
         }
+
+        public override string ToString()
+        {
+            return $"Property{{{Action.ToString().ToLower()} {FullName}: {Value}}}";
+        }
     }
 }

@@ -18,6 +18,7 @@ namespace SolutionGenerator.Parsing.Model
             {
                 if (root is ConfigObject obj)
                 {
+                    yield return obj;
                     foreach (ObjectElement child in obj.EnumerateRecursively())
                     {
                         yield return child;
@@ -27,6 +28,7 @@ namespace SolutionGenerator.Parsing.Model
                 {
                     yield return root;
                 }
+                
             }
         }
     }

@@ -16,5 +16,7 @@
   <ItemGroup>
     <None Remove="Resources\TestTemplate.txt" />
     <EmbeddedResource Include="Resources\TestTemplate.txt" />
+    <None Remove="Resources\TestSolution.txt" />
+    <EmbeddedResource Include="Resources\TestSolution.txt" />
   </ItemGroup>
 </Project>

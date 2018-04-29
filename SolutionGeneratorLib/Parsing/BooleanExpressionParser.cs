@@ -37,7 +37,7 @@ namespace SolutionGenerator.Parsing
         private static readonly Parser<ExpressionType> or = Operator("||", ExpressionType.OrElse);
 
         private static readonly Parser<Expression> boolean =
-            BasicParser.Identifier
+            BasicParser.IdentifierToken
                 .Select(id => System.Linq.Expressions.Expression.Constant(conditionalConstants.Contains(id)))
                 .Named("boolean");
 

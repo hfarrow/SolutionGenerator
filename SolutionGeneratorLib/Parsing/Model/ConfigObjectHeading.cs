@@ -12,5 +12,12 @@
             Name = name;
             InheritedObjectName = inheritedObjectName;
         }
+
+        public override string ToString()
+        {
+            return string.IsNullOrEmpty(InheritedObjectName)
+                ? $"{{{Type} {Name}}}"
+                : $"{{{Type} {Name} : {InheritedObjectName}}}";
+        }
     }
 }

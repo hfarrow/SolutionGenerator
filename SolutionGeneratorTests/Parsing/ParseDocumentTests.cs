@@ -9,7 +9,7 @@ namespace SolutionGenerator.Tests.Parsing
     public class ParseDocumentTests
     {
         [Fact]
-        public void ParseSingleEmptyObject()
+        public void CanParseSingleEmptySingleLineObjectAtRoot()
         {
             const string input = "myType MyObject {}";
             ConfigDocument doc = DocumentParser.Document.Parse(input);
@@ -24,7 +24,7 @@ namespace SolutionGenerator.Tests.Parsing
         }
 
         [Fact]
-        public void ParseManyEmptyObjects()
+        public void CanParseManyEmptySingleLineObjectsAtRoot()
         {
             const string input =
                 "myType MyObject1 {}" +
@@ -44,6 +44,86 @@ namespace SolutionGenerator.Tests.Parsing
                 var obj = (ConfigObject) element;
                 Assert.Equal("myType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
+            }
+        }
+        
+        [Fact]
+        public void CanParseManyEmptySingleLineObjectsWithInheritanceAtRoot()
+        {
+            const string input =
+                "myType MyObject1 : InheritedObject {}" +
+                "myType MyObject2 : InheritedObject {}" +
+                "myType MyObject3 : InheritedObject {}";
+
+            ConfigDocument doc = DocumentParser.Document.Parse(input);
+
+            Assert.Equal(3, doc.RootElements.Count());
+            for (int i = 1; i <= 3; i++)
+            {
+                string expectedName = $"MyObject{i}";
+                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                Assert.NotNull(element);
+                Assert.IsType<ConfigObject>(element);
+
+                var obj = (ConfigObject) element;
+                Assert.Equal("myType", obj.Heading.Type);
+                Assert.Equal(expectedName, obj.Heading.Name);
+                Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
+            }
+        }
+        
+        [Fact]
+        public void CanParseManyEmptyMultiLineObjectsAtRoot()
+        {
+            const string input =
+                "myType MyObject1\n" +
+                "{\n" +
+                "}" +
+                "myType MyObject2\n" +
+                "{\n" +
+                "}";
+
+            ConfigDocument doc = DocumentParser.Document.Parse(input);
+            Assert.Equal(2, doc.RootElements.Count());
+            
+            for (int i = 1; i <= 2; i++)
+            {
+                string expectedName = $"MyObject{i}";
+                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                Assert.NotNull(element);
+                Assert.IsType<ConfigObject>(element);
+
+                var obj = (ConfigObject) element;
+                Assert.Equal("myType", obj.Heading.Type);
+                Assert.Equal(expectedName, obj.Heading.Name);
+            }
+        }
+        
+        [Fact]
+        public void CanParseManyEmptyMultiLineObjectsWithInheritanceAtRoot()
+        {
+            const string input =
+                "myType MyObject1 : InheritedObject\n" +
+                "{\n" +
+                "}" +
+                "myType MyObject2 : InheritedObject\n" +
+                "{\n" +
+                "}";
+
+            ConfigDocument doc = DocumentParser.Document.Parse(input);
+            Assert.Equal(2, doc.RootElements.Count());
+            
+            for (int i = 1; i <= 2; i++)
+            {
+                string expectedName = $"MyObject{i}";
+                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                Assert.NotNull(element);
+                Assert.IsType<ConfigObject>(element);
+
+                var obj = (ConfigObject) element;
+                Assert.Equal("myType", obj.Heading.Type);
+                Assert.Equal(expectedName, obj.Heading.Name);
+                Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
             }
         }
     }

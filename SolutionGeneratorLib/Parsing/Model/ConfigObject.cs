@@ -34,5 +34,10 @@ namespace SolutionGenerator.Parsing.Model
                 }
             }
         }
+
+        public override string ToString()
+        {
+            return "Object" + Heading;
+        }
     }
 }

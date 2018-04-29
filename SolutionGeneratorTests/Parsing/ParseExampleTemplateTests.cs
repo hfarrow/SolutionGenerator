@@ -56,8 +56,6 @@ namespace SolutionGenerator.Tests.Parsing
             this.fixture = fixture;
         }
 
-        
-        // TODO: Identifier must allow variable expansion -- $(MODULE_NAME).Tests OR Tests.$(MODULE_NAME)
         [Fact]
         public void CanLoadTemplateFileForTests()
         {
@@ -84,7 +82,7 @@ namespace SolutionGenerator.Tests.Parsing
                     ["Release"] = new HashSet<string> {"release"},
                 }),
                 ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME)", "true", ValidatePropertyValue("project")),
-                ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME)", "true", ValidatePropertyValue("project.tests")),
+                ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME).Tests", "true", ValidatePropertyValue("project.tests")),
                 ValidateConfigObject("settings", "project", null, false),
                 ValidateProperty(PropertyAction.Set, "include paths", "true", ValidatePropertyValue("./")),
                 ValidateProperty(PropertyAction.Set, "exclude paths", "true", ValidatePropertyValue("**/Tests/")),
@@ -103,8 +101,10 @@ namespace SolutionGenerator.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "project refs", "true", ValidatePropertyArrayValues(new[]{"$(MODULE_NAME)"})),
             };
 
-            Dictionary<ObjectElement, Action<ObjectElement>> zipped = fixture.Config.EnumerateRecursively()
-                .Zip(validators, (k, v) => new {k, v})
+            ObjectElement[] allElements = fixture.Config.EnumerateRecursively().ToArray();
+
+            Dictionary<ObjectElement, Action<ObjectElement>> zipped = 
+                allElements.Zip(validators, (k, v) => new {k, v})
                 .ToDictionary(x => x.k, x => x.v);
             
             Assert.Equal(validators.Length, zipped.Count);
@@ -115,6 +115,7 @@ namespace SolutionGenerator.Tests.Parsing
                 Action<ObjectElement> validator = pair.Value;
                 Assert.NotNull(element);
                 Assert.NotNull(validator);
+                Debug.WriteLine("Validate Element: {0}", element);
                 validator(element);
             }
         }
@@ -138,7 +139,14 @@ namespace SolutionGenerator.Tests.Parsing
                 Assert.Equal(type, obj.Heading.Type);
                 Assert.Equal(name, obj.Heading.Name);
                 Assert.Equal(inherits, obj.Heading.InheritedObjectName);
-                Assert.True(isEmpty && !obj.Elements.Any());
+                if (isEmpty)
+                {
+                    Assert.False(obj.Elements.Any());
+                }
+                else
+                {
+                    Assert.True(obj.Elements.Any());
+                }
             };
         }
         
@@ -148,6 +156,7 @@ namespace SolutionGenerator.Tests.Parsing
             {
                 Assert.IsType<ConfigurationElement>(element);
                 var configuration = (ConfigurationElement) element;
+                Assert.Equal(name, configuration.ConfigurationName);
                 Assert.Equal(configurations, configuration.Configurations);
             };
         }
@@ -163,6 +172,7 @@ namespace SolutionGenerator.Tests.Parsing
                 Assert.Equal(fullName, property.FullName);
                 Assert.Equal(conditionalExpr, property.ConditionalExpression);
                 
+                Debug.WriteLine("Validate Property Value: {0}", property.Value);
                 valueValidator?.Invoke(property.Value);
             };
         }
@@ -171,7 +181,7 @@ namespace SolutionGenerator.Tests.Parsing
         {
             return (element) =>
             {
-                Assert.IsType<ValueElement>(element);
+                Assert.IsAssignableFrom<ValueElement>(element);
                 Assert.Equal(value, element.Value);
             };
         }

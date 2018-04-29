@@ -1,4 +1,13 @@
-// Test Comment
+solution MySolution
+{
+
+}
+
+module TestModule : TestTemplate
+{
+
+}
+
 template TestTemplate
 {
     configuration everything
