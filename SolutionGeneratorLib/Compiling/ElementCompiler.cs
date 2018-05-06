@@ -19,13 +19,13 @@ namespace SolutionGenerator.Compiling
                 return Result.Continue;
             }
 
-            return GenerateCompiledAction(settings, element, definition);
+            return CompileElement(settings, element, definition);
         }
 
         protected bool ConditionalEvaluation { get; private set; }
         protected abstract bool UseEvaluatedConditionalToSkip { get; }
 
-        protected abstract Result GenerateCompiledAction(Settings settings,
+        protected abstract Result CompileElement(Settings settings,
             TElement element, TDefinition definition);
     }
 

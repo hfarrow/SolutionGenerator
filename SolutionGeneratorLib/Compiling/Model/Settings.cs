@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using SolutionGenerator.Parsing;
 using SolutionGenerator.Parsing.Model;
@@ -46,31 +47,33 @@ namespace SolutionGenerator.Compiling.Model
         public Template Template { get; }
         public ObjectElement SettingsObject { get; }
         public string ConfigurationGroup { get; }
-        public string Configuration { get; }
-        public IEnumerable<string> ExternalDefineConstants { get; }
+        public string ConfigurationName { get; }
+        public string[] ExternalDefineConstants { get; }
         public HashSet<string> AllDefineConstants { get; }
 
         private readonly Dictionary<string, object> properties = new Dictionary<string, object>();
+        public bool HasProperty(string name) => properties.ContainsKey(name);
         public T GetProperty<T>(string name) => (T) properties[name];
         public void SetProperty<T>(string name, T value) => properties[name] = value;
 
         public Settings(Template template, ObjectElement settingsObject,
-            string configurationGroup, string configuration, IEnumerable<string> externalDefineConstants)
+            string configurationGroup, string configurationName, string[] externalDefineConstants)
         {
             Template = template;
             SettingsObject = settingsObject;
             ConfigurationGroup = configurationGroup;
-            Configuration = configuration;
+            ConfigurationName = configurationName;
             ExternalDefineConstants = externalDefineConstants;
 
             AllDefineConstants =
-                Template.Configurations[ConfigurationGroup].Configurations[Configuration]
+                Template.Configurations[ConfigurationGroup].Configurations[ConfigurationName]
                     .Concat(ExternalDefineConstants).ToHashSet();
         }
 
         public void Compile()
         {
             BooleanExpressionParser.SetConditionalConstants(AllDefineConstants);
+            ApplyBaseSettings();
             
             foreach (ConfigElement element in SettingsObject.Elements)
             {
@@ -98,13 +101,49 @@ namespace SolutionGenerator.Compiling.Model
             IsCompiled = true;
         }
 
-        public void Apply(Project project)
+        public void ApplyTo(Project project)
         {
+            var configuration = new Project.Configuration(ConfigurationName, AllDefineConstants);
+            project.SetConfiguration(ConfigurationName, configuration);           
             foreach (KeyValuePair<string,object> pair in properties)
             {
-                // TODO: make sure add vs set is being respected...
-                // settings can't be compiled individually. They must be stacked and then compiled.
-                project.SetProperty(pair.Key, pair.Value);
+                configuration.SetProperty(pair.Key, pair.Value);
+            }
+        }
+
+        private void ApplyBaseSettings()
+        {
+            string baseSettingsName = SettingsObject.Heading.InheritedObjectName;
+            if (string.IsNullOrEmpty(baseSettingsName))
+            {
+                return;
+            }
+
+            string baseSettingsKey =
+                Template.GetCompiledSettingsKey(
+                    SettingsObject.Heading.InheritedObjectName,
+                    ConfigurationGroup,
+                    ConfigurationName,
+                    ExternalDefineConstants);
+            
+            if(!Template.CompiledSettings.TryGetValue(baseSettingsKey, out Settings baseSettings))
+            {
+                throw new UndefinedSettingsObjectException(SettingsObject.Heading.InheritedObjectName,
+                    ConfigurationGroup, ConfigurationName, ExternalDefineConstants);
+            }
+
+            if (!baseSettings.IsCompiled)
+            {
+                throw new InvalidOperationException(string.Format("Base settings '{0}' must be compiled before it's inheritors. " +
+                                                                  "Was it defined before '{1}' in the template '{2}'?",
+                    baseSettings.SettingsObject.Heading.Name,
+                    SettingsObject.Heading.Name,
+                    Template.TemplateObject.Heading.Name));
+            }
+
+            foreach (KeyValuePair<string,object> pair in baseSettings.properties)
+            {
+                properties[pair.Key] = pair.Value;
             }
         }
 
@@ -156,6 +195,18 @@ namespace SolutionGenerator.Compiling.Model
         public UnrecognizedSettingsElementException(ConfigElement element)
             : base($"The element '{element}' is not recongized and cannot be compiled.")
         {
+        }
+    }
+
+    public sealed class UndefinedSettingsObjectException : Exception
+    {
+        public UndefinedSettingsObjectException(string name, string configurationGroup, string configurationName,
+            string[] externalDefineConstants)
+            : base(string.Format(
+                "A setting object named '{0}' was not defined for the following confuration: {1}.{2} ({3})",
+                name, configurationGroup, configurationName, string.Join(",", externalDefineConstants)))
+        {
+
         }
     }
 }

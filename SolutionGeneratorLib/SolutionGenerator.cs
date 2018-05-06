@@ -10,15 +10,35 @@ namespace SolutionGenerator
 {
     public class SolutionGenerator
     {
-        private ConfigDocument configDoc;
-        private ConfigReader reader;
+        internal ConfigDocument configDoc;
+        internal ConfigReader reader;
         
-        public SolutionGenerator(string solutionConfigPath)
+        public static SolutionGenerator FromPath(string solutionConfigPath)
         {
-            LoadSolutionConfig(solutionConfigPath);
+            string configText;
+            try
+            {
+                configText = File.ReadAllText(solutionConfigPath);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Solution config could not be loaded from path '{solutionConfigPath}'",
+                    nameof(solutionConfigPath), ex);
+            }
+            
+            var generator = new SolutionGenerator();
+            generator.ParseSolutionConfig(configText);
+            return generator;
         }
 
-        public void GenerateSolution(string[] externalDefineConstants)
+        public static SolutionGenerator FromText(string configText)
+        {
+            var generator = new SolutionGenerator();
+            generator.ParseSolutionConfig(configText);
+            return generator;
+        }
+
+        public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
             foreach (Template template in reader.Templates.Values)
             {
@@ -33,24 +53,13 @@ namespace SolutionGenerator
                     throw new UndefinedTemplateException(templateName);
                 }
 
-                template.Apply(module);
+                template.ApplyTo(configurationGroup, module, externalDefineConstants);
             }
         }
         
-        private void LoadSolutionConfig(string solutionConfigPath)
+        private void ParseSolutionConfig(string configText)
         {
-            string solutionConfigStr;
-            try
-            {
-                solutionConfigStr = File.ReadAllText(solutionConfigPath);
-            }
-            catch (Exception ex)
-            {
-                throw new ArgumentException($"Solution config could not be loaded from path '{solutionConfigPath}'",
-                    nameof(solutionConfigPath), ex);
-            }
-
-            IResult<ConfigDocument> result = DocumentParser.Document.TryParse(solutionConfigStr);
+            IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
             if (!result.WasSuccessful)
             {
                 throw new DataException($"Solution config could not be parsed: {result}");

@@ -6,12 +6,11 @@ namespace SolutionGenerator.Compiling.Model
     public class Module
     {
         public ObjectElement ModuleElement { get; }
+        public void AddProject(Project project) => projects[project.Name] = project;
+        public Project GetProject(string name) => projects[name];
+        public IReadOnlyCollection<Project> Projects => projects.Values;
         
-        private readonly Dictionary<string, object> properties = new Dictionary<string, object>();
-        public T GetProperty<T>(string name) => (T) properties[name];
-        public void SetProperty<T>(string name, T value) => properties[name] = value;
-        
-        private Dictionary<string, Project> Projects = new Dictionary<string, Project>();
+        private readonly Dictionary<string, Project> projects = new Dictionary<string, Project>();
         
         public Module(ObjectElement moduleElement)
         {
@@ -20,13 +19,8 @@ namespace SolutionGenerator.Compiling.Model
 
         public void Clear()
         {
-            properties.Clear();
-            Projects.Clear();
+            projects.Clear();
         }
 
-        public void AddProject(Project project)
-        {
-            Projects[project.Name] = project;
-        }
     }
 }

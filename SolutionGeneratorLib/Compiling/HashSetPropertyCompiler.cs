@@ -1,14 +1,15 @@
 ﻿using System.Collections.Generic;
+using System.Transactions;
 using SolutionGenerator.Compiling.Model;
 using SolutionGenerator.Parsing.Model;
 
 namespace SolutionGenerator.Compiling
 {
-    public class HashSetPropertyCompiler : ElementCompiler<PropertyElement, PropertyDefinition>
+    public class HashSetPropertyCompiler : PropertyCompiler
     {
         protected override bool UseEvaluatedConditionalToSkip => true;
 
-        protected override Result GenerateCompiledAction(Settings settings,
+        protected override Result CompileProperty(Settings settings,
             PropertyElement element, PropertyDefinition definition)
         {
             var values = settings.GetProperty<HashSet<string>>(element.FullName);

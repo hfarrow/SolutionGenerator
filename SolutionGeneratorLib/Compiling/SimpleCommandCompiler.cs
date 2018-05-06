@@ -7,7 +7,7 @@ namespace SolutionGenerator.Compiling
     {
         protected override bool UseEvaluatedConditionalToSkip => false;
         
-        protected override Result GenerateCompiledAction(Settings settings,
+        protected override Result CompileElement(Settings settings,
             CommandElement element, CommandDefinition definition)
         {
             return definition.CommandAction(settings);

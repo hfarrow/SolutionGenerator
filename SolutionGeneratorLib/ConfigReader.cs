@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using SolutionGenerator.Compiling.Model;
 using SolutionGenerator.Parsing.Model;
+using Module = SolutionGenerator.Compiling.Model.Module;
 
 namespace SolutionGenerator
 {
@@ -18,7 +20,7 @@ namespace SolutionGenerator
     {
         private readonly ConfigDocument solutionDoc;
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
-        public Solution Solution { get; }
+        public Solution Solution { get; private set; }
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
         
         public ConfigReader(ConfigDocument solutionDoc)
@@ -64,12 +66,30 @@ namespace SolutionGenerator
 
         private void ProcessSolution(ObjectElement solutionElement)
         {
-            
+            // Currently solution is empty but in the future could contain template and module include paths
+            Solution = new Solution(solutionElement);
         }
 
         private void ProcessModules(IEnumerable<ObjectElement> moduleElements)
         {
-            
+            foreach (ObjectElement moduleElement in moduleElements)
+            {
+                string templateName = moduleElement.Heading.InheritedObjectName;
+
+                if (Modules.ContainsKey(moduleElement.Heading.Name))
+                {
+                    throw new DuplicateModuleNameException(moduleElement,
+                        Modules[moduleElement.Heading.Name].ModuleElement);
+                }
+                
+                if (string.IsNullOrEmpty(templateName))
+                {
+                    throw new ModuleMissingTemplateInheritanceException(moduleElement);
+                }
+
+                var module = new Module(moduleElement);
+                Modules[moduleElement.Heading.Name] = module;
+            }
         }
         
         private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
@@ -83,12 +103,12 @@ namespace SolutionGenerator
                 }
 
                 var template = new Template(templateElement);
-                Templates.Add(templateElement.Heading.Name, template);
+                Templates[templateElement.Heading.Name] = template;
             }
         }
     }
 
-    public class InvalidObjectType : Exception
+    public sealed class InvalidObjectType : Exception
     {
         public InvalidObjectType(ObjectElement obj, params SectionType[] expectedTypes)
             : base(string.Format("'{0}' is not one of the expected types: {1}",
@@ -101,20 +121,38 @@ namespace SolutionGenerator
    
     public class DuplicateObjectNameException : Exception
     {
-        public DuplicateObjectNameException(ObjectElement newElement, ObjectElement existingElement)
-            : base(string.Format("A configuration with name '{0}' has already been defined:\n" +
-                                 "Existing Configuration:\n{1}\n" +
-                                 "Invalid Configuration:\n{2}",
-                newElement.Heading.Name, existingElement, newElement))
+        protected DuplicateObjectNameException(string objectType, ObjectElement newElement, ObjectElement existingElement)
+            : base(string.Format("A {0} object with name '{1}' has already been defined:\n" +
+                                 "Existing object:\n{2}\n" +
+                                 "Invalid object:\n{3}",
+                objectType, newElement.Heading.Name, existingElement, newElement))
         {
             
         }
     }
 
-    public class DuplicateTemplateNameException : DuplicateObjectNameException
+    public sealed class DuplicateTemplateNameException : DuplicateObjectNameException
     {
         public DuplicateTemplateNameException(ObjectElement newElement, ObjectElement existingElement)
-            : base(newElement, existingElement)
+            : base("template", newElement, existingElement)
+        {
+            
+        }
+    }
+    
+    public sealed class DuplicateModuleNameException : DuplicateObjectNameException
+    {
+        public DuplicateModuleNameException(ObjectElement newElement, ObjectElement existingElement)
+            : base("module", newElement, existingElement)
+        {
+            
+        }
+    }
+
+    public sealed class ModuleMissingTemplateInheritanceException : Exception
+    {
+        public ModuleMissingTemplateInheritanceException(ObjectElement module)
+            : base($"Module '{module.Heading.Name}' does not specify a template to inherit from.")
         {
             
         }

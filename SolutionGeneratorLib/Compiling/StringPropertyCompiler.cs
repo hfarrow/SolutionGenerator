@@ -4,11 +4,11 @@ using SolutionGenerator.Parsing.Model;
 
 namespace SolutionGenerator.Compiling
 {
-    public class StringPropertyCompiler : ElementCompiler<PropertyElement, PropertyDefinition>
+    public class StringPropertyCompiler : PropertyCompiler
     {
         protected override bool UseEvaluatedConditionalToSkip => true;
         
-        protected override Result GenerateCompiledAction(Settings settings,
+        protected override Result CompileProperty(Settings settings,
             PropertyElement element, PropertyDefinition definition)
         {
             if (element.Action == PropertyAction.Set)

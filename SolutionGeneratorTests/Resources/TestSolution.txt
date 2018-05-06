@@ -8,6 +8,11 @@ module TestModule : TestTemplate
 
 }
 
+module OtherTestModule : TestTemplate
+{
+
+}
+
 template TestTemplate
 {
     configuration everything
@@ -72,3 +77,4 @@ template TestTemplate
         ]
     }
 }
+

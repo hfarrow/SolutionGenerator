@@ -92,7 +92,12 @@ namespace SolutionGenerator.Compiling.Model
         {
             foreach (ObjectElement settingsObject in SettingsObjects.Values)
             {
-                string key = GetCompiledSettingsKey(configurationGroup, configuration, externalDefineConstants);
+                string key = GetCompiledSettingsKey(
+                    settingsObject.Heading.Name,
+                    configurationGroup,
+                    configuration,
+                    externalDefineConstants);
+                
                 if (CompiledSettings.ContainsKey(key))
                 {
                     continue;
@@ -106,7 +111,7 @@ namespace SolutionGenerator.Compiling.Model
             }
         }
 
-        public void Apply(Module module)
+        public void ApplyTo(string configurationGroup, Module module, string[] externalDefineConstants)
         {
             if (!IsCompiled)
             {
@@ -119,43 +124,35 @@ namespace SolutionGenerator.Compiling.Model
             foreach (KeyValuePair<string, PropertyElement> pair in ProjectDeclarations)
             {
                 var project = new Project(pair.Key);
-                
-                var settingsToApply = new Stack<Settings>();
-                Settings current = null;
-                do
-                {
-                    string settingsName = current == null
-                        ? pair.Value.ValueElement.Value.ToString()
-                        : current.SettingsObject.Heading.InheritedObjectName;
+                project.ClearConfigurations();
+                string settingsName = pair.Value.ValueElement.Value.ToString();
 
-                    if (!CompiledSettings.TryGetValue(settingsName, out Settings settings))
+                foreach (string configurationName in Configurations[configurationGroup].Configurations.Keys)
+                {
+                    string settingsKey = GetCompiledSettingsKey(settingsName, configurationGroup,
+                        configurationName, externalDefineConstants);
+                    
+                    if (!CompiledSettings.TryGetValue(settingsKey, out Settings settings))
                     {
-                        throw new UndefinedSettingsObjectException(settingsName);
+                        throw new UndefinedSettingsObjectException(settingsName, configurationGroup, configurationName,
+                            externalDefineConstants);
                     }
-
-                    current = settings;
-                    settingsToApply.Push(settings);
-
-                } while (!string.IsNullOrEmpty(current.SettingsObject.Heading.InheritedObjectName));
-
-                while (settingsToApply.Count > 0)
-                {
-                    Settings settings = settingsToApply.Pop();
-                    settings.Apply(project);
+                    
+                    settings.ApplyTo(project);
                 }
 
                 module.AddProject(project);
             }
         }
 
-        private string GetCompiledSettingsKey(string configurationGroup, string configuation,
+        public static string GetCompiledSettingsKey(string settingsName, string configurationGroup, string configuation,
             string[] externalDefineConstants)
         {
-            return configurationGroup + configuation + string.Join(string.Empty, externalDefineConstants);
+            return settingsName + configurationGroup + configuation + string.Join(string.Empty, externalDefineConstants);
         }
     }
     
-    public class DuplicateConfigurationNameException : Exception
+    public sealed class DuplicateConfigurationNameException : Exception
     {
         public DuplicateConfigurationNameException(ConfigurationElement newElement,
             ConfigurationElement existingElement)
@@ -168,16 +165,16 @@ namespace SolutionGenerator.Compiling.Model
         }
     }
 
-    public class DuplicateSettingsNameException : DuplicateObjectNameException
+    public sealed class DuplicateSettingsNameException : DuplicateObjectNameException
     {
         public DuplicateSettingsNameException(ObjectElement newElement, ObjectElement existingElement)
-            : base(newElement, existingElement)
+            : base("settings", newElement, existingElement)
         {
 
         }
     }
     
-    public class DuplicateProjectNameException : Exception
+    public sealed class DuplicateProjectNameException : Exception
     {
         public DuplicateProjectNameException(string name)
             : base($"A project named '{name}' was already defined.")
@@ -186,21 +183,12 @@ namespace SolutionGenerator.Compiling.Model
         }
     }
 
-    public class UnexpectedElementException : Exception
+    public sealed class UnexpectedElementException : Exception
     {
         public UnexpectedElementException(ConfigElement element, string expected)
             : base($"Expected element type was {expected} but actual element was: {element}")
         {
 
-        }
-    }
-
-    public class UndefinedSettingsObjectException : Exception
-    {
-        public UndefinedSettingsObjectException(string name)
-            : base($"A setting object named '{name} was never defined.")
-        {
-            
         }
     }
 }

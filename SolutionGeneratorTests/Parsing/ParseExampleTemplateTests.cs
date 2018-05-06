@@ -13,14 +13,14 @@ namespace SolutionGenerator.Tests.Parsing
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     // Created by XUnit at runtime
-    public class ExampleTemplateFixture : IDisposable
+    public class ParseExampleTemplateFixture : IDisposable
     {
         public readonly string TemplateText;
         public readonly ConfigDocument Config;
 
-        public ExampleTemplateFixture()
+        public ParseExampleTemplateFixture()
         {
-            Assembly assembly = typeof(ExampleTemplateFixture).GetTypeInfo().Assembly;
+            Assembly assembly = typeof(ParseExampleTemplateFixture).GetTypeInfo().Assembly;
 
             using (Stream stream =
                 assembly.GetManifestResourceStream("SolutionGenerator.Tests.Resources.TestTemplate.txt"))
@@ -47,11 +47,11 @@ namespace SolutionGenerator.Tests.Parsing
         }
     }
 
-    public class ParseExampleTemplateTests : IClassFixture<ExampleTemplateFixture>
+    public class ParseExampleTemplateTests : IClassFixture<ParseExampleTemplateFixture>
     {
-        private readonly ExampleTemplateFixture fixture;
+        private readonly ParseExampleTemplateFixture fixture;
 
-        public ParseExampleTemplateTests(ExampleTemplateFixture fixture)
+        public ParseExampleTemplateTests(ParseExampleTemplateFixture fixture)
         {
             this.fixture = fixture;
         }
