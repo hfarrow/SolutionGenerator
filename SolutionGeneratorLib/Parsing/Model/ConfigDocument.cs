@@ -1,25 +1,24 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace SolutionGenerator.Parsing.Model
 {
     public class ConfigDocument
     {
-        public IEnumerable<ObjectElement> RootElements { get; }
+        public IEnumerable<ConfigElement> RootElements { get; }
 
-        public ConfigDocument(IEnumerable<ObjectElement> rootElements)
+        public ConfigDocument(IEnumerable<ConfigElement> rootElements)
         {
             RootElements = rootElements;
         }
 
-        public IEnumerable<ObjectElement> EnumerateRecursively()
+        public IEnumerable<ConfigElement> EnumerateRecursively()
         {
-            foreach (ObjectElement root in RootElements)
+            foreach (ConfigElement root in RootElements)
             {
-                if (root is ConfigObject obj)
+                if (root is ObjectElement obj)
                 {
                     yield return obj;
-                    foreach (ObjectElement child in obj.EnumerateRecursively())
+                    foreach (ConfigElement child in obj.EnumerateRecursively())
                     {
                         yield return child;
                     }

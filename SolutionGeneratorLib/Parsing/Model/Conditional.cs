@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace SolutionGenerator.Parsing.Model
+﻿namespace SolutionGenerator.Parsing.Model
 {
     public class Conditional
     {

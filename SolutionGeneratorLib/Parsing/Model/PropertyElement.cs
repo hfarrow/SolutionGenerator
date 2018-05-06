@@ -7,22 +7,22 @@ namespace SolutionGenerator.Parsing.Model
         public PropertyAction Action { get; }
         public IEnumerable<string> NameParts { get; }
         public string FullName { get; }
-        public ValueElement Value { get; }
+        public ValueElement ValueElement { get; }
 
-        public PropertyElement(PropertyAction action, IEnumerable<string> nameParts, ValueElement value,
+        public PropertyElement(PropertyAction action, IEnumerable<string> nameParts, ValueElement valueElement,
             string conditionalExpression)
             : base(action.ToString(), conditionalExpression)
         {
             Action = action;
             NameParts = nameParts;
-            Value = value;
+            ValueElement = valueElement;
 
             FullName = string.Join(' ', NameParts);
         }
 
         public override string ToString()
         {
-            return $"Property{{{Action.ToString().ToLower()} {FullName}: {Value}}}";
+            return $"Property{{{Action.ToString().ToLower()} {FullName}: {ValueElement}}}";
         }
     }
 }

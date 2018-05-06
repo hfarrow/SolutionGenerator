@@ -20,7 +20,7 @@ namespace SolutionGenerator.Tests.Parsing
                 "]";
 
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
-            var array = propertyElement.Value as ArrayValue;
+            var array = propertyElement.ValueElement as ArrayValue;
             Assert.NotNull(array);
             Assert.Equal(3, array.Values.Count());
             Assert.Equal("Test/Path/A", array.Values.ElementAt(0).Value);
@@ -33,7 +33,7 @@ namespace SolutionGenerator.Tests.Parsing
             const string input = "add lib refs [ ]";
             
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
-            var array = propertyElement.Value as ArrayValue;
+            var array = propertyElement.ValueElement as ArrayValue;
             Assert.NotNull(array);
             Assert.Empty(array.Values);
         }
@@ -47,7 +47,7 @@ namespace SolutionGenerator.Tests.Parsing
                 "]";
             
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
-            var array = propertyElement.Value as ArrayValue;
+            var array = propertyElement.ValueElement as ArrayValue;
             Assert.NotNull(array);
             Assert.Empty(array.Values);
         }

@@ -1,6 +1,6 @@
 ﻿namespace SolutionGenerator.Parsing.Model
 {
-    public class CommandElement : ObjectElement
+    public class CommandElement : ConfigElement
     {
         public string CommandName { get; }
         

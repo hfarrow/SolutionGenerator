@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace SolutionGenerator.Parsing.Model
@@ -17,6 +16,11 @@ namespace SolutionGenerator.Parsing.Model
             Configurations = values.ToDictionary(
                 kvp => kvp.PairKey,
                 kvp => new HashSet<string>(kvp.PairValue.Value.ToString().Split(',')));
+
+            foreach (HashSet<string> defineConstants in Configurations.Values)
+            {
+                defineConstants.Add(configurationName);
+            }
         }
 
         public override string ToString()

@@ -1,6 +1,6 @@
 ﻿namespace SolutionGenerator.Parsing.Model
 {
-    public class CommentElement : ObjectElement
+    public class CommentElement : ConfigElement
     {
         public string Comment { get; }
 

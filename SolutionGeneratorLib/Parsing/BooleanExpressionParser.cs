@@ -25,6 +25,12 @@ namespace SolutionGenerator.Parsing
             return lambda.Parse(text);
         }
 
+        public static bool TryParseExpression(string text, out IResult<Expression<Func<bool>>> result)
+        {
+            result = lambda.TryParse(text);
+            return result.WasSuccessful;
+        }
+
         public static bool InvokeExpression(string text)
         {
             return ParseExpression(text).Compile().Invoke();

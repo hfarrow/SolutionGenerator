@@ -12,7 +12,7 @@ namespace SolutionGenerator.Tests.Parsing
         public void CanParseSingleLineProperty()
         {
             const string input = "set include files (false): value";
-            ObjectElement element = DocumentParser.ObjectElement.Parse(input);
+            ConfigElement element = DocumentParser.ObjectElement.Parse(input);
             Assert.NotNull(element);
             Assert.IsType<PropertyElement>(element);
         }
@@ -28,10 +28,10 @@ namespace SolutionGenerator.Tests.Parsing
                 "    Test/Path/C\n" +
                 "]";
 
-            ObjectElement element = DocumentParser.ObjectElement.Parse(input);
+            ConfigElement element = DocumentParser.ObjectElement.Parse(input);
             var property = element as PropertyElement;
             Assert.NotNull(property);
-            var array = property.Value as ArrayValue;
+            var array = property.ValueElement as ArrayValue;
             Assert.NotNull(array);
             Assert.Equal(3, array.Values.Count());
             Assert.Equal("Test/Path/A", array.Values.ElementAt(0).Value);
@@ -42,7 +42,7 @@ namespace SolutionGenerator.Tests.Parsing
         public void CanParseComment()
         {
             const string input = "// My Comment";
-            ObjectElement element = DocumentParser.ObjectElement.Parse(input);
+            ConfigElement element = DocumentParser.ObjectElement.Parse(input);
             Assert.NotNull(element);
             Assert.IsType<CommentElement>(element);
 

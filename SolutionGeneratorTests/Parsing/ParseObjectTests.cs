@@ -23,7 +23,7 @@ namespace SolutionGenerator.Tests.Parsing
                     "}")]
         public void CanParseEmptyObjectWithoutInheritance(string input)
         {
-            ConfigObject obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal("myType", obj.Heading.Type);
             Assert.Equal("MyObject", obj.Heading.Name);
@@ -45,7 +45,7 @@ namespace SolutionGenerator.Tests.Parsing
                     "}")]
         public void CanParseEmptyObjectWithInheritance(string input)
         {
-            ConfigObject obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal("myType", obj.Heading.Type);
             Assert.Equal("MyObject", obj.Heading.Name);
@@ -64,15 +64,15 @@ namespace SolutionGenerator.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ConfigObject obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
             Assert.Single(obj.Elements);
 
-            ObjectElement element = obj.Elements.FirstOrDefault();
+            ConfigElement element = obj.Elements.FirstOrDefault();
             Assert.NotNull(element);
-            Assert.IsType<ConfigObject>(element);
+            Assert.IsType<ObjectElement>(element);
 
-            var nestedObj = (ConfigObject) element;
+            var nestedObj = (ObjectElement) element;
             Assert.Equal("myNestedType", nestedObj.Heading.Type);
             Assert.Equal("MyNestedObject", nestedObj.Heading.Name);
             Assert.Single(nestedObj.Elements);
@@ -91,15 +91,15 @@ namespace SolutionGenerator.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ConfigObject obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
             Assert.Single(obj.Elements);
 
-            ObjectElement element = obj.Elements.FirstOrDefault();
+            ConfigElement element = obj.Elements.FirstOrDefault();
             Assert.NotNull(element);
-            Assert.IsType<ConfigObject>(element);
+            Assert.IsType<ObjectElement>(element);
 
-            var nestedObj = (ConfigObject) element;
+            var nestedObj = (ObjectElement) element;
             Assert.Equal("myNestedType", nestedObj.Heading.Type);
             Assert.Equal("MyNestedObject", nestedObj.Heading.Name);
             Assert.Single(nestedObj.Elements);
@@ -120,18 +120,18 @@ namespace SolutionGenerator.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ConfigObject root = DocumentParser.Object.Parse(input);
+            ObjectElement root = DocumentParser.Object.Parse(input);
             Assert.NotNull(root);
             Assert.Equal(2, root.Elements.Count());
             
             for (int i = 1; i <= 2; i++)
             {
                 string expectedName = $"My.NestedObject{i}";
-                ObjectElement element = root.Elements.ElementAtOrDefault(i - 1);
+                ConfigElement element = root.Elements.ElementAtOrDefault(i - 1);
                 Assert.NotNull(element);
-                Assert.IsType<ConfigObject>(element);
+                Assert.IsType<ObjectElement>(element);
 
-                var obj = (ConfigObject) element;
+                var obj = (ObjectElement) element;
                 Assert.Equal("myNestedType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
                 Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
@@ -150,7 +150,7 @@ namespace SolutionGenerator.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ConfigObject root = DocumentParser.Object.Parse(input);
+            ObjectElement root = DocumentParser.Object.Parse(input);
             Assert.NotNull(root);
         }
 
@@ -169,7 +169,7 @@ namespace SolutionGenerator.Tests.Parsing
                 "exclude", "skip"
             };
             
-            ConfigObject obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal(2, obj.Elements.Count());
             for (int i = 0; i < 2; i++)

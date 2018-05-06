@@ -67,7 +67,7 @@ namespace SolutionGenerator.Tests.Parsing
         [Fact]
         public void OrderOfElementsAndValuesMatchFile()
         {
-            Action<ObjectElement>[] validators =
+            Action<ConfigElement>[] validators =
             {
                 ValidateComment("// Test Comment"),
                 ValidateConfigObject("template", "TestTemplate", null, false),
@@ -101,18 +101,18 @@ namespace SolutionGenerator.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "project refs", "true", ValidatePropertyArrayValues(new[]{"$(MODULE_NAME)"})),
             };
 
-            ObjectElement[] allElements = fixture.Config.EnumerateRecursively().ToArray();
+            ConfigElement[] allElements = fixture.Config.EnumerateRecursively().ToArray();
 
-            Dictionary<ObjectElement, Action<ObjectElement>> zipped = 
+            Dictionary<ConfigElement, Action<ConfigElement>> zipped = 
                 allElements.Zip(validators, (k, v) => new {k, v})
                 .ToDictionary(x => x.k, x => x.v);
             
             Assert.Equal(validators.Length, zipped.Count);
 
-            foreach (KeyValuePair<ObjectElement, Action<ObjectElement>> pair in zipped)
+            foreach (KeyValuePair<ConfigElement, Action<ConfigElement>> pair in zipped)
             {
-                ObjectElement element = pair.Key;
-                Action<ObjectElement> validator = pair.Value;
+                ConfigElement element = pair.Key;
+                Action<ConfigElement> validator = pair.Value;
                 Assert.NotNull(element);
                 Assert.NotNull(validator);
                 Debug.WriteLine("Validate Element: {0}", element);
@@ -120,7 +120,7 @@ namespace SolutionGenerator.Tests.Parsing
             }
         }
 
-        private static Action<ObjectElement> ValidateComment(string value)
+        private static Action<ConfigElement> ValidateComment(string value)
         {
             return (element) =>
             {
@@ -130,12 +130,12 @@ namespace SolutionGenerator.Tests.Parsing
             };
         }
 
-        private static Action<ObjectElement> ValidateConfigObject(string type, string name, string inherits, bool isEmpty)
+        private static Action<ConfigElement> ValidateConfigObject(string type, string name, string inherits, bool isEmpty)
         {
             return (element) =>
             {
-                Assert.IsType<ConfigObject>(element);
-                var obj = (ConfigObject) element;
+                Assert.IsType<ObjectElement>(element);
+                var obj = (ObjectElement) element;
                 Assert.Equal(type, obj.Heading.Type);
                 Assert.Equal(name, obj.Heading.Name);
                 Assert.Equal(inherits, obj.Heading.InheritedObjectName);
@@ -150,7 +150,7 @@ namespace SolutionGenerator.Tests.Parsing
             };
         }
         
-        private static Action<ObjectElement> ValidateConfiguration(string name, Dictionary<string, HashSet<string>> configurations)
+        private static Action<ConfigElement> ValidateConfiguration(string name, Dictionary<string, HashSet<string>> configurations)
         {
             return (element) =>
             {
@@ -161,7 +161,7 @@ namespace SolutionGenerator.Tests.Parsing
             };
         }
         
-        private static Action<ObjectElement> ValidateProperty(PropertyAction action, string fullName,
+        private static Action<ConfigElement> ValidateProperty(PropertyAction action, string fullName,
             string conditionalExpr, Action<ValueElement> valueValidator)
         {
             return (element) =>
@@ -172,8 +172,8 @@ namespace SolutionGenerator.Tests.Parsing
                 Assert.Equal(fullName, property.FullName);
                 Assert.Equal(conditionalExpr, property.ConditionalExpression);
                 
-                Debug.WriteLine("Validate Property Value: {0}", property.Value);
-                valueValidator?.Invoke(property.Value);
+                Debug.WriteLine("Validate Property Value: {0}", property.ValueElement);
+                valueValidator?.Invoke(property.ValueElement);
             };
         }
 
@@ -201,7 +201,7 @@ namespace SolutionGenerator.Tests.Parsing
             };
         }
         
-        private static Action<ObjectElement> ValidateSimpleCommand(string name, string conditionalExpr)
+        private static Action<ConfigElement> ValidateSimpleCommand(string name, string conditionalExpr)
         {
             return (element) =>
             {

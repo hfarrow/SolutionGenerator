@@ -1,4 +1,4 @@
-﻿namespace SolutionGenerator.Model
+﻿namespace SolutionGenerator.Compiling.Model
 {
     public class Solution
     {

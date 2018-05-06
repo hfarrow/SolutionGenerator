@@ -14,11 +14,11 @@ namespace SolutionGenerator.Tests.Parsing
             const string input = "myType MyObject {}";
             ConfigDocument doc = DocumentParser.Document.Parse(input);
             Assert.Single(doc.RootElements);
-            ObjectElement element = doc.RootElements.FirstOrDefault();
+            ConfigElement element = doc.RootElements.FirstOrDefault();
             Assert.NotNull(element);
-            Assert.IsType<ConfigObject>(element);
+            Assert.IsType<ObjectElement>(element);
             
-            var obj = (ConfigObject) element;
+            var obj = (ObjectElement) element;
             Assert.Equal("myType", obj.Heading.Type);
             Assert.Equal("MyObject", obj.Heading.Name);
         }
@@ -37,11 +37,11 @@ namespace SolutionGenerator.Tests.Parsing
             for (int i = 1; i <= 3; i++)
             {
                 string expectedName = $"MyObject{i}";
-                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                ConfigElement element = doc.RootElements.ElementAtOrDefault(i - 1);
                 Assert.NotNull(element);
-                Assert.IsType<ConfigObject>(element);
+                Assert.IsType<ObjectElement>(element);
 
-                var obj = (ConfigObject) element;
+                var obj = (ObjectElement) element;
                 Assert.Equal("myType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
             }
@@ -61,11 +61,11 @@ namespace SolutionGenerator.Tests.Parsing
             for (int i = 1; i <= 3; i++)
             {
                 string expectedName = $"MyObject{i}";
-                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                ConfigElement element = doc.RootElements.ElementAtOrDefault(i - 1);
                 Assert.NotNull(element);
-                Assert.IsType<ConfigObject>(element);
+                Assert.IsType<ObjectElement>(element);
 
-                var obj = (ConfigObject) element;
+                var obj = (ObjectElement) element;
                 Assert.Equal("myType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
                 Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
@@ -89,11 +89,11 @@ namespace SolutionGenerator.Tests.Parsing
             for (int i = 1; i <= 2; i++)
             {
                 string expectedName = $"MyObject{i}";
-                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                ConfigElement element = doc.RootElements.ElementAtOrDefault(i - 1);
                 Assert.NotNull(element);
-                Assert.IsType<ConfigObject>(element);
+                Assert.IsType<ObjectElement>(element);
 
-                var obj = (ConfigObject) element;
+                var obj = (ObjectElement) element;
                 Assert.Equal("myType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
             }
@@ -116,11 +116,11 @@ namespace SolutionGenerator.Tests.Parsing
             for (int i = 1; i <= 2; i++)
             {
                 string expectedName = $"MyObject{i}";
-                ObjectElement element = doc.RootElements.ElementAtOrDefault(i - 1);
+                ConfigElement element = doc.RootElements.ElementAtOrDefault(i - 1);
                 Assert.NotNull(element);
-                Assert.IsType<ConfigObject>(element);
+                Assert.IsType<ObjectElement>(element);
 
-                var obj = (ConfigObject) element;
+                var obj = (ObjectElement) element;
                 Assert.Equal("myType", obj.Heading.Type);
                 Assert.Equal(expectedName, obj.Heading.Name);
                 Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);

@@ -15,7 +15,7 @@ namespace SolutionGenerator.Tests.Parsing
             PropertyElement p = DocumentParser.PropertySingleLine.Parse(input);
             Assert.NotEqual(PropertyAction.Invalid, p.Action);
             Assert.Equal("templates", p.FullName);
-            Assert.Equal("**/*.txt", ((GlobValue) p.Value).GlobStr);
+            Assert.Equal("**/*.txt", ((GlobValue) p.ValueElement).GlobStr);
             Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
         }
         
@@ -27,7 +27,7 @@ namespace SolutionGenerator.Tests.Parsing
             PropertyElement p = DocumentParser.PropertySingleLine.Parse(input);
             Assert.NotEqual(PropertyAction.Invalid, p.Action);
             Assert.Equal("include files", p.FullName);
-            Assert.Equal("**/*.txt", ((GlobValue) p.Value).GlobStr);
+            Assert.Equal("**/*.txt", ((GlobValue) p.ValueElement).GlobStr);
             Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
         }
 

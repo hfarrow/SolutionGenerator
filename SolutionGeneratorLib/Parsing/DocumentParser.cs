@@ -106,17 +106,17 @@ namespace SolutionGenerator.Parsing
                 select new CommandElement(cmd, conditional.Length >= 3 ? conditional : "true"))
             .Token().Named("command-element");
 
-        public static readonly Parser<ConfigObject> Object =
+        public static readonly Parser<ObjectElement> Object =
             (from heading in ObjectHeading
                 from lbrace in Parse.Char('{').Token()
                 from elements in ObjectElement.XMany()
                 from rbrace in Parse.Char('}').Token()
-                select new ConfigObject(heading, elements))
+                select new ObjectElement(heading, elements))
             .Token().Named("object");
 
-        public static readonly Parser<ObjectElement> ObjectElement =
+        public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertySingleLine
-                    .Or((Parser<ObjectElement>) PropertyArray)
+                    .Or((Parser<ConfigElement>) PropertyArray)
                     .Or(SimpleCommand)
                     .Or(Configuration)
                     .Or(Object)
