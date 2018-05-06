@@ -11,12 +11,12 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SolutionGeneratorLib\SolutionGeneratorLib.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <None Remove="Resources\TestTemplate.txt" />
     <EmbeddedResource Include="Resources\TestTemplate.txt" />
     <None Remove="Resources\TestSolution.txt" />
     <EmbeddedResource Include="Resources\TestSolution.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />
   </ItemGroup>
 </Project>
