@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling.Model
+namespace SolutionGen.Compiling.Model
 {
     public class Module
     {
@@ -9,12 +9,14 @@ namespace SolutionGenerator.Compiling.Model
         public void AddProject(Project project) => projects[project.Name] = project;
         public Project GetProject(string name) => projects[name];
         public IReadOnlyCollection<Project> Projects => projects.Values;
+        public string RootPath { get; }
         
         private readonly Dictionary<string, Project> projects = new Dictionary<string, Project>();
         
-        public Module(ObjectElement moduleElement)
+        public Module(ObjectElement moduleElement, string rootPath)
         {
             ModuleElement = moduleElement;
+            RootPath = rootPath;
         }
 
         public void Clear()

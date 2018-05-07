@@ -18,9 +18,8 @@ template TestTemplate
 
     settings project
     {
-        set include paths: "./"
-        set exclude paths: glob "**/Tests/"
         set include files: glob "*.{cs,txt,json,xml,md}"
+        set exclude files: glob "**/Tests/"
 
         set target framework: net4.6
         set language version: 6
@@ -54,8 +53,8 @@ template TestTemplate
         exclude (no-tests)
         skip (!test)
 
-        set include paths: glob "**/Tests/"
-        set exclude paths: empty
+        set include files: glob "**/Tests/**/*.{cs,txt,json,xml,md}"
+        set exclude files: empty
 
         add project refs
         [

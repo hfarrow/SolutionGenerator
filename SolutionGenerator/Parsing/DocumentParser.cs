@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing.Model;
 using Sprache;
-using KeyValuePair = SolutionGenerator.Parsing.Model.KeyValuePair;
+using KeyValuePair = SolutionGen.Parsing.Model.KeyValuePair;
 
-namespace SolutionGenerator.Parsing
+namespace SolutionGen.Parsing
 {
     public static class DocumentParser
     {

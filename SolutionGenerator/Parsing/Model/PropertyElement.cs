@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SolutionGenerator.Parsing.Model
+namespace SolutionGen.Parsing.Model
 {
     public class PropertyElement : CommandElement
     {

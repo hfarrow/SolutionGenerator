@@ -1,8 +1,8 @@
 ﻿using System;
-using SolutionGenerator.Compiling.Model;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Compiling.Model;
+using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling
+namespace SolutionGen.Compiling
 {
     public class CommandDefinition
     {

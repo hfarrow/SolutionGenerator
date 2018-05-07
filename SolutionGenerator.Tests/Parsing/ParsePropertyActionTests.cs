@@ -1,9 +1,9 @@
-﻿using SolutionGenerator.Parsing.Model;
-using SolutionGenerator.Parsing;
+﻿using SolutionGen.Parsing.Model;
+using SolutionGen.Parsing;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Tests.Parsing
+namespace SolutionGen.Tests.Parsing
 {
     public class ParsePropertyActionTests
     {

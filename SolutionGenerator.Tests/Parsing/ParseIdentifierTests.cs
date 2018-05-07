@@ -1,9 +1,9 @@
 ﻿using System;
-using SolutionGenerator.Parsing;
+using SolutionGen.Parsing;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Tests.Parsing
+namespace SolutionGen.Tests.Parsing
 {
     public class ParseIdentifierTests
     {

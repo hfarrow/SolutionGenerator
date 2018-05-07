@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using SolutionGenerator.Compiling.Model;
-using SolutionGenerator.Parsing.Model;
-using Module = SolutionGenerator.Compiling.Model.Module;
+using SolutionGen.Compiling.Model;
+using SolutionGen.Parsing.Model;
+using Module = SolutionGen.Compiling.Model.Module;
 
-namespace SolutionGenerator
+namespace SolutionGen
 {
     public enum SectionType
     {
@@ -22,10 +21,12 @@ namespace SolutionGenerator
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Solution Solution { get; private set; }
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
+        public string RootPath { get; }
         
-        public ConfigReader(ConfigDocument solutionDoc)
+        public ConfigReader(ConfigDocument solutionDoc, string rootPath)
         {
             this.solutionDoc = solutionDoc;
+            RootPath = rootPath;
             ProcessSolutionDoc();
         }
 
@@ -87,7 +88,7 @@ namespace SolutionGenerator
                     throw new ModuleMissingTemplateInheritanceException(moduleElement);
                 }
 
-                var module = new Module(moduleElement);
+                var module = new Module(moduleElement, RootPath);
                 Modules[moduleElement.Heading.Name] = module;
             }
         }

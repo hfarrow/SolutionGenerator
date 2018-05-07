@@ -1,23 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using SolutionGenerator.Parsing;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing;
+using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling.Model
+namespace SolutionGen.Compiling.Model
 {
     public class Settings
     {
         public static readonly List<PropertyDefinition> PropertyDefinitions = new List<PropertyDefinition>
         {
-            new PropertyDefinition<HashSet<string>, HashSetPropertyCompiler>("include paths",
-                new HashSet<string> {"./"}),
-            new PropertyDefinition<HashSet<string>, HashSetPropertyCompiler>("exclude paths"),
-            new PropertyDefinition<HashSet<string>, HashSetPropertyCompiler>("include files",
-                new HashSet<string> {"glob \".{cs,txt,json,xml,md}\""}),
-            new PropertyDefinition<HashSet<string>, HashSetPropertyCompiler>("lib refs"),
-            new PropertyDefinition<HashSet<string>, HashSetPropertyCompiler>("define constants"),
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("include files",
+                new HashSet<object> {"glob \".{cs,txt,json,xml,md}\""}),
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("exclude files"),
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("lib refs"),
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("define constants"),
             new PropertyDefinition<string, StringPropertyCompiler>("target framework", "net4.6"),
             new PropertyDefinition<string, StringPropertyCompiler>("language version", "6"),
         };

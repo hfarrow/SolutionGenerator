@@ -4,12 +4,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using SolutionGenerator.Parsing;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing;
+using SolutionGen.Parsing.Model;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Tests.Parsing
+namespace SolutionGen.Tests.Parsing
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     // Created by XUnit at runtime
@@ -73,20 +73,19 @@ namespace SolutionGenerator.Tests.Parsing
                 ValidateConfigObject("template", "TestTemplate", null, false),
                 ValidateConfiguration("everything", new Dictionary<string, HashSet<string>>
                 {
-                    ["Debug"] = new HashSet<string> {"debug", "test"},
-                    ["Release"] = new HashSet<string> {"release", "test"},
+                    ["Debug"] = new HashSet<string> {"debug", "test", "everything"},
+                    ["Release"] = new HashSet<string> {"release", "test", "everything"},
                 }),
                 ValidateConfiguration("no-tests", new Dictionary<string, HashSet<string>>
                 {
-                    ["Debug"] = new HashSet<string> {"debug"},
-                    ["Release"] = new HashSet<string> {"release"},
+                    ["Debug"] = new HashSet<string> {"debug", "no-tests"},
+                    ["Release"] = new HashSet<string> {"release", "no-tests"},
                 }),
                 ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME)", "true", ValidatePropertyValue("project")),
                 ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME).Tests", "true", ValidatePropertyValue("project.tests")),
                 ValidateConfigObject("settings", "project", null, false),
-                ValidateProperty(PropertyAction.Set, "include paths", "true", ValidatePropertyValue("./")),
-                ValidateProperty(PropertyAction.Set, "exclude paths", "true", ValidatePropertyValue("**/Tests/")),
                 ValidateProperty(PropertyAction.Set, "include files", "true", ValidatePropertyValue("*.{cs,txt,json,xml,md}")),
+                ValidateProperty(PropertyAction.Set, "exclude files", "true", ValidatePropertyValue("**/Tests/")),
                 ValidateProperty(PropertyAction.Set, "target framework", "true", ValidatePropertyValue("net4.6")),
                 ValidateProperty(PropertyAction.Set, "language version", "true", ValidatePropertyValue("6")),
                 ValidateProperty(PropertyAction.Add, "lib refs", "true", ValidatePropertyArrayValues(new[]{"Lib1.dll", "Lib2.dll"})),
@@ -96,8 +95,8 @@ namespace SolutionGenerator.Tests.Parsing
                 ValidateConfigObject("settings", "project.tests", "project", false),
                 ValidateSimpleCommand("exclude", "no-tests"),
                 ValidateSimpleCommand("skip", "!test"),
-                ValidateProperty(PropertyAction.Set, "include paths", "true", ValidatePropertyValue("**/Tests/")),
-                ValidateProperty(PropertyAction.Set, "exclude paths", "true", ValidatePropertyValue("empty")),
+                ValidateProperty(PropertyAction.Set, "include files", "true", ValidatePropertyValue("**/Tests/**/*.{cs,txt,json,xml,md}")),
+                ValidateProperty(PropertyAction.Set, "exclude files", "true", ValidatePropertyValue("empty")),
                 ValidateProperty(PropertyAction.Add, "project refs", "true", ValidatePropertyArrayValues(new[]{"$(MODULE_NAME)"})),
             };
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace SolutionGenerator.Parsing.Model
+namespace SolutionGen.Parsing.Model
 {
     public class ObjectElement : ConfigElement
     {

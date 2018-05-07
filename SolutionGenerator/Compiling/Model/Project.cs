@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace SolutionGenerator.Compiling.Model
+namespace SolutionGen.Compiling.Model
 {
     public class Project
     {

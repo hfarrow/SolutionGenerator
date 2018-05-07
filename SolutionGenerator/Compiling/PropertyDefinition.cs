@@ -1,7 +1,7 @@
 ﻿using System;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling
+namespace SolutionGen.Compiling
 {
     public class PropertyDefinition
     {

@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.Transactions;
-using SolutionGenerator.Compiling.Model;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Compiling.Model;
+using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling
+namespace SolutionGen.Compiling
 {
     public class HashSetPropertyCompiler : PropertyCompiler
     {
@@ -12,22 +11,26 @@ namespace SolutionGenerator.Compiling
         protected override Result CompileProperty(Settings settings,
             PropertyElement element, PropertyDefinition definition)
         {
-            var values = settings.GetProperty<HashSet<string>>(element.FullName);
+            var values = settings.GetProperty<HashSet<object>>(element.FullName);
             if (element.Action == PropertyAction.Set)
             {
                 values.Clear();
             }
 
-            if (element.ValueElement is GlobValue globValue)
+            switch (element.ValueElement)
             {
-                foreach (string path in ExpandGlob(globValue.GlobStr))
-                {
-                    values.Add(path);
-                }
-            }
-            else
-            {
-                values.Add(element.ValueElement.Value.ToString());
+                case GlobValue _:
+                    values.Add(element.ValueElement);
+                    break;
+                case ArrayValue arrayValue:
+                    foreach (ValueElement arrayElement in arrayValue.Values)
+                    {
+                        values.Add(arrayElement.Value.ToString());
+                    }
+                    break;
+                default:
+                    values.Add(element.ValueElement.Value.ToString());
+                    break;
             }
 
             return Result.Continue;

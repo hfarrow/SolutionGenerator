@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Parsing.Model;
 using Sprache;
 
-namespace SolutionGenerator.Parsing
+namespace SolutionGen.Parsing
 {
     public static class BasicParser
     {

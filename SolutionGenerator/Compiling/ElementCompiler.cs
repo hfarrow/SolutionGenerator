@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using SolutionGenerator.Compiling.Model;
-using SolutionGenerator.Parsing;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Compiling.Model;
+using SolutionGen.Parsing;
+using SolutionGen.Parsing.Model;
 using Sprache;
 
-namespace SolutionGenerator.Compiling
+namespace SolutionGen.Compiling
 {
     public abstract class ElementCompiler<TElement, TDefinition> : ElementCompiler
         where TElement : ConfigElement
@@ -46,12 +45,6 @@ namespace SolutionGenerator.Compiling
             }
 
             return result.Value.Compile().Invoke();
-        }
-        
-        public static IEnumerable<string> ExpandGlob(string globStr)
-        {
-            // TODO: use Microsoft.Extensions.FileSystemGlobbing
-            yield break;
         }
     }
     

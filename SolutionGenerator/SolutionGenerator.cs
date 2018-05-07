@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Data;
 using System.IO;
-using SolutionGenerator.Compiling.Model;
-using SolutionGenerator.Parsing;
-using SolutionGenerator.Parsing.Model;
+using SolutionGen.Compiling.Model;
+using SolutionGen.Parsing;
+using SolutionGen.Parsing.Model;
 using Sprache;
 
-namespace SolutionGenerator
+namespace SolutionGen
 {
     public class SolutionGenerator
     {
@@ -27,14 +27,14 @@ namespace SolutionGenerator
             }
             
             var generator = new SolutionGenerator();
-            generator.ParseSolutionConfig(configText);
+            generator.ParseSolutionConfig(configText, Path.GetDirectoryName(solutionConfigPath));
             return generator;
         }
 
-        public static SolutionGenerator FromText(string configText)
+        public static SolutionGenerator FromText(string configText, string rootPath)
         {
             var generator = new SolutionGenerator();
-            generator.ParseSolutionConfig(configText);
+            generator.ParseSolutionConfig(configText, rootPath);
             return generator;
         }
 
@@ -57,7 +57,7 @@ namespace SolutionGenerator
             }
         }
         
-        private void ParseSolutionConfig(string configText)
+        private void ParseSolutionConfig(string configText, string rootPath)
         {
             IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
             if (!result.WasSuccessful)
@@ -66,7 +66,7 @@ namespace SolutionGenerator
             }
 
             configDoc = result.Value;
-            reader = new ConfigReader(configDoc);
+            reader = new ConfigReader(configDoc, rootPath);
         }
     }
 

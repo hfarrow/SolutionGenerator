@@ -1,4 +1,4 @@
-﻿namespace SolutionGenerator.Parsing.Model
+﻿namespace SolutionGen.Parsing.Model
 {
     public class CommandElement : ConfigElement
     {

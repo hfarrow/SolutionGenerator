@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using Sprache;
 
-namespace SolutionGenerator.Parsing
+namespace SolutionGen.Parsing
 {
     public static class BooleanExpressionParser
     {

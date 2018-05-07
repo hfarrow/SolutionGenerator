@@ -1,6 +1,6 @@
-﻿using SolutionGenerator.Parsing.Model;
+﻿using SolutionGen.Parsing.Model;
 
-namespace SolutionGenerator.Compiling.Model
+namespace SolutionGen.Compiling.Model
 {
     public class Solution
     {

@@ -2,11 +2,11 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using SolutionGenerator.Compiling.Model;
+using SolutionGen.Compiling.Model;
 using Xunit;
-using Module = SolutionGenerator.Compiling.Model.Module;
+using Module = SolutionGen.Compiling.Model.Module;
 
-namespace SolutionGenerator.Tests
+namespace SolutionGen.Tests
 {
     // ReSharper disable once ClassNeverInstantiated.Global
     // Created by XUnit at runtime
@@ -40,7 +40,7 @@ namespace SolutionGenerator.Tests
         public SolutionGeneratorTests(SolutionGeneratorFixture fixture)
         {
             this.fixture = fixture;
-            generator = SolutionGenerator.FromText(fixture.ConfigText);
+            generator = SolutionGenerator.FromText(fixture.ConfigText, Directory.GetCurrentDirectory());
         }
         
         [Fact]

@@ -1,9 +1,9 @@
-﻿using SolutionGenerator.Parsing;
-using SolutionGenerator.Parsing.Model;
+﻿using SolutionGen.Parsing;
+using SolutionGen.Parsing.Model;
 using Sprache;
 using Xunit;
 
-namespace SolutionGenerator.Tests.Parsing
+namespace SolutionGen.Tests.Parsing
 {
     public class ParsePairValueTests
     {

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using SolutionGenerator.Parsing;
+using SolutionGen.Parsing;
 using Xunit;
 
-namespace SolutionGenerator.Tests.Parsing
+namespace SolutionGen.Tests.Parsing
 {
     public class ParseBooleanExpressionTests
     {

@@ -1,5 +1,5 @@
 ﻿
-namespace SolutionGenerator.Parsing.Model
+namespace SolutionGen.Parsing.Model
 {
     public abstract class ConfigElement
     {
