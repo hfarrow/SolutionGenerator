@@ -5,13 +5,13 @@ namespace SolutionGen.Parsing.Model
 {
     public class ConfigurationElement : CommandElement
     {
-        public string ConfigurationName { get; }
+        public string ConfigurationGroupName { get; }
         public IReadOnlyDictionary<string, HashSet<string>> Configurations { get; }
 
-        public ConfigurationElement(string configurationName, IEnumerable<KeyValuePair> values)
+        public ConfigurationElement(string configurationGroupName, IEnumerable<KeyValuePair> values)
             : base("configuration", "true")
         {
-            ConfigurationName = configurationName;
+            ConfigurationGroupName = configurationGroupName;
 
             Configurations = values.ToDictionary(
                 kvp => kvp.PairKey,
@@ -19,13 +19,13 @@ namespace SolutionGen.Parsing.Model
 
             foreach (HashSet<string> defineConstants in Configurations.Values)
             {
-                defineConstants.Add(configurationName);
+                defineConstants.Add(configurationGroupName);
             }
         }
 
         public override string ToString()
         {
-            return $"Configuration{{{ConfigurationName}}}";
+            return $"Configuration{{{ConfigurationGroupName}:{string.Join(',', Configurations.Keys)}}}";
         }
     }
 }

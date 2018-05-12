@@ -15,8 +15,9 @@ namespace SolutionGen.Compiling.Model
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionMap =
             PropertyDefinitions.ToDictionary(x => x.Name, x => x);
         
+        public string ActiveConfigurationGroup { get; set; }
         public ObjectElement SolutionObject { get; }
-        public Dictionary<string, ConfigurationElement> Configurations { get; } =
+        public Dictionary<string, ConfigurationElement> ConfigurationGroups { get; } =
             new Dictionary<string, ConfigurationElement>();
         public string[] TargetPlatforms { get; }
         public readonly Settings Settings;
@@ -36,16 +37,13 @@ namespace SolutionGen.Compiling.Model
                 switch (element)
                 {
                     case ConfigurationElement configurationElement
-                        when Configurations.ContainsKey(configurationElement.ConfigurationName):
+                        when ConfigurationGroups.ContainsKey(configurationElement.ConfigurationGroupName):
                         throw new DuplicateConfigurationNameException(configurationElement,
-                            Configurations[configurationElement.ConfigurationName]);
+                            ConfigurationGroups[configurationElement.ConfigurationGroupName]);
 
                     case ConfigurationElement configurationElement:
-                        Configurations.Add(configurationElement.ConfigurationName, configurationElement);
+                        ConfigurationGroups.Add(configurationElement.ConfigurationGroupName, configurationElement);
                         break;
-                    
-                    default:
-                        throw new UnexpectedElementException(element, "configuration; inline-settings");
                 }
             }
         }
@@ -58,7 +56,7 @@ namespace SolutionGen.Compiling.Model
             : base(string.Format("A configuration with name '{0}' has already been defined:\n" +
                                  "Existing Configuration:\n{1}\n" +
                                  "Invalid Configuration:\n{2}",
-                newElement.ConfigurationName, existingElement, newElement))
+                newElement.ConfigurationGroupName, existingElement, newElement))
         {
 
         }

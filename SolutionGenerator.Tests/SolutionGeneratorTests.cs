@@ -65,8 +65,8 @@ namespace SolutionGen.Tests
             Module module = sol.Modules["TestModule"];
             Assert.Equal("TestModule", module.ModuleElement.Heading.Name);
             Assert.Equal(2, module.Projects.Count);
-            Assert.Equal("$(MODULE_NAME)", module.Projects.ElementAt(0).Name);
-            Assert.Equal("$(MODULE_NAME).Tests", module.Projects.ElementAt(1).Name);
+            Assert.Equal("TestModule", module.Projects.ElementAt(0).Name);
+            Assert.Equal("TestModule.Tests", module.Projects.ElementAt(1).Name);
 
             Project firstProject = module.Projects.First();
             Assert.True(firstProject.HasConfiguration("Debug"));
@@ -82,7 +82,7 @@ namespace SolutionGen.Tests
                 Assert.Contains("test", release.DefineConstants);
             }
 
-            Assert.True(sol.Solution.Configurations.ContainsKey("everything"));
+            Assert.True(sol.Solution.ConfigurationGroups.ContainsKey("everything"));
         }
 
         [Fact]

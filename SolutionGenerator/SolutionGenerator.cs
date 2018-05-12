@@ -53,6 +53,8 @@ namespace SolutionGen
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
+            reader.Solution.ActiveConfigurationGroup = configurationGroup;
+            
             foreach (Template template in reader.Templates.Values)
             {
                 template.Compile(reader.Solution, externalDefineConstants);

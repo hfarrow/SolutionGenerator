@@ -16,11 +16,12 @@ namespace SolutionGen.Compiling.Model
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("exclude files"),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("lib refs"),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("define constants"),
-            new PropertyDefinition<string, StringPropertyCompiler>("target framework", "net4.6"),
+            new PropertyDefinition<string, StringPropertyCompiler>("target framework", "v4.6"),
             new PropertyDefinition<string, StringPropertyCompiler>("language version", "6"),
             
             // Solution Settings
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("target platforms"),
+            new PropertyDefinition<string, StringPropertyCompiler>("root namespace", ""),
         };
         
         public static readonly List<CommandDefinition> CommandDefinitions = new List<CommandDefinition>
@@ -70,7 +71,7 @@ namespace SolutionGen.Compiling.Model
             if (Template != null)
             {
                 AllDefineConstants =
-                    solution.Configurations[ConfigurationGroup].Configurations[ConfigurationName]
+                    solution.ConfigurationGroups[ConfigurationGroup].Configurations[ConfigurationName]
                         .Concat(ExternalDefineConstants).ToHashSet();
             }
             else

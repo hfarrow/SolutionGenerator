@@ -61,9 +61,9 @@ namespace SolutionGen.Compiling.Model
         
         public void Compile(Solution solution, string[] externalDefineConstants)
         {
-            foreach (ConfigurationElement configurationElement in solution.Configurations.Values)
+            foreach (ConfigurationElement configurationElement in solution.ConfigurationGroups.Values)
             {
-                string configurationGroup = configurationElement.ConfigurationName;
+                string configurationGroup = configurationElement.ConfigurationGroupName;
                 foreach (KeyValuePair<string, HashSet<string>> pair in configurationElement.Configurations)
                 {
                     string configuration = pair.Key;
@@ -111,11 +111,12 @@ namespace SolutionGen.Compiling.Model
             module.Clear();
             foreach (KeyValuePair<string, PropertyElement> pair in ProjectDeclarations)
             {
-                var project = new Project(pair.Key);
+                string projectName = ExpandProjectName(pair.Key, module.Name);
+                var project = new Project(projectName);
                 project.ClearConfigurations();
                 string settingsName = pair.Value.ValueElement.Value.ToString();
 
-                foreach (string configurationName in solution.Configurations[configurationGroup].Configurations.Keys)
+                foreach (string configurationName in solution.ConfigurationGroups[configurationGroup].Configurations.Keys)
                 {
                     string settingsKey = Settings.GetCompiledSettingsKey(settingsName, configurationGroup,
                         configurationName, externalDefineConstants);
@@ -132,8 +133,12 @@ namespace SolutionGen.Compiling.Model
                 module.AddProject(project);
             }
         }
+
+        private string ExpandProjectName(string projectName, string moduleName)
+        {
+            return projectName.Replace("$(MODULE_NAME)", moduleName);
+        }
     }
-    
 
     public sealed class DuplicateSettingsNameException : DuplicateObjectNameException
     {

@@ -71,22 +71,12 @@ namespace SolutionGen.Tests.Parsing
             {
                 ValidateComment("// Test Comment"),
                 ValidateConfigObject("template", "TestTemplate", null, false),
-                ValidateConfiguration("everything", new Dictionary<string, HashSet<string>>
-                {
-                    ["Debug"] = new HashSet<string> {"debug", "test", "everything"},
-                    ["Release"] = new HashSet<string> {"release", "test", "everything"},
-                }),
-                ValidateConfiguration("no-tests", new Dictionary<string, HashSet<string>>
-                {
-                    ["Debug"] = new HashSet<string> {"debug", "no-tests"},
-                    ["Release"] = new HashSet<string> {"release", "no-tests"},
-                }),
                 ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME)", "true", ValidatePropertyValue("project")),
                 ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME).Tests", "true", ValidatePropertyValue("project.tests")),
                 ValidateConfigObject("settings", "project", null, false),
                 ValidateProperty(PropertyAction.Set, "include files", "true", ValidatePropertyValue("*.{cs,txt,json,xml,md}")),
                 ValidateProperty(PropertyAction.Set, "exclude files", "true", ValidatePropertyValue("**/Tests/")),
-                ValidateProperty(PropertyAction.Set, "target framework", "true", ValidatePropertyValue("net4.6")),
+                ValidateProperty(PropertyAction.Set, "target framework", "true", ValidatePropertyValue("v4.6")),
                 ValidateProperty(PropertyAction.Set, "language version", "true", ValidatePropertyValue("6")),
                 ValidateProperty(PropertyAction.Add, "lib refs", "true", ValidatePropertyArrayValues(new[]{"Lib1.dll", "Lib2.dll"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "true", ValidatePropertyArrayValues(new[]{"DEFINE_A", "DEFINE_B"})),
@@ -146,17 +136,6 @@ namespace SolutionGen.Tests.Parsing
                 {
                     Assert.True(obj.Elements.Any());
                 }
-            };
-        }
-        
-        private static Action<ConfigElement> ValidateConfiguration(string name, Dictionary<string, HashSet<string>> configurations)
-        {
-            return (element) =>
-            {
-                Assert.IsType<ConfigurationElement>(element);
-                var configuration = (ConfigurationElement) element;
-                Assert.Equal(name, configuration.ConfigurationName);
-                Assert.Equal(configurations, configuration.Configurations);
             };
         }
         

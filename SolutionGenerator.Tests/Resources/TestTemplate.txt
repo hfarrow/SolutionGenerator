@@ -1,18 +1,6 @@
 // Test Comment
 template TestTemplate
 {
-    configuration everything
-    [
-        Debug: debug,test
-        Release: release,test
-    ]
-
-    configuration no-tests
-    [
-        Debug: debug
-        Release: release
-    ]
-
     add project $(MODULE_NAME) : project
     add project $(MODULE_NAME).Tests : project.tests
 
@@ -21,7 +9,7 @@ template TestTemplate
         set include files: glob "*.{cs,txt,json,xml,md}"
         set exclude files: glob "**/Tests/"
 
-        set target framework: net4.6
+        set target framework: v4.6
         set language version: 6
 
         add lib refs

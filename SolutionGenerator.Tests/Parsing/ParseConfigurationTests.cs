@@ -20,7 +20,7 @@ namespace SolutionGen.Tests.Parsing
             ConfigurationElement config = DocumentParser.Configuration.Parse(input);
             Assert.NotNull(config);
             Assert.Equal(2, config.Configurations.Count);
-            Assert.Equal("myConfig", config.ConfigurationName);
+            Assert.Equal("myConfig", config.ConfigurationGroupName);
             Assert.True(config.Configurations.ContainsKey("Name1"));
             Assert.True(config.Configurations.ContainsKey("Name2"));
 

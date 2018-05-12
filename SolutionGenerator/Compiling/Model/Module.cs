@@ -6,6 +6,7 @@ namespace SolutionGen.Compiling.Model
     public class Module
     {
         public ObjectElement ModuleElement { get; }
+        public string Name => ModuleElement.Heading.Name;
         public void AddProject(Project project) => projects[project.Name] = project;
         public Project GetProject(string name) => projects[name];
         public IReadOnlyCollection<Project> Projects => projects.Values;

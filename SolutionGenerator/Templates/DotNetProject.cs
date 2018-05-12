@@ -21,38 +21,117 @@ namespace SolutionGen.Templates {
             this.GenerationEnvironment = null;
             
             #line 6 ".\Templates\DotNetProject.tt"
-            this.Write("<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<Project ToolsVersion=\"12.0\" DefaultTarge" +
-                    "ts=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">\r\n    <Im" +
-                    "port Project=\"$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.p" +
-                    "rops\"\r\n            Condition=\"Exists(\'$(MSBuildExtensionsPath)\\$(MSBuildToolsVer" +
-                    "sion)\\Microsoft.Common.props\')\"/>\r\n    <PropertyGroup>\r\n        <Configuration C" +
-                    "ondition=\" \'$(Configuration)\' == \'\' \">Debug</Configuration>\r\n        <Platform C" +
-                    "ondition=\" \'$(Platform)\' == \'\' \">AnyCPU</Platform>\r\n        <ProjectGuid>{090EE0" +
-                    "1A-DB61-484E-B1EF-B194EA3CC6D1}</ProjectGuid>\r\n        <OutputType>Library</Outp" +
-                    "utType>\r\n        <AppDesignerFolder>Properties</AppDesignerFolder>\r\n        <Roo" +
-                    "tNamespace>ClassLibrary1</RootNamespace>\r\n        <AssemblyName>ClassLibrary1</A" +
-                    "ssemblyName>\r\n        <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>\r\n   " +
-                    "     <FileAlignment>512</FileAlignment>\r\n    </PropertyGroup>\r\n    <PropertyGrou" +
-                    "p Condition=\" \'$(Configuration)|$(Platform)\' == \'Debug|AnyCPU\' \">\r\n        <Plat" +
-                    "formTarget>AnyCPU</PlatformTarget>\r\n        <DebugSymbols>true</DebugSymbols>\r\n " +
-                    "       <DebugType>full</DebugType>\r\n        <Optimize>false</Optimize>\r\n        " +
-                    "<OutputPath>bin\\Debug\\</OutputPath>\r\n        <DefineConstants>DEBUG;TRACE</Defin" +
-                    "eConstants>\r\n        <ErrorReport>prompt</ErrorReport>\r\n        <WarningLevel>4<" +
-                    "/WarningLevel>\r\n    </PropertyGroup>\r\n    <PropertyGroup Condition=\" \'$(Configur" +
-                    "ation)|$(Platform)\' == \'Release|AnyCPU\' \">\r\n        <PlatformTarget>AnyCPU</Plat" +
-                    "formTarget>\r\n        <DebugType>pdbonly</DebugType>\r\n        <Optimize>true</Opt" +
-                    "imize>\r\n        <OutputPath>bin\\Release\\</OutputPath>\r\n        <DefineConstants>" +
-                    "TRACE</DefineConstants>\r\n        <ErrorReport>prompt</ErrorReport>\r\n        <War" +
-                    "ningLevel>4</WarningLevel>\r\n    </PropertyGroup>\r\n    <ItemGroup>\r\n        <Refe" +
-                    "rence Include=\"System\"/>\r\n        <Reference Include=\"System.Core\"/>\r\n        <R" +
-                    "eference Include=\"System.Data\"/>\r\n        <Reference Include=\"System.Xml\"/>\r\n   " +
-                    " </ItemGroup>\r\n    <ItemGroup>\r\n        <Compile Include=\"Class1.cs\"/>\r\n        " +
-                    "<Compile Include=\"Properties\\AssemblyInfo.cs\"/>\r\n    </ItemGroup>\r\n    <Import P" +
-                    "roject=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\"/>\r\n    <!-- To modify your" +
-                    " build process, add your task inside one of the targets below and uncomment it. " +
-                    "\r\n         Other similar extension points exist, see Microsoft.Common.targets.\r\n" +
-                    "    <Target Name=\"BeforeBuild\">\r\n    </Target>\r\n    <Target Name=\"AfterBuild\">\r\n" +
-                    "    </Target>\r\n    -->\r\n\r\n</Project>\r\n");
+            this.Write(@"<?xml version=""1.0"" encoding=""utf-8""?>
+<Project ToolsVersion=""12.0"" DefaultTargets=""Build"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+    <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props""
+            Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')""/>
+    <PropertyGroup>
+        <Configuration Condition="" '$(Configuration)' == '' "">");
+            
+            #line default
+            #line hidden
+            
+            #line 11 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( DefaultConfiguration ));
+            
+            #line default
+            #line hidden
+            
+            #line 11 ".\Templates\DotNetProject.tt"
+            this.Write("</Configuration>\r\n        <Platform Condition=\" \'$(Platform)\' == \'\' \">");
+            
+            #line default
+            #line hidden
+            
+            #line 12 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( DefaultPlatform ));
+            
+            #line default
+            #line hidden
+            
+            #line 12 ".\Templates\DotNetProject.tt"
+            this.Write("</Platform>\r\n        <ProjectGuid>{");
+            
+            #line default
+            #line hidden
+            
+            #line 13 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( ProjectGuid ));
+            
+            #line default
+            #line hidden
+            
+            #line 13 ".\Templates\DotNetProject.tt"
+            this.Write("}</ProjectGuid>\r\n        <OutputType>Library</OutputType>\r\n        <AppDesignerFo" +
+                    "lder>Properties</AppDesignerFolder>\r\n        <RootNamespace>");
+            
+            #line default
+            #line hidden
+            
+            #line 16 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( RootNamespace ));
+            
+            #line default
+            #line hidden
+            
+            #line 16 ".\Templates\DotNetProject.tt"
+            this.Write("</RootNamespace>\r\n        <AssemblyName>");
+            
+            #line default
+            #line hidden
+            
+            #line 17 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( Project.Name ));
+            
+            #line default
+            #line hidden
+            
+            #line 17 ".\Templates\DotNetProject.tt"
+            this.Write("</AssemblyName>\r\n        <TargetFrameworkVersion>");
+            
+            #line default
+            #line hidden
+            
+            #line 18 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( TargetFrameworkVersion ));
+            
+            #line default
+            #line hidden
+            
+            #line 18 ".\Templates\DotNetProject.tt"
+            this.Write("</TargetFrameworkVersion>\r\n        <LangVersion>");
+            
+            #line default
+            #line hidden
+            
+            #line 19 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( LanguageVersion ));
+            
+            #line default
+            #line hidden
+            
+            #line 19 ".\Templates\DotNetProject.tt"
+            this.Write("</LangVersion>\r\n        <FileAlignment>512</FileAlignment>\r\n    </PropertyGroup>\r" +
+                    "\n    <PropertyGroup Condition=\" \'$(Configuration)|$(Platform)\' == \'Debug|AnyCPU\'" +
+                    " \">\r\n        <PlatformTarget>AnyCPU</PlatformTarget>\r\n        <DebugSymbols>true" +
+                    "</DebugSymbols>\r\n        <DebugType>full</DebugType>\r\n        <Optimize>false</O" +
+                    "ptimize>\r\n        <OutputPath>bin\\Debug\\</OutputPath>\r\n        <DefineConstants>" +
+                    "DEBUG;TRACE</DefineConstants>\r\n        <ErrorReport>prompt</ErrorReport>\r\n      " +
+                    "  <WarningLevel>4</WarningLevel>\r\n    </PropertyGroup>\r\n    <PropertyGroup Condi" +
+                    "tion=\" \'$(Configuration)|$(Platform)\' == \'Release|AnyCPU\' \">\r\n        <PlatformT" +
+                    "arget>AnyCPU</PlatformTarget>\r\n        <DebugType>pdbonly</DebugType>\r\n        <" +
+                    "Optimize>true</Optimize>\r\n        <OutputPath>bin\\Release\\</OutputPath>\r\n       " +
+                    " <DefineConstants>TRACE</DefineConstants>\r\n        <ErrorReport>prompt</ErrorRep" +
+                    "ort>\r\n        <WarningLevel>4</WarningLevel>\r\n    </PropertyGroup>\r\n    <ItemGro" +
+                    "up>\r\n        <Reference Include=\"System\"/>\r\n        <Reference Include=\"System.C" +
+                    "ore\"/>\r\n        <Reference Include=\"System.Data\"/>\r\n        <Reference Include=\"" +
+                    "System.Xml\"/>\r\n    </ItemGroup>\r\n    <ItemGroup>\r\n        <Compile Include=\"Clas" +
+                    "s1.cs\"/>\r\n        <Compile Include=\"Properties\\AssemblyInfo.cs\"/>\r\n    </ItemGro" +
+                    "up>\r\n    <Import Project=\"$(MSBuildToolsPath)\\Microsoft.CSharp.targets\"/>\r\n    <" +
+                    "!-- To modify your build process, add your task inside one of the targets below " +
+                    "and uncomment it. \r\n         Other similar extension points exist, see Microsoft" +
+                    ".Common.targets.\r\n    <Target Name=\"BeforeBuild\">\r\n    </Target>\r\n    <Target Na" +
+                    "me=\"AfterBuild\">\r\n    </Target>\r\n    -->\r\n\r\n</Project>\r\n");
             
             #line default
             #line hidden

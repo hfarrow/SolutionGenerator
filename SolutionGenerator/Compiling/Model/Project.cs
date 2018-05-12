@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SolutionGen.Compiling.Model
 {
@@ -28,15 +29,18 @@ namespace SolutionGen.Compiling.Model
         }
         
         public string Name { get; }
-        private readonly Dictionary<string, Configuration> configurations = new Dictionary<string, Configuration>();
+        public Guid guid { get; }
         public bool HasConfiguration(string name) => configurations.ContainsKey(name);
         public Configuration GetConfiguration(string name) => configurations[name];
         public void SetConfiguration(string name, Configuration configuration) => configurations[name] = configuration;
         public void ClearConfigurations() => configurations.Clear();
+        
+        private readonly Dictionary<string, Configuration> configurations = new Dictionary<string, Configuration>();
 
         public Project(string name)
         {
             Name = name;
+            guid = Guid.NewGuid();
         }
     }
 }
