@@ -4,6 +4,7 @@ using System.IO;
 using SolutionGen.Compiling.Model;
 using SolutionGen.Parsing;
 using SolutionGen.Parsing.Model;
+using SolutionGen.Templates;
 using Sprache;
 
 namespace SolutionGen
@@ -37,25 +38,6 @@ namespace SolutionGen
             generator.ParseSolutionConfig(configText, rootPath);
             return generator;
         }
-
-        public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
-        {
-            foreach (Template template in reader.Templates.Values)
-            {
-                template.Compile(externalDefineConstants);
-            }
-            
-            foreach (Module module in reader.Modules.Values)
-            {
-                string templateName = module.ModuleElement.Heading.InheritedObjectName;
-                if (!reader.Templates.TryGetValue(templateName, out Template template))
-                {
-                    throw new UndefinedTemplateException(templateName);
-                }
-
-                template.ApplyTo(configurationGroup, module, externalDefineConstants);
-            }
-        }
         
         private void ParseSolutionConfig(string configText, string rootPath)
         {
@@ -67,6 +49,36 @@ namespace SolutionGen
 
             configDoc = result.Value;
             reader = new ConfigReader(configDoc, rootPath);
+        }
+
+        public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
+        {
+            foreach (Template template in reader.Templates.Values)
+            {
+                template.Compile(reader.Solution, externalDefineConstants);
+            }
+            
+            foreach (Module module in reader.Modules.Values)
+            {
+                string templateName = module.ModuleElement.Heading.InheritedObjectName;
+                if (!reader.Templates.TryGetValue(templateName, out Template template))
+                {
+                    throw new UndefinedTemplateException(templateName);
+                }
+
+                template.ApplyTo(configurationGroup, reader.Solution, module, externalDefineConstants);
+                foreach (Project project in module.Projects)
+                {
+                    var t4 = new DotNetProject
+                    {
+                        Solution = reader.Solution,
+                        Module = module,
+                        Project = project
+                    };
+
+                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", t4.TransformText());
+                }
+            }
         }
     }
 

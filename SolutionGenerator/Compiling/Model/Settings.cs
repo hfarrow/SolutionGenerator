@@ -10,6 +10,7 @@ namespace SolutionGen.Compiling.Model
     {
         public static readonly List<PropertyDefinition> PropertyDefinitions = new List<PropertyDefinition>
         {
+            // Module/Project Settings
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("include files",
                 new HashSet<object> {"glob \".{cs,txt,json,xml,md}\""}),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("exclude files"),
@@ -17,6 +18,9 @@ namespace SolutionGen.Compiling.Model
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("define constants"),
             new PropertyDefinition<string, StringPropertyCompiler>("target framework", "net4.6"),
             new PropertyDefinition<string, StringPropertyCompiler>("language version", "6"),
+            
+            // Solution Settings
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("target platforms"),
         };
         
         public static readonly List<CommandDefinition> CommandDefinitions = new List<CommandDefinition>
@@ -53,7 +57,8 @@ namespace SolutionGen.Compiling.Model
         public T GetProperty<T>(string name) => (T) properties[name];
         public void SetProperty<T>(string name, T value) => properties[name] = value;
 
-        public Settings(Template template, ObjectElement settingsObject,
+        // TODO: Just pass in AllDefines now that configurations declaration was moved to Solution object
+        public Settings(Template template, Solution solution, ObjectElement settingsObject,
             string configurationGroup, string configurationName, string[] externalDefineConstants)
         {
             Template = template;
@@ -62,9 +67,18 @@ namespace SolutionGen.Compiling.Model
             ConfigurationName = configurationName;
             ExternalDefineConstants = externalDefineConstants;
 
-            AllDefineConstants =
-                Template.Configurations[ConfigurationGroup].Configurations[ConfigurationName]
-                    .Concat(ExternalDefineConstants).ToHashSet();
+            if (Template != null)
+            {
+                AllDefineConstants =
+                    solution.Configurations[ConfigurationGroup].Configurations[ConfigurationName]
+                        .Concat(ExternalDefineConstants).ToHashSet();
+            }
+            else
+            {
+                AllDefineConstants = ExternalDefineConstants != null 
+                    ? ExternalDefineConstants.ToHashSet()
+                    : new HashSet<string>();
+            }
         }
 
         public void Compile()
@@ -80,9 +94,13 @@ namespace SolutionGen.Compiling.Model
                     case PropertyElement propertyElement when element is PropertyElement:
                         result = CompileProperty(propertyElement);
                         break;
+                    
+                    case CommandElement cmdElement when cmdElement.CommandName == "configuration":
+                        // Ignore configuration elements in settings. They are processed only by the Solution object
+                        continue;
 
-                    case CommandElement simpleCommandElement when element is CommandElement:
-                        result = CompileSimpleCommand(simpleCommandElement);
+                    case CommandElement cmdElement when element is CommandElement:
+                        result = CompileSimpleCommand(cmdElement);
                         break;
 
                     default:
@@ -111,13 +129,13 @@ namespace SolutionGen.Compiling.Model
         private void ApplyBaseSettings()
         {
             string baseSettingsName = SettingsObject.Heading.InheritedObjectName;
-            if (string.IsNullOrEmpty(baseSettingsName))
+            if (string.IsNullOrEmpty(baseSettingsName) || Template == null)
             {
                 return;
             }
 
             string baseSettingsKey =
-                Template.GetCompiledSettingsKey(
+                GetCompiledSettingsKey(
                     SettingsObject.Heading.InheritedObjectName,
                     ConfigurationGroup,
                     ConfigurationName,
@@ -164,6 +182,18 @@ namespace SolutionGen.Compiling.Model
             }
 
             return commandDef.Compiler.Compile(this, commandElement, commandDef);
+        }
+        
+        public static string GetCompiledSettingsKey(string settingsName, 
+            string configurationGroup = "", string configuation = "",
+            string[] externalDefineConstants = null)
+        {
+            string defines = "";
+            if (externalDefineConstants != null)
+            {
+                defines = string.Join(string.Empty, externalDefineConstants);
+            }
+            return settingsName + configurationGroup + configuation + defines;
         }
     }
     

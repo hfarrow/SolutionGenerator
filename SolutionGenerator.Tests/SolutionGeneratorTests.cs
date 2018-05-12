@@ -34,12 +34,10 @@ namespace SolutionGen.Tests
     
     public class SolutionGeneratorTests : IClassFixture<SolutionGeneratorFixture>
     {
-        private readonly SolutionGeneratorFixture fixture;
         private readonly SolutionGenerator generator;
 
         public SolutionGeneratorTests(SolutionGeneratorFixture fixture)
         {
-            this.fixture = fixture;
             generator = SolutionGenerator.FromText(fixture.ConfigText, Directory.GetCurrentDirectory());
         }
         
@@ -84,8 +82,7 @@ namespace SolutionGen.Tests
                 Assert.Contains("test", release.DefineConstants);
             }
 
-            Template template = sol.Templates["TestTemplate"];
-            Assert.True(template.Configurations.ContainsKey("everything"));
+            Assert.True(sol.Solution.Configurations.ContainsKey("everything"));
         }
 
         [Fact]

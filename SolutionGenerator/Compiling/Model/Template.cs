@@ -10,9 +10,6 @@ namespace SolutionGen.Compiling.Model
         public ObjectElement TemplateObject { get; }
         public bool IsCompiled { get; private set; }
 
-        public Dictionary<string, ConfigurationElement> Configurations { get; } =
-            new Dictionary<string, ConfigurationElement>();
-
         public Dictionary<string, PropertyElement> ProjectDeclarations { get; } =
             new Dictionary<string, PropertyElement>();
         
@@ -33,15 +30,6 @@ namespace SolutionGen.Compiling.Model
             {
                 switch (element)
                 {
-                    case ConfigurationElement configurationElement
-                        when Configurations.ContainsKey(configurationElement.ConfigurationName):
-                        throw new DuplicateConfigurationNameException(configurationElement,
-                            Configurations[configurationElement.ConfigurationName]);
-
-                    case ConfigurationElement configurationElement:
-                        Configurations.Add(configurationElement.ConfigurationName, configurationElement);
-                        break;
-
                     case PropertyElement propertyElement when propertyElement.NameParts.First() != "project" ||
                                                               propertyElement.Action != PropertyAction.Add:
                         throw new UnexpectedElementException(element, "add project");
@@ -71,27 +59,27 @@ namespace SolutionGen.Compiling.Model
             }
         }
         
-        public void Compile(string[] externalDefineConstants)
+        public void Compile(Solution solution, string[] externalDefineConstants)
         {
-            foreach (ConfigurationElement configurationElement in Configurations.Values)
+            foreach (ConfigurationElement configurationElement in solution.Configurations.Values)
             {
                 string configurationGroup = configurationElement.ConfigurationName;
                 foreach (KeyValuePair<string, HashSet<string>> pair in configurationElement.Configurations)
                 {
                     string configuration = pair.Key;
-                    CompileSettings(configurationGroup, configuration, externalDefineConstants);
+                    CompileSettings(solution, configurationGroup, configuration, externalDefineConstants);
                 }
             }
 
             IsCompiled = true;
         }
 
-        private void CompileSettings(string configurationGroup, string configuration,
+        private void CompileSettings(Solution solution, string configurationGroup, string configuration,
             string[] externalDefineConstants)
         {
             foreach (ObjectElement settingsObject in SettingsObjects.Values)
             {
-                string key = GetCompiledSettingsKey(
+                string key = Settings.GetCompiledSettingsKey(
                     settingsObject.Heading.Name,
                     configurationGroup,
                     configuration,
@@ -102,7 +90,7 @@ namespace SolutionGen.Compiling.Model
                     continue;
                 }
 
-                var compiledSettings = new Settings(this, settingsObject, configurationGroup, configuration,
+                var compiledSettings = new Settings(this, solution, settingsObject, configurationGroup, configuration,
                     externalDefineConstants);
 
                 compiledSettings.Compile();
@@ -110,7 +98,8 @@ namespace SolutionGen.Compiling.Model
             }
         }
 
-        public void ApplyTo(string configurationGroup, Module module, string[] externalDefineConstants)
+        public void ApplyTo(string configurationGroup, Solution solution, Module module,
+            string[] externalDefineConstants)
         {
             if (!IsCompiled)
             {
@@ -126,9 +115,9 @@ namespace SolutionGen.Compiling.Model
                 project.ClearConfigurations();
                 string settingsName = pair.Value.ValueElement.Value.ToString();
 
-                foreach (string configurationName in Configurations[configurationGroup].Configurations.Keys)
+                foreach (string configurationName in solution.Configurations[configurationGroup].Configurations.Keys)
                 {
-                    string settingsKey = GetCompiledSettingsKey(settingsName, configurationGroup,
+                    string settingsKey = Settings.GetCompiledSettingsKey(settingsName, configurationGroup,
                         configurationName, externalDefineConstants);
                     
                     if (!CompiledSettings.TryGetValue(settingsKey, out Settings settings))
@@ -143,26 +132,8 @@ namespace SolutionGen.Compiling.Model
                 module.AddProject(project);
             }
         }
-
-        public static string GetCompiledSettingsKey(string settingsName, string configurationGroup, string configuation,
-            string[] externalDefineConstants)
-        {
-            return settingsName + configurationGroup + configuation + string.Join(string.Empty, externalDefineConstants);
-        }
     }
     
-    public sealed class DuplicateConfigurationNameException : Exception
-    {
-        public DuplicateConfigurationNameException(ConfigurationElement newElement,
-            ConfigurationElement existingElement)
-            : base(string.Format("A configuration with name '{0}' has already been defined:\n" +
-                                 "Existing Configuration:\n{1}\n" +
-                                 "Invalid Configuration:\n{2}",
-                newElement.ConfigurationName, existingElement, newElement))
-        {
-
-        }
-    }
 
     public sealed class DuplicateSettingsNameException : DuplicateObjectNameException
     {
@@ -177,15 +148,6 @@ namespace SolutionGen.Compiling.Model
     {
         public DuplicateProjectNameException(string name)
             : base($"A project named '{name}' was already defined.")
-        {
-
-        }
-    }
-
-    public sealed class UnexpectedElementException : Exception
-    {
-        public UnexpectedElementException(ConfigElement element, string expected)
-            : base($"Expected element type was {expected} but actual element was: {element}")
         {
 
         }
