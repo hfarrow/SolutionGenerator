@@ -24,17 +24,14 @@ namespace SolutionGen.Templates
             }
         }
 
-        public string ProjectGuid => Project.guid.ToString();
-
-        public string DefaultPlatform =>
-            Solution.Settings.GetProperty<HashSet<object>>("target platforms").First().ToString();
-        
-        public string RootNamespace => Solution.Settings.GetProperty<string>("root namespace");
+        public string ProjectGuid => Project.Guid.ToString().ToUpper();
+        public string DefaultPlatform => Solution.TargetPlatforms.First();
+        public string RootNamespace => Solution.Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE);
 
         public string TargetFrameworkVersion =>
-            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>("target framework");
+            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>(Settings.PROP_TARGET_FRAMEWORK);
 
         public string LanguageVersion =>
-            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>("language version");
+            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>(Settings.PROP_LANGUAGE_VERSION);
     }
 }
