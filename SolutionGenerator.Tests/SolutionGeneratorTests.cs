@@ -80,7 +80,7 @@ namespace SolutionGen.Tests
             if (configurationGroup == "everything")
             {
                 Assert.Contains("TEST", debug.DefineConstants);
-                Assert.Contains("TEST", release.DefineConstants);
+                Assert.DoesNotContain("TEST", release.DefineConstants);
             }
 
             Assert.True(sol.Solution.ConfigurationGroups.ContainsKey("everything"));

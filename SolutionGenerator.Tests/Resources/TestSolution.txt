@@ -3,7 +3,7 @@ solution MySolution
     configuration everything
     [
         Debug: debug,test
-        Release: release,test
+        Release: release
     ]
 
     configuration no-tests
