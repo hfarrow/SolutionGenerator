@@ -7,27 +7,40 @@ namespace SolutionGen.Compiling.Model
 {
     public class Solution
     {
-        public static readonly List<PropertyDefinition> PropertyDefinitions = new List<PropertyDefinition>
-        {
-            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>("target platforms"),
-        };
-        
-        private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionMap =
-            PropertyDefinitions.ToDictionary(x => x.Name, x => x);
-        
-        public string ActiveConfigurationGroup { get; set; }
         public ObjectElement SolutionObject { get; }
+        public string Name => SolutionObject.Heading.Name;
+        public Guid Guid { get; }
+        
         public Dictionary<string, ConfigurationElement> ConfigurationGroups { get; } =
             new Dictionary<string, ConfigurationElement>();
-        public string[] TargetPlatforms { get; }
+        
+        public string ActiveConfigurationGroup { get; set; }
+
+        public IReadOnlyDictionary<string, HashSet<string>> ActiveConfigurations =>
+            ConfigurationGroups[ActiveConfigurationGroup].Configurations;
+        
         public readonly Settings Settings;
+        public readonly HashSet<string> TargetPlatforms;
+        
+        public IReadOnlyCollection<Module> Modules => modules.Values;
+        public void AddModule(Module module) => modules[module.Name] = module;
+        public Module GetModule(string name) => modules[name];
+        private readonly Dictionary<string, Module> modules = new Dictionary<string, Module>();
         
         public Solution(ObjectElement solutionObject)
         {
             SolutionObject = solutionObject;
+            Guid = Guid.NewGuid();
+            
             ProcessElements();
             Settings = new Settings(null, this, solutionObject, null, null, null);
             Settings.Compile();
+
+            if (Settings.HasProperty(Settings.PROP_TARGET_PLATFORMS))
+            {
+                TargetPlatforms = Settings.GetProperty<HashSet<object>>(Settings.PROP_TARGET_PLATFORMS)
+                    .Select(o => o.ToString()).ToHashSet();
+            }
         }
 
         private void ProcessElements()

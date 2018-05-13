@@ -14,7 +14,7 @@ solution MySolution
 
     set target platforms
     [
-        AnyCPU
+        Any CPU
     ]
 
     set root namespace: MySolution
@@ -42,6 +42,18 @@ template TestTemplate
 
         set target framework: v4.6
         set language version: 6
+
+        set debug symbols (debug): true
+        set debug type (debug): full
+        set optimize (debug): false
+
+        set debug symbols (release): false
+        set debug type (release): pbonly
+        set optimize (release): true
+
+        set error report: prompt
+        set warning level: 4
+        set platform target: AnyCPU
 
         add lib refs
         [

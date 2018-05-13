@@ -62,6 +62,7 @@ namespace SolutionGen
             
             foreach (Module module in reader.Modules.Values)
             {
+                reader.Solution.AddModule(module);
                 string templateName = module.ModuleElement.Heading.InheritedObjectName;
                 if (!reader.Templates.TryGetValue(templateName, out Template template))
                 {
@@ -71,16 +72,23 @@ namespace SolutionGen
                 template.ApplyTo(configurationGroup, reader.Solution, module, externalDefineConstants);
                 foreach (Project project in module.Projects)
                 {
-                    var t4 = new DotNetProject
+                    var projectTemplate = new DotNetProject
                     {
                         Solution = reader.Solution,
                         Module = module,
                         Project = project
                     };
 
-                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", t4.TransformText());
+                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", projectTemplate.TransformText());
                 }
             }
+
+            var solutionTemplate = new DotNetSolution()
+            {
+                Solution = reader.Solution
+            };
+            
+            File.WriteAllText(Path.Combine(reader.RootPath, reader.Solution.Name) + ".sln", solutionTemplate.TransformText());
         }
     }
 

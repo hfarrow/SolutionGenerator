@@ -9,7 +9,7 @@ using Module = SolutionGen.Compiling.Model.Module;
 namespace SolutionGen.Tests
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    // Created by XUnit at runtime
+        // Created by XUnit at runtime
     public class SolutionGeneratorFixture : IDisposable
     {
         public readonly string ConfigText;
@@ -73,13 +73,14 @@ namespace SolutionGen.Tests
             Assert.True(firstProject.HasConfiguration("Release"));
             Project.Configuration debug = firstProject.GetConfiguration("Debug");
             Project.Configuration release = firstProject.GetConfiguration("Release");
-            Assert.Contains("debug", debug.DefineConstants);
-            Assert.Contains("release", release.DefineConstants);
+            Assert.Contains("DEBUG", debug.DefineConstants);
+            Assert.Contains("RELEASE", release.DefineConstants);
+            Assert.DoesNotContain("DEBUG", release.DefineConstants);
 
             if (configurationGroup == "everything")
             {
-                Assert.Contains("test", debug.DefineConstants);
-                Assert.Contains("test", release.DefineConstants);
+                Assert.Contains("TEST", debug.DefineConstants);
+                Assert.Contains("TEST", release.DefineConstants);
             }
 
             Assert.True(sol.Solution.ConfigurationGroups.ContainsKey("everything"));
@@ -89,13 +90,13 @@ namespace SolutionGen.Tests
         public void CanGenerateSolutionWithExternalDefineConstants()
         {
             ConfigReader sol = generator.reader;
-            generator.GenerateSolution("everything", "external");
+            generator.GenerateSolution("everything", "EXTERNAL");
             Module module = sol.Modules["TestModule"];
             Project firstProject = module.Projects.First();
             Project.Configuration debug = firstProject.GetConfiguration("Debug");
             Project.Configuration release = firstProject.GetConfiguration("Release");
-            Assert.Contains("external", debug.DefineConstants);
-            Assert.Contains("external", release.DefineConstants);
+            Assert.Contains("EXTERNAL", debug.DefineConstants);
+            Assert.Contains("EXTERNAL", release.DefineConstants);
         }
     }
 }

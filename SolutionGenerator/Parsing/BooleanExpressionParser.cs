@@ -7,17 +7,18 @@ namespace SolutionGen.Parsing
 {
     public static class BooleanExpressionParser
     {
-        private static readonly HashSet<string> conditionalConstants = new HashSet<string>
+        private static HashSet<string> conditionalConstants = new HashSet<string>
         {
             "true"
         };
 
         public static void SetConditionalConstants(HashSet<string> constants)
         {
-            conditionalConstants.UnionWith(constants);
+            conditionalConstants = new HashSet<string>(constants);
 
             // Never allow "false" to be evaluated to true.
             conditionalConstants.Remove("false");
+            conditionalConstants.Add("true");
         }
         
         public static Expression<Func<bool>> ParseExpression(string text)

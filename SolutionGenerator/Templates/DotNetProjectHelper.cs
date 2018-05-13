@@ -25,7 +25,7 @@ namespace SolutionGen.Templates
         }
 
         public string ProjectGuid => Project.Guid.ToString().ToUpper();
-        public string DefaultPlatform => Solution.TargetPlatforms.First();
+        public string DefaultPlatform => RemoveWhitespace(Solution.TargetPlatforms.First());
         public string RootNamespace => Solution.Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE);
 
         public string TargetFrameworkVersion =>
@@ -33,5 +33,24 @@ namespace SolutionGen.Templates
 
         public string LanguageVersion =>
             Project.GetConfiguration(DefaultConfiguration).GetProperty<string>(Settings.PROP_LANGUAGE_VERSION);
+
+        public string GetStringProperty(string configuration, string property) =>
+            Project.GetConfiguration(configuration).GetProperty<string>(property);
+
+        public HashSet<string> GetStringHashSetProperty(string configuration, string property) =>
+            Project.GetConfiguration(configuration).GetProperty<HashSet<object>>(property).Select(obj => obj.ToString())
+                .ToHashSet();
+
+        public string GetDefineConstants(string configuration) =>
+            string.Join(';', Project.GetConfiguration(configuration).DefineConstants);
+
+        public IEnumerable<string> TargetPlatforms => Solution.TargetPlatforms.Select(RemoveWhitespace);
+        
+        public string RemoveWhitespace(string input)
+        {
+            return new string(input.ToCharArray()
+                .Where(c => !char.IsWhiteSpace(c))
+                .ToArray());
+        }
     }
 }

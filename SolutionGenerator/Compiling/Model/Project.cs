@@ -29,7 +29,7 @@ namespace SolutionGen.Compiling.Model
         }
         
         public string Name { get; }
-        public Guid guid { get; }
+        public Guid Guid { get; }
         public bool HasConfiguration(string name) => configurations.ContainsKey(name);
         public Configuration GetConfiguration(string name) => configurations[name];
         public void SetConfiguration(string name, Configuration configuration) => configurations[name] = configuration;
@@ -40,7 +40,7 @@ namespace SolutionGen.Compiling.Model
         public Project(string name)
         {
             Name = name;
-            guid = Guid.NewGuid();
+            Guid = Guid.NewGuid();
         }
     }
 }

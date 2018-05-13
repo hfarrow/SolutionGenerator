@@ -65,7 +65,7 @@ namespace SolutionGen.Tests.Utils
         {
             var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
             string[] results = new SolutionGen.Utils.Glob(new[] {"*"}, new string[0]).FilterMatches(dir).ToArray();
-            Assert.False(results.Any(s => s[0] == '/' || s[0] == '\\'));
+            Assert.Contains(results, s => s[0] != '/' && s[0] != '\\');
             Assert.True(results.All(r => new FileInfo(Path.Combine(dir.FullName, r)).Exists));
         }
     }

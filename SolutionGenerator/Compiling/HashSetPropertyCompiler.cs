@@ -11,7 +11,7 @@ namespace SolutionGen.Compiling
         protected override Result CompileProperty(Settings settings,
             PropertyElement element, PropertyDefinition definition)
         {
-            var values = settings.GetProperty<HashSet<object>>(element.FullName);
+            var values = new HashSet<object>(settings.GetProperty<HashSet<object>>(element.FullName));
             if (element.Action == PropertyAction.Set)
             {
                 values.Clear();
@@ -32,6 +32,8 @@ namespace SolutionGen.Compiling
                     values.Add(element.ValueElement.Value.ToString());
                     break;
             }
+            
+            settings.SetProperty(element.FullName, values);
 
             return Result.Continue;
         }

@@ -3,6 +3,7 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="SolutionGen.Compiling.Model" #>
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
@@ -19,25 +20,22 @@
         <LangVersion><#= LanguageVersion #></LangVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
+<# foreach (string configuration in Solution.ActiveConfigurations.Keys)
+{
+    foreach (string platform in TargetPlatforms)
+    {#>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '<#= configuration #>|<#= platform #>' ">
+        <PlatformTarget><#= GetStringProperty(configuration, Settings.PROP_CONFIGURATION_PLATFORM_TARGET) #></PlatformTarget>
+        <DebugSymbols><#= GetStringProperty(configuration, Settings.PROP_DEBUG_SYMBOLS) #></DebugSymbols>
+        <DebugType><#= GetStringProperty(configuration, Settings.PROP_DEBUG_TYPE) #></DebugType>
+        <Optimize><#= GetStringProperty(configuration, Settings.PROP_OPTIMIZE) #></Optimize>
+        <OutputPath>bin\<#= configuration #>\</OutputPath>
+        <DefineConstants><#= GetDefineConstants(configuration) #></DefineConstants>
+        <ErrorReport><#= GetStringProperty(configuration, Settings.PROP_ERROR_REPORT) #></ErrorReport>
+        <WarningLevel><#= GetStringProperty(configuration, Settings.PROP_WARNING_LEVEL) #></WarningLevel>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
+<#  }
+}#>
     <ItemGroup>
         <Reference Include="System"/>
         <Reference Include="System.Core"/>
