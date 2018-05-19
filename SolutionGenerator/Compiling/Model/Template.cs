@@ -130,7 +130,10 @@ namespace SolutionGen.Compiling.Model
                     settings.ApplyToProject(project);
                 }
 
-                module.AddProject(project);
+                if (!project.ExcludedFromGeneration)
+                {
+                    module.AddProject(project);
+                }
             }
         }
 

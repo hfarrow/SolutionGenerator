@@ -64,9 +64,12 @@ namespace SolutionGen.Tests
 
             Module module = sol.Modules["TestModule"];
             Assert.Equal("TestModule", module.ModuleElement.Heading.Name);
-            Assert.Equal(2, module.Projects.Count);
+            Assert.Equal(configurationGroup == "everything" ? 2 : 1, module.Projects.Count);
             Assert.Equal("TestModule", module.Projects.ElementAt(0).Name);
-            Assert.Equal("TestModule.Tests", module.Projects.ElementAt(1).Name);
+            if (configurationGroup == "everything")
+            {
+                Assert.Equal("TestModule.Tests", module.Projects.ElementAt(1).Name);
+            }
 
             Project firstProject = module.Projects.First();
             Assert.True(firstProject.HasConfiguration("Debug"));

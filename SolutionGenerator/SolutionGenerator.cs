@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.IO;
+using System.Linq;
 using SolutionGen.Compiling.Model;
 using SolutionGen.Parsing;
 using SolutionGen.Parsing.Model;

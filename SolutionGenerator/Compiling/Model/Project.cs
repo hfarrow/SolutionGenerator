@@ -11,12 +11,19 @@ namespace SolutionGen.Compiling.Model
         public class Configuration
         {
             public string Name { get; }
+            public bool ExcludedFromGeneration;
 
             private readonly HashSet<string> defineConstants;
             
             private readonly Dictionary<string, object> properties = new Dictionary<string, object>();
             public T GetProperty<T>(string name) => (T) properties[name];
             public void SetProperty<T>(string name, T value) => properties[name] = value;
+
+            public bool HasPropertyWithValue<T>(string name, T expectedValue)
+            {
+                return properties.TryGetValue(name, out object obj) && Equals(obj, expectedValue);
+            }
+            
             public IReadOnlyCollection<string> DefineConstants => defineConstants;
             public IReadOnlyCollection<string> IncludeFiles { get; private set; }
             public IReadOnlyCollection<string> LibRefs { get; private set; }
@@ -29,6 +36,12 @@ namespace SolutionGen.Compiling.Model
             
             public void InitFromProperties(Project project)
             {
+                if (HasPropertyWithValue<bool>(Settings.PROP_EXCLUDE, true))
+                {
+                    ExcludedFromGeneration = true;
+                    return;
+                }
+                
                 // Include files, exclude files, lib refs
                 var includeFilesValues = GetProperty<HashSet<object>>(Settings.PROP_INCLUDE_FILES);
                 var excludeFilesValues = GetProperty<HashSet<object>>(Settings.PROP_EXCLUDE_FILES);
@@ -86,6 +99,7 @@ namespace SolutionGen.Compiling.Model
         public Configuration GetConfiguration(string name) => configurations[name];
         public void SetConfiguration(string name, Configuration configuration) => configurations[name] = configuration;
         public void ClearConfigurations() => configurations.Clear();
+        public bool ExcludedFromGeneration => configurations.Values.All(c => c.ExcludedFromGeneration);
         
         private readonly Dictionary<string, Configuration> configurations = new Dictionary<string, Configuration>();
 
