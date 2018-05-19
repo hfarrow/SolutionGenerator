@@ -48,6 +48,7 @@ namespace SolutionGen.Parsing
             (from arrayEnd in Parse.Char(']').Not()
                 from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
                     .Or(BasicParser.GlobValue)
+                    .Or(BasicParser.NoneValue)
                     .Or(PairValue)
                     .Or(Parse.AnyChar.Except(Parse.String("]").Or(Parse.LineTerminator)).AtLeastOnce().Text()
                         .Select(txt => new ValueElement(txt)))

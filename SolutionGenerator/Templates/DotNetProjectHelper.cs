@@ -52,5 +52,36 @@ namespace SolutionGen.Templates
                 .Where(c => !char.IsWhiteSpace(c))
                 .ToArray());
         }
+
+        private HashSet<string> commonIncludes;
+        public HashSet<string> GetCommonIncludes()
+        {
+            if (commonIncludes == null)
+            {
+                List<IReadOnlyCollection<string>> collections =
+                    Solution.ActiveConfigurations.Keys
+                        .Select(k => Project.GetConfiguration(k))
+                        .Select(c => c.IncludeFiles)
+                        .ToList();
+
+                commonIncludes = collections
+                    .Skip(1)
+                    .Aggregate(new HashSet<string>(collections.First()),
+                        (h, e) =>
+                        {
+                            h.IntersectWith(e);
+                            return h;
+                        });
+            }
+
+            return commonIncludes;
+        }
+
+        public HashSet<string> GetConfigurationSpecificIncludes(string configuration)
+        {
+            return Project.GetConfiguration(configuration)
+                .IncludeFiles.Except(GetCommonIncludes())
+                .ToHashSet();
+        }
     }
 }

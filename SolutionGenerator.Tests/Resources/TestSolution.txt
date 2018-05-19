@@ -22,12 +22,10 @@ solution MySolution
 
 module TestModule : TestTemplate
 {
-
 }
 
 module OtherTestModule : TestTemplate
 {
-
 }
 
 template TestTemplate
@@ -37,8 +35,8 @@ template TestTemplate
 
     settings project
     {
-        set include files: glob "*.{cs,txt,json,xml,md}"
-        set exclude files: glob "**/Tests/"
+        set include files: glob "**/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
+        set exclude files: glob "**/Tests/**"
 
         set target framework: v4.6
         set language version: 6
@@ -48,7 +46,7 @@ template TestTemplate
         set optimize (debug): false
 
         set debug symbols (release): false
-        set debug type (release): pbonly
+        set debug type (release): pdbonly
         set optimize (release): true
 
         set error report: prompt
@@ -81,6 +79,10 @@ template TestTemplate
 
     settings project.tests : project
     {
+        // Clear the inherited files
+        set include files: none
+        set exclude files: none
+
         exclude (no-tests)
         skip (!test)
 

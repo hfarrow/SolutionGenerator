@@ -103,6 +103,12 @@ namespace SolutionGen.Parsing
                 select new GlobValue(value))
             .Token().Named("glob");
 
+        public static readonly Parser<ValueElement> NoneValue =
+            (from none in Parse.String("none")
+                select new ValueElement(null))
+            .Token().Named("none");
+            
+
         /// <summary>
         /// Parses text enclosed within opening and closing char allowing for nested inner matches.
         /// The nexted sets are parsed recursively.

@@ -11,6 +11,7 @@ namespace SolutionGen.Compiling.Model
         public const string PROP_INCLUDE_FILES = "include files";
         public const string PROP_EXCLUDE_FILES = "exclude files";
         public const string PROP_LIB_REFS = "lib refs";
+        public const string PROP_PROJECT_REFS = "project refs";
         public const string PROP_DEFINE_CONSTANTS = "define constants";
         public const string PROP_TARGET_FRAMEWORK = "target framework";
         public const string PROP_LANGUAGE_VERSION = "language version";
@@ -22,7 +23,8 @@ namespace SolutionGen.Compiling.Model
         public const string PROP_CONFIGURATION_PLATFORM_TARGET = "platform target";
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_ROOT_NAMESPACE = "root namespace";
-        
+        public const string PROP_SKIP = "skip";
+        public const string PROP_EXCLUDE = "exclude";
         
         public static readonly List<PropertyDefinition> PropertyDefinitions = new List<PropertyDefinition>
         {
@@ -31,6 +33,7 @@ namespace SolutionGen.Compiling.Model
                 new HashSet<object> {"glob \".{cs,txt,json,xml,md}\""}),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>(PROP_EXCLUDE_FILES),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>(PROP_LIB_REFS),
+            new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>(PROP_PROJECT_REFS),
             new PropertyDefinition<HashSet<object>, HashSetPropertyCompiler>(PROP_DEFINE_CONSTANTS),
             new PropertyDefinition<string, StringPropertyCompiler>(PROP_TARGET_FRAMEWORK, "v4.6"),
             new PropertyDefinition<string, StringPropertyCompiler>(PROP_LANGUAGE_VERSION, "6"),
@@ -48,14 +51,14 @@ namespace SolutionGen.Compiling.Model
         
         public static readonly List<CommandDefinition> CommandDefinitions = new List<CommandDefinition>
         {
-            new CommandDefinition<SimpleCommandCompiler>("exclude", settings =>
+            new CommandDefinition<SimpleCommandCompiler>(PROP_EXCLUDE, settings =>
             {
-                settings.SetProperty("exclude", true);
+                settings.SetProperty(PROP_EXCLUDE, true);
                 return ElementCompiler.Result.Terminate;
             }),
-            new CommandDefinition<SimpleCommandCompiler>("skip", settings =>
+            new CommandDefinition<SimpleCommandCompiler>(PROP_SKIP, settings =>
             {
-                settings.SetProperty("skip", true);
+                settings.SetProperty(PROP_SKIP, true);
                 return ElementCompiler.Result.Terminate;
             }),
         };
@@ -124,6 +127,11 @@ namespace SolutionGen.Compiling.Model
                     case CommandElement cmdElement when element is CommandElement:
                         result = CompileSimpleCommand(cmdElement);
                         break;
+                    
+                    case CommentElement commentElement when element is CommentElement:
+                        // Do nothing
+                        result = ElementCompiler.Result.Continue;
+                        break;
 
                     default:
                         throw new UnrecognizedSettingsElementException(element);
@@ -152,7 +160,7 @@ namespace SolutionGen.Compiling.Model
             IsCompiled = true;
         }
 
-        public void ApplyTo(Project project)
+        public void ApplyToProject(Project project)
         {
             var configuration = new Project.Configuration(ConfigurationName, AllDefineConstants);
             project.SetConfiguration(ConfigurationName, configuration);           
@@ -160,6 +168,8 @@ namespace SolutionGen.Compiling.Model
             {
                 configuration.SetProperty(pair.Key, pair.Value);
             }
+
+            configuration.InitFromProperties(project);
         }
 
         private void ApplyBaseSettings()
@@ -194,6 +204,12 @@ namespace SolutionGen.Compiling.Model
 
             foreach (KeyValuePair<string,object> pair in baseSettings.properties)
             {
+                // Return a copy of any collection so that different projects don't modify the settings of other projects
+                // When refactoring, need to cleanly support any type of collection.
+                if (pair.Value is HashSet<object> hashset)
+                {
+                    properties[pair.Key] = new HashSet<object>(hashset);
+                }
                 properties[pair.Key] = pair.Value;
             }
         }

@@ -2,6 +2,7 @@
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
+<#@ import namespace="System.IO" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="SolutionGen.Compiling.Model" #>
 <?xml version="1.0" encoding="utf-8"?>
@@ -43,9 +44,22 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Class1.cs"/>
-        <Compile Include="Properties\AssemblyInfo.cs"/>
+        <!-- Common includes to all configurations -->
+<# foreach (string file in GetCommonIncludes())
+{#>
+        <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
+<#}#>
     </ItemGroup>
+
+<# foreach (string configuration in Solution.ActiveConfigurations.Keys)
+{#>
+    <ItemGroup Condition=" '$(Configuration)' == '<#= configuration #>' ">
+<#  foreach(string file in GetConfigurationSpecificIncludes(configuration))
+    {#>
+        <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
+<#  }#>
+    </ItemGroup>
+<#}#>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

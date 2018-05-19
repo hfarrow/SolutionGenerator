@@ -10,7 +10,9 @@ namespace SolutionGen.Compiling
         protected override Result CompileElement(Settings settings,
             CommandElement element, CommandDefinition definition)
         {
-            return definition.CommandAction(settings);
+            return ConditionalEvaluation 
+                ? definition.CommandAction(settings) 
+                : Result.Continue;
         }
     }
 }

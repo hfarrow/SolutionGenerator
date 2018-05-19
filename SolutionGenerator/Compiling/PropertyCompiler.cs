@@ -12,6 +12,8 @@ namespace SolutionGen.Compiling
         {
             if (!settings.HasProperty(definition.Name))
             {
+                // TODO: apply all defaults without requiring compile. The defaults might not be applied
+                // if 'skip' command is used.
                 settings.SetProperty(definition.Name, definition.DefaultValueObj);
             }
 

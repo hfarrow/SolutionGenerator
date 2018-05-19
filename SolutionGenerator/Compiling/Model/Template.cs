@@ -98,7 +98,7 @@ namespace SolutionGen.Compiling.Model
             }
         }
 
-        public void ApplyTo(string configurationGroup, Solution solution, Module module,
+        public void ApplyToModule(string configurationGroup, Solution solution, Module module,
             string[] externalDefineConstants)
         {
             if (!IsCompiled)
@@ -111,8 +111,8 @@ namespace SolutionGen.Compiling.Model
             module.Clear();
             foreach (KeyValuePair<string, PropertyElement> pair in ProjectDeclarations)
             {
-                string projectName = ExpandProjectName(pair.Key, module.Name);
-                var project = new Project(projectName);
+                string projectName = ExpandModuleName(pair.Key, module.Name);
+                var project = new Project(projectName, module);
                 project.ClearConfigurations();
                 string settingsName = pair.Value.ValueElement.Value.ToString();
 
@@ -127,16 +127,16 @@ namespace SolutionGen.Compiling.Model
                             externalDefineConstants);
                     }
                     
-                    settings.ApplyTo(project);
+                    settings.ApplyToProject(project);
                 }
 
                 module.AddProject(project);
             }
         }
 
-        private string ExpandProjectName(string projectName, string moduleName)
+        public static string ExpandModuleName(string str, string moduleName)
         {
-            return projectName.Replace("$(MODULE_NAME)", moduleName);
+            return str.Replace("$(MODULE_NAME)", moduleName);
         }
     }
 

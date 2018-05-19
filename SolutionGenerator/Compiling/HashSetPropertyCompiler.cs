@@ -28,6 +28,9 @@ namespace SolutionGen.Compiling
                         values.Add(arrayElement.Value.ToString());
                     }
                     break;
+                case ValueElement noneValue when noneValue.Value == null:
+                    // Do nothing. Values already cleared by "set" command and adding "none" is like a no-op
+                    break;
                 default:
                     values.Add(element.ValueElement.Value.ToString());
                     break;

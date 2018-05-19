@@ -69,7 +69,7 @@ namespace SolutionGen
                     throw new UndefinedTemplateException(templateName);
                 }
 
-                template.ApplyTo(configurationGroup, reader.Solution, module, externalDefineConstants);
+                template.ApplyToModule(configurationGroup, reader.Solution, module, externalDefineConstants);
                 foreach (Project project in module.Projects)
                 {
                     var projectTemplate = new DotNetProject
