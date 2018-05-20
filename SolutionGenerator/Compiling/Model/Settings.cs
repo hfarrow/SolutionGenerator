@@ -128,7 +128,7 @@ namespace SolutionGen.Compiling.Model
                         result = CompileSimpleCommand(cmdElement);
                         break;
                     
-                    case CommentElement commentElement when element is CommentElement:
+                    case CommentElement _ when element is CommentElement:
                         // Do nothing
                         result = ElementCompiler.Result.Continue;
                         break;
@@ -177,6 +177,11 @@ namespace SolutionGen.Compiling.Model
             string baseSettingsName = SettingsObject.Heading.InheritedObjectName;
             if (string.IsNullOrEmpty(baseSettingsName) || Template == null)
             {
+                // Apply defaults to any settings object that has no base settings.
+                foreach (KeyValuePair<string, PropertyDefinition> pair in propertyDefinitionMap)
+                {
+                    properties[pair.Key] = pair.Value.DefaultValueObj;
+                }
                 return;
             }
 

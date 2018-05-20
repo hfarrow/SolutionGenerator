@@ -26,6 +26,9 @@ namespace SolutionGen.Compiling.Model
         public void AddModule(Module module) => modules[module.Name] = module;
         public Module GetModule(string name) => modules[name];
         private readonly Dictionary<string, Module> modules = new Dictionary<string, Module>();
+        private readonly Dictionary<string, Project> projects = new Dictionary<string, Project>();
+        public void RegisterProject(Project project) => projects[project.Name] = project;
+        public Project GetProject(string name) => projects[name];
         
         public Solution(ObjectElement solutionObject)
         {

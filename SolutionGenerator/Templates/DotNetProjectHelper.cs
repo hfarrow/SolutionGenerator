@@ -60,7 +60,7 @@ namespace SolutionGen.Templates
             {
                 List<IReadOnlyCollection<string>> collections =
                     Solution.ActiveConfigurations.Keys
-                        .Select(k => Project.GetConfiguration(k))
+                        .Select(Project.GetConfiguration)
                         .Select(c => c.IncludeFiles)
                         .ToList();
 
@@ -81,6 +81,37 @@ namespace SolutionGen.Templates
         {
             return Project.GetConfiguration(configuration)
                 .IncludeFiles.Except(GetCommonIncludes())
+                .ToHashSet();
+        }
+
+        private HashSet<string> commonProjectRefs;
+        public HashSet<string> GetCommonProjectRefs()
+        {
+            if (commonProjectRefs == null)
+            {
+                List<IReadOnlyCollection<string>> collections =
+                    Solution.ActiveConfigurations.Keys
+                        .Select(Project.GetConfiguration)
+                        .Select(c => c.ProjectRefs)
+                        .ToList();
+
+                commonProjectRefs = collections
+                    .Skip(1)
+                    .Aggregate(new HashSet<string>(collections.First()),
+                        (h, e) =>
+                        {
+                            h.IntersectWith(e);
+                            return h;
+                        });
+            }
+
+            return commonProjectRefs;
+        }
+
+        public HashSet<string> GetConfigurationSpecificProjectRefs(string configuration)
+        {
+            return Project.GetConfiguration(configuration)
+                .ProjectRefs.Except(GetCommonProjectRefs())
                 .ToHashSet();
         }
     }

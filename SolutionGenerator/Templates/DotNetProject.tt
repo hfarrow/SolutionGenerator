@@ -44,10 +44,17 @@
         <Reference Include="System.Xml"/>
     </ItemGroup>
     <ItemGroup>
-        <!-- Common includes to all configurations -->
+        <!-- Common to all configurations -->
 <# foreach (string file in GetCommonIncludes())
 {#>
         <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
+<#}
+foreach (string projectName in GetCommonProjectRefs())
+{#>
+        <ProjectReference Include="<#= projectName #>.csproj" >
+            <Project>{<#=Solution.GetProject(projectName).Guid #>}</Project>
+            <Name><#= projectName #></Name>
+        </ProjectReference>
 <#}#>
     </ItemGroup>
 
@@ -57,6 +64,14 @@
 <#  foreach(string file in GetConfigurationSpecificIncludes(configuration))
     {#>
         <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
+<#  }
+
+    foreach(string projectName in GetConfigurationSpecificProjectRefs(configuration))
+    {#>
+        <ProjectReference Include="<#= projectName #>.csproj" >
+            <Project>{<#=Solution.GetProject(projectName).Guid #>}</Project>
+            <Name><#= projectName #></Name>
+        </ProjectReference>
 <#  }#>
     </ItemGroup>
 <#}#>

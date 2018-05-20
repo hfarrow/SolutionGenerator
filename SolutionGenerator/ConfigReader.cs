@@ -88,7 +88,7 @@ namespace SolutionGen
                     throw new ModuleMissingTemplateInheritanceException(moduleElement);
                 }
 
-                var module = new Module(moduleElement, RootPath);
+                var module = new Module(Solution, moduleElement, RootPath);
                 Modules[moduleElement.Heading.Name] = module;
             }
         }

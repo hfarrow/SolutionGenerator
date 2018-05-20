@@ -5,6 +5,7 @@ namespace SolutionGen.Compiling.Model
 {
     public class Module
     {
+        public Solution Solution { get; }
         public ObjectElement ModuleElement { get; }
         public string Name => ModuleElement.Heading.Name;
         public void AddProject(Project project) => projects[project.Name] = project;
@@ -14,8 +15,9 @@ namespace SolutionGen.Compiling.Model
         
         private readonly Dictionary<string, Project> projects = new Dictionary<string, Project>();
         
-        public Module(ObjectElement moduleElement, string rootPath)
+        public Module(Solution solution, ObjectElement moduleElement, string rootPath)
         {
+            Solution = solution;
             ModuleElement = moduleElement;
             RootPath = rootPath;
         }

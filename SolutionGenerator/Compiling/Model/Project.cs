@@ -27,6 +27,7 @@ namespace SolutionGen.Compiling.Model
             public IReadOnlyCollection<string> DefineConstants => defineConstants;
             public IReadOnlyCollection<string> IncludeFiles { get; private set; }
             public IReadOnlyCollection<string> LibRefs { get; private set; }
+            public IReadOnlyCollection<string> ProjectRefs { get; private set; }
 
             public Configuration(string name, HashSet<string> defineConstants)
             {
@@ -46,6 +47,7 @@ namespace SolutionGen.Compiling.Model
                 var includeFilesValues = GetProperty<HashSet<object>>(Settings.PROP_INCLUDE_FILES);
                 var excludeFilesValues = GetProperty<HashSet<object>>(Settings.PROP_EXCLUDE_FILES);
                 var libRefsValues = GetProperty<HashSet<object>>(Settings.PROP_LIB_REFS);
+                var projectRefsValues = GetProperty<HashSet<object>>(Settings.PROP_PROJECT_REFS);
 
                 var includePatterns = new HashSet<string>();
                 var excludePatterns = new HashSet<string>();
@@ -62,6 +64,7 @@ namespace SolutionGen.Compiling.Model
                     .ToHashSet();
                 
                 LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
+                ProjectRefs = projectRefsValues.Select(obj => Template.ExpandModuleName(obj.ToString(), project.Module.Name)).ToHashSet();
             }
 
             private static void ProcessFileValues(IEnumerable<object> filesValues, ISet<string> files, ISet<string> globs,

@@ -26,6 +26,21 @@ module TestModule : TestTemplate
 
 module OtherTestModule : TestTemplate
 {
+    settings project
+    {
+        add project refs
+        [
+            TestModule
+        ]
+    }
+
+    settings project.tests : project
+    {
+        add project refs
+        [
+            TestModule.Tests
+        ]
+    }
 }
 
 template TestTemplate
