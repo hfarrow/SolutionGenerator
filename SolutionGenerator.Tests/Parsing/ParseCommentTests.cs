@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using SolutionGen.Parsing;
+using SolutionGen.Parser;
 using Sprache;
 using Xunit;
 

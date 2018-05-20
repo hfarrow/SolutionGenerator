@@ -13,7 +13,7 @@ namespace SolutionGen.Templates {
     using System.Text;
     using System.IO;
     using System.Collections.Generic;
-    using SolutionGen.Compiling.Model;
+    using Generator.ModelOld;
     using System;
     
     

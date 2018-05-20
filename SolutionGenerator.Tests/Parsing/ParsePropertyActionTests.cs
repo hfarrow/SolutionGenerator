@@ -1,5 +1,5 @@
-﻿using SolutionGen.Parsing.Model;
-using SolutionGen.Parsing;
+﻿using SolutionGen.Parser.Model;
+using SolutionGen.Parser;
 using Sprache;
 using Xunit;
 

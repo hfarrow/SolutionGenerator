@@ -12,7 +12,7 @@ namespace SolutionGen.Templates {
     using System.Linq;
     using System.Text;
     using System.Collections.Generic;
-    using SolutionGen.Compiling.Model;
+    using Generator.ModelOld;
     using System;
     
     

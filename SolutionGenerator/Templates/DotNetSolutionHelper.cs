@@ -1,4 +1,4 @@
-﻿using SolutionGen.Compiling.Model;
+﻿using SolutionGen.Generator.ModelOld;
 
 namespace SolutionGen.Templates
 {

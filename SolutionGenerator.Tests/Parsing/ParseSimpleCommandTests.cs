@@ -1,6 +1,6 @@
-﻿using SolutionGen.Compiling.Model;
-using SolutionGen.Parsing;
-using SolutionGen.Parsing.Model;
+﻿using SolutionGen.Generator.ModelOld;
+using SolutionGen.Parser;
+using SolutionGen.Parser.Model;
 using Sprache;
 using Xunit;
 

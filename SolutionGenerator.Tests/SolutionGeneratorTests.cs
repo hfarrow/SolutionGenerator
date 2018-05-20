@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using SolutionGen.Compiling.Model;
+using SolutionGen.Generator.ModelOld;
 using Xunit;
-using Module = SolutionGen.Compiling.Model.Module;
+using Module = SolutionGen.Generator.ModelOld.Module;
 
 namespace SolutionGen.Tests
 {

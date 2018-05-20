@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using SolutionGen.Parsing;
-using SolutionGen.Parsing.Model;
+using SolutionGen.Parser;
+using SolutionGen.Parser.Model;
 using Sprache;
 using Xunit;
-using KeyValuePair = SolutionGen.Parsing.Model.KeyValuePair;
+using KeyValuePair = SolutionGen.Parser.Model.KeyValuePair;
 
 namespace SolutionGen.Tests.Parsing
 {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using SolutionGen.Parsing;
+using SolutionGen.Parser;
 using Xunit;
 
 namespace SolutionGen.Tests.Parsing

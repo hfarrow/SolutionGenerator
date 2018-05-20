@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using SolutionGen.Parsing;
-using SolutionGen.Parsing.Model;
+using SolutionGen.Parser;
+using SolutionGen.Parser.Model;
 using Sprache;
 using Xunit;
 
