@@ -3,12 +3,12 @@ using System.Linq;
 
 namespace SolutionGen.Parser.Model
 {
-    public class ConfigurationElement : CommandElement
+    public class ConfigurationGroupElement : CommandElement
     {
         public string ConfigurationGroupName { get; }
         public IReadOnlyDictionary<string, HashSet<string>> Configurations { get; }
 
-        public ConfigurationElement(string configurationGroupName, IEnumerable<KeyValuePair> values)
+        public ConfigurationGroupElement(string configurationGroupName, IEnumerable<KeyValuePair> values)
             : base("configuration", "true")
         {
             ConfigurationGroupName = configurationGroupName;

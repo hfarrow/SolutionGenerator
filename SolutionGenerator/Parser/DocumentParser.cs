@@ -94,11 +94,11 @@ namespace SolutionGen.Parser
                     conditional.GetOrElse("true")))
             .Token().Named("array-property");
 
-        public static readonly Parser<ConfigurationElement> Configuration =
+        public static readonly Parser<ConfigurationGroupElement> ConfigurationGroup =
             (from cmd in Parse.String("configuration").Token()
                 from configName in BasicParser.IdentifierToken.Token()
                 from values in StronglyTypedArray(PairValue)
-                select new ConfigurationElement(configName, values))
+                select new ConfigurationGroupElement(configName, values))
             .Token().Named("configuration-element");
 
         public static readonly Parser<CommandElement> SimpleCommand =
@@ -119,7 +119,7 @@ namespace SolutionGen.Parser
             (from element in PropertySingleLine
                     .Or((Parser<ConfigElement>) PropertyArray)
                     .Or(SimpleCommand)
-                    .Or(Configuration)
+                    .Or(ConfigurationGroup)
                     .Or(Object)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
                 select element)

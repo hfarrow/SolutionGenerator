@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
-using SolutionGen.Generator.ModelOld;
+using SolutionGen.Generator.Model;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Templates;
@@ -12,7 +13,9 @@ namespace SolutionGen
     public class SolutionGenerator
     {
         internal ConfigDocument configDoc;
-        internal ConfigReader reader;
+        internal DocumentReader reader;
+
+        public string ActiveConfigurationGroup { get; }
         
         public static SolutionGenerator FromPath(string solutionConfigPath)
         {
@@ -48,47 +51,47 @@ namespace SolutionGen
             }
 
             configDoc = result.Value;
-            reader = new ConfigReader(configDoc, rootPath);
+            reader = new DocumentReader(configDoc, rootPath);
         }
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
-            reader.Solution.ActiveConfigurationGroup = configurationGroup;
-            
-            foreach (Template template in reader.Templates.Values)
-            {
-                template.Compile(reader.Solution, externalDefineConstants);
-            }
-            
-            foreach (Module module in reader.Modules.Values)
-            {
-                reader.Solution.AddModule(module);
-                string templateName = module.ModuleElement.Heading.InheritedObjectName;
-                if (!reader.Templates.TryGetValue(templateName, out Template template))
-                {
-                    throw new UndefinedTemplateException(templateName);
-                }
-
-                template.ApplyToModule(configurationGroup, reader.Solution, module, externalDefineConstants);
-                foreach (Project project in module.Projects)
-                {
-                    var projectTemplate = new DotNetProject
-                    {
-                        Solution = reader.Solution,
-                        Module = module,
-                        Project = project
-                    };
-
-                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", projectTemplate.TransformText());
-                }
-            }
-
-            var solutionTemplate = new DotNetSolution()
-            {
-                Solution = reader.Solution
-            };
-            
-            File.WriteAllText(Path.Combine(reader.RootPath, reader.Solution.Name) + ".sln", solutionTemplate.TransformText());
+//            reader.Solution.ActiveConfigurationGroup = configurationGroup;
+//            
+//            foreach (Template template in reader.Templates.Values)
+//            {
+//                template.Compile(reader.Solution, externalDefineConstants);
+//            }
+//            
+//            foreach (Module module in reader.Modules.Values)
+//            {
+//                reader.Solution.AddModule(module);
+//                string templateName = module.ModuleElement.Heading.InheritedObjectName;
+//                if (!reader.Templates.TryGetValue(templateName, out Template template))
+//                {
+//                    throw new UndefinedTemplateException(templateName);
+//                }
+//
+//                template.ApplyToModule(configurationGroup, reader.Solution, module, externalDefineConstants);
+//                foreach (Project project in module.Projects)
+//                {
+//                    var projectTemplate = new DotNetProject
+//                    {
+//                        Solution = reader.Solution,
+//                        Module = module,
+//                        Project = project
+//                    };
+//
+//                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", projectTemplate.TransformText());
+//                }
+//            }
+//
+//            var solutionTemplate = new DotNetSolution()
+//            {
+//                Solution = reader.Solution
+//            };
+//            
+//            File.WriteAllText(Path.Combine(reader.RootPath, reader.Solution.Name) + ".sln", solutionTemplate.TransformText());
         }
     }
 

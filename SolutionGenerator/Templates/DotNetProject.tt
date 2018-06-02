@@ -4,7 +4,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="SolutionGen.Compiling.Model" #>
+<#@ import namespace="SolutionGen.Generator.Model" #>
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
@@ -21,7 +21,7 @@
         <LangVersion><#= LanguageVersion #></LangVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
-<# foreach (string configuration in Solution.ActiveConfigurations.Keys)
+<# foreach (string configuration in ActiveConfigurations)
 {
     foreach (string platform in TargetPlatforms)
     {#>
@@ -58,7 +58,7 @@ foreach (string projectName in GetCommonProjectRefs())
 <#}#>
     </ItemGroup>
 
-<# foreach (string configuration in Solution.ActiveConfigurations.Keys)
+<# foreach (string configuration in ActiveConfigurations)
 {#>
     <ItemGroup Condition=" '$(Configuration)' == '<#= configuration #>' ">
 <#  foreach(string file in GetConfigurationSpecificIncludes(configuration))

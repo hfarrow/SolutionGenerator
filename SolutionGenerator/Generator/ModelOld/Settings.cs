@@ -254,34 +254,6 @@ namespace SolutionGen.Generator.ModelOld
         }
     }
     
-    public sealed class UnrecognizedPropertyException : Exception
-    {
-        public UnrecognizedPropertyException(PropertyElement element)
-            : base(string.Format(
-                "The property '{0}' is not recongized and cannot be compiled. The full property was: {1}",
-                element.FullName, element))
-        {
-        }
-    }
-    
-    public sealed class UnrecognizedCommandException : Exception
-    {
-        public UnrecognizedCommandException(CommandElement element)
-            : base(string.Format(
-                "The command '{0}' is not recongized and cannot be compiled. The full property was: {1}",
-                element.CommandName, element))
-        {
-        }
-    }
-    
-    public sealed class UnrecognizedSettingsElementException : Exception
-    {
-        public UnrecognizedSettingsElementException(ConfigElement element)
-            : base($"The element '{element}' is not recongized and cannot be compiled.")
-        {
-        }
-    }
-
     public sealed class UndefinedSettingsObjectException : Exception
     {
         public UndefinedSettingsObjectException(string name, string configurationGroup, string configurationName,

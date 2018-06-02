@@ -3,11 +3,11 @@
 <#@ import namespace="System.Linq" #>
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
-<#@ import namespace="SolutionGen.Compiling.Model" #>
+<#@ import namespace="SolutionGen.Generator.Model" #>
 Microsoft Visual Studio Solution File, Format Version 12.00
-<# foreach (Module module in Solution.Modules)
+<# foreach (Module module in Solution.Modules.Values)
 {
-    foreach (Project project in module.Projects)
+    foreach (Project project in module.Projects.Values)
     {
 #>
 Project("{<#= SolutionGuid #>}") = "<#= project.Name #>", "<#= project.Name #>.csproj", "{<#= GetProjectGuid(project) #>}"
@@ -16,7 +16,7 @@ EndProject
 } #>
 Global
     GlobalSection(SolutionConfigurationPlatforms) = preSolution
-<# foreach (string configuration in Solution.ActiveConfigurations.Keys)
+<# foreach (string configuration in ActiveConfigurations)
 {
     foreach (string platform in Solution.TargetPlatforms)
     { #>
@@ -25,11 +25,11 @@ Global
 } #>
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
-<# foreach (Module module in Solution.Modules)
+<# foreach (Module module in Solution.Modules.Values)
 {
-    foreach (Project project in module.Projects)
+    foreach (Project project in module.Projects.Values)
     {
-        foreach (string configuration in Solution.ActiveConfigurations.Keys)
+        foreach (string configuration in ActiveConfigurations)
         {
             foreach (string platform in Solution.TargetPlatforms)
             { #>

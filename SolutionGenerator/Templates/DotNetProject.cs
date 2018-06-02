@@ -13,7 +13,7 @@ namespace SolutionGen.Templates {
     using System.Text;
     using System.IO;
     using System.Collections.Generic;
-    using Generator.ModelOld;
+    using SolutionGen.Generator.Model;
     using System;
     
     
@@ -120,7 +120,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 24 ".\Templates\DotNetProject.tt"
- foreach (string configuration in Solution.ActiveConfigurations.Keys)
+ foreach (string configuration in ActiveConfigurations)
 {
     foreach (string platform in TargetPlatforms)
     {
@@ -375,7 +375,7 @@ foreach (string projectName in GetCommonProjectRefs())
             #line hidden
             
             #line 61 ".\Templates\DotNetProject.tt"
- foreach (string configuration in Solution.ActiveConfigurations.Keys)
+ foreach (string configuration in ActiveConfigurations)
 {
             
             #line default

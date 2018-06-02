@@ -12,7 +12,7 @@ namespace SolutionGen.Templates {
     using System.Linq;
     using System.Text;
     using System.Collections.Generic;
-    using Generator.ModelOld;
+    using SolutionGen.Generator.Model;
     using System;
     
     
@@ -28,9 +28,9 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 8 ".\Templates\DotNetSolution.tt"
- foreach (Module module in Solution.Modules)
+ foreach (Module module in Solution.Modules.Values)
 {
-    foreach (Project project in module.Projects)
+    foreach (Project project in module.Projects.Values)
     {
 
             
@@ -105,7 +105,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 19 ".\Templates\DotNetSolution.tt"
- foreach (string configuration in Solution.ActiveConfigurations.Keys)
+ foreach (string configuration in ActiveConfigurations)
 {
     foreach (string platform in Solution.TargetPlatforms)
     { 
@@ -170,11 +170,11 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 28 ".\Templates\DotNetSolution.tt"
- foreach (Module module in Solution.Modules)
+ foreach (Module module in Solution.Modules.Values)
 {
-    foreach (Project project in module.Projects)
+    foreach (Project project in module.Projects.Values)
     {
-        foreach (string configuration in Solution.ActiveConfigurations.Keys)
+        foreach (string configuration in ActiveConfigurations)
         {
             foreach (string platform in Solution.TargetPlatforms)
             { 

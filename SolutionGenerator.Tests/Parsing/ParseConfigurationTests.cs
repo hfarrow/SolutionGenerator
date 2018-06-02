@@ -17,7 +17,7 @@ namespace SolutionGen.Tests.Parsing
                                  "Name2: value1,value2\n" +
                                  "]";
 
-            ConfigurationElement config = DocumentParser.Configuration.Parse(input);
+            ConfigurationGroupElement config = DocumentParser.ConfigurationGroup.Parse(input);
             Assert.NotNull(config);
             Assert.Equal(2, config.Configurations.Count);
             Assert.Equal("myConfig", config.ConfigurationGroupName);
