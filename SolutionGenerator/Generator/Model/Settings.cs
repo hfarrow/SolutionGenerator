@@ -1,7 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using SolutionGen.Generator.Reader;
 
 namespace SolutionGen.Generator.Model
 {
@@ -23,7 +20,10 @@ namespace SolutionGen.Generator.Model
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_ROOT_NAMESPACE = "root namespace";
         public const string PROP_EXCLUDE = "exclude";
+        public const string PROP_PROJECT_DELCARATIONS = "projects";
+        
         public const string CMD_SKIP = "skip";
+        public const string CMD_DECLARE_PROJECT = "project";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;

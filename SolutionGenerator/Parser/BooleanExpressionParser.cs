@@ -5,14 +5,14 @@ using Sprache;
 
 namespace SolutionGen.Parser
 {
-    public static class BooleanExpressionParser
+    public class BooleanExpressionParser
     {
-        private static HashSet<string> conditionalConstants = new HashSet<string>
+        private HashSet<string> conditionalConstants = new HashSet<string>
         {
             "true"
-        };
+        };       
 
-        public static void SetConditionalConstants(HashSet<string> constants)
+        public void SetConditionalConstants(IEnumerable<string> constants)
         {
             conditionalConstants = new HashSet<string>(constants);
 
@@ -21,18 +21,18 @@ namespace SolutionGen.Parser
             conditionalConstants.Add("true");
         }
         
-        public static Expression<Func<bool>> ParseExpression(string text)
+        public Expression<Func<bool>> ParseExpression(string text)
         {
             return lambda.Parse(text);
         }
 
-        public static bool TryParseExpression(string text, out IResult<Expression<Func<bool>>> result)
+        public bool TryParseExpression(string text, out IResult<Expression<Func<bool>>> result)
         {
             result = lambda.TryParse(text);
             return result.WasSuccessful;
         }
 
-        public static bool InvokeExpression(string text)
+        public bool InvokeExpression(string text)
         {
             return ParseExpression(text).Compile().Invoke();
         }
@@ -43,32 +43,35 @@ namespace SolutionGen.Parser
         private static readonly Parser<ExpressionType> and = Operator("&&", ExpressionType.AndAlso);
         private static readonly Parser<ExpressionType> or = Operator("||", ExpressionType.OrElse);
 
-        private static readonly Parser<Expression> boolean =
-            BasicParser.IdentifierToken
+        // The higher the expr number, the higher the precendence. In this case, AND takes precedence over OR
+        private readonly Parser<Expression> expression;
+        private readonly Parser<Expression<Func<bool>>> lambda;
+
+        public BooleanExpressionParser()
+        {
+            Parser<Expression> boolean = BasicParser.IdentifierToken
                 .Select(id => System.Linq.Expressions.Expression.Constant(conditionalConstants.Contains(id)))
                 .Named("boolean");
 
-        private static readonly Parser<Expression> factor =
-            (from lparen in Parse.Char('(')
-                from expr in Parse.Ref(() => Expression)
-                from rparen in Parse.Char(')')
-                select expr).Named("expression")
-            .XOr(boolean);
+            Parser<Expression> factor = (from lparen in Parse.Char('(')
+                    from expr in Parse.Ref(() => expression)
+                    from rparen in Parse.Char(')')
+                    select expr).Named("expression")
+                .XOr(boolean);
 
-        private static readonly Parser<Expression> operand =
-            ((from sign in Parse.Char('!').Token()
-                    from factor in factor
-                    select System.Linq.Expressions.Expression.Not(factor))
+            Parser<Expression> operand = ((from sign in Parse.Char('!').Token()
+                    from f in factor
+                    select Expression.Not(f))
                 .XOr(factor)).Token();
 
-        // The higher the expr number, the higher the precendence. In this case, AND takes precedence over OR
-        private static readonly Parser<Expression> expression2 =
-            Parse.ChainOperator(and, operand, System.Linq.Expressions.Expression.MakeBinary);
-        
-        public static readonly Parser<Expression> Expression =
-            Parse.ChainOperator(or, expression2, System.Linq.Expressions.Expression.MakeBinary);
+            // The higher the expr number, the higher the precendence. In this case, AND takes precedence over OR
+            Parser<Expression> expression2 = Parse.ChainOperator(and, operand, System.Linq.Expressions.Expression.MakeBinary);
 
-        private static readonly Parser<Expression<Func<bool>>> lambda =
-            Expression.End().Select(body => System.Linq.Expressions.Expression.Lambda<Func<bool>>(body));
+            expression =
+                Parse.ChainOperator(or, expression2, System.Linq.Expressions.Expression.MakeBinary);
+
+            lambda =
+                expression.End().Select(body => System.Linq.Expressions.Expression.Lambda<Func<bool>>(body));
+        }
     }
 }

@@ -71,8 +71,8 @@ namespace SolutionGen.Tests.Parsing
             {
                 ValidateComment("// Test Comment"),
                 ValidateConfigObject("template", "TestTemplate", null, false),
-                ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME)", "true", ValidatePropertyValue("project")),
-                ValidateProperty(PropertyAction.Add, "project $(MODULE_NAME).Tests", "true", ValidatePropertyValue("project.tests")),
+                ValidateSimpleCommand("project", "true", "$(MODULE_NAME) : project"),
+                ValidateSimpleCommand("project", "true", "$(MODULE_NAME).Tests : project.tests"),
                 ValidateConfigObject("settings", "project", null, false),
                 ValidateProperty(PropertyAction.Set, "include files", "true", ValidatePropertyValue("*.{cs,txt,json,xml,md}")),
                 ValidateProperty(PropertyAction.Set, "exclude files", "true", ValidatePropertyValue("**/Tests/")),
@@ -83,8 +83,8 @@ namespace SolutionGen.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "define constants", "debug", ValidatePropertyArrayValues(new[]{"DEBUG", "TRACE"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "release", ValidatePropertyArrayValues(new[]{"RELEASE"})),
                 ValidateConfigObject("settings", "project.tests", "project", false),
-                ValidateSimpleCommand("exclude", "no-tests"),
-                ValidateSimpleCommand("skip", "!test"),
+                ValidateSimpleCommand("exclude", "no-tests", string.Empty),
+                ValidateSimpleCommand("skip", "!test", string.Empty),
                 ValidateProperty(PropertyAction.Set, "include files", "true", ValidatePropertyValue("**/Tests/**/*.{cs,txt,json,xml,md}")),
                 ValidateProperty(PropertyAction.Set, "exclude files", "true", ValidatePropertyValue("empty")),
                 ValidateProperty(PropertyAction.Add, "project refs", "true", ValidatePropertyArrayValues(new[]{"$(MODULE_NAME)"})),
@@ -179,14 +179,16 @@ namespace SolutionGen.Tests.Parsing
             };
         }
         
-        private static Action<ConfigElement> ValidateSimpleCommand(string name, string conditionalExpr)
+        private static Action<ConfigElement> ValidateSimpleCommand(string name, string conditionalExpr,
+            string argumentStr)
         {
             return (element) =>
             {
-                Assert.IsType<CommandElement>(element);
-                var cmd = (CommandElement) element;
+                Assert.IsType<SimpleCommandElement>(element);
+                var cmd = (SimpleCommandElement) element;
                 Assert.Equal(name, cmd.CommandName);
                 Assert.Equal(conditionalExpr, cmd.ConditionalExpression);
+                Assert.Equal(argumentStr, cmd.ArgumentStr);
             };
         }
     }

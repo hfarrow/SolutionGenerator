@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 
@@ -15,6 +16,7 @@ namespace SolutionGen.Generator.Model
 
         public abstract void AddToDictionary(object dictionary, string key, object value);
         public abstract void ClearDictionary(object dictionary);
+        public abstract object CloneDictionary(object dictionary);
     }
 
     public class PropertyDictionaryDefinition<TDictionary, TValue, TReader> : PropertyDictionaryDefinition
@@ -56,7 +58,20 @@ namespace SolutionGen.Generator.Model
             CheckDictionaryType(dictionary);
             ((TDictionary)dictionary).Clear();
         }
-        
+
+        public override object CloneDictionary(object dictionary)
+        {
+            CheckDictionaryType(dictionary);
+            var castedDictionary = (TDictionary) dictionary;
+            var copy = new TDictionary();
+            foreach (KeyValuePair<string,TValue> kvp in castedDictionary)
+            {
+                copy[kvp.Key] = kvp.Value;
+            }
+
+            return copy;
+        }
+
         public override object GetOrCloneDefaultValue()
         {
             var copy = new TDictionary();
@@ -67,7 +82,12 @@ namespace SolutionGen.Generator.Model
 
             return copy;
         }
-        
+
+        public override object CloneValue(object value)
+        {
+            return CloneDictionary(value);
+        }
+
         private static void CheckDictionaryType(object dictionary)
         {
             if (!(dictionary is TDictionary))

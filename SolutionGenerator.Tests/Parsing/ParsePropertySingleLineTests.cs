@@ -7,6 +7,8 @@ namespace SolutionGen.Tests.Parsing
 {
     public class ParsePropertySingleLineTests
     {
+        private BooleanExpressionParser parser = new BooleanExpressionParser();
+        
         [Theory]
         [InlineData("set templates: glob \"**/*.txt\"\n")]
         [InlineData("add templates: glob \"**/*.txt\"")]
@@ -16,7 +18,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.NotEqual(PropertyAction.Invalid, p.Action);
             Assert.Equal("templates", p.FullName);
             Assert.Equal("**/*.txt", ((GlobValue) p.ValueElement).GlobStr);
-            Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
+            Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
         
         [Theory]
@@ -28,7 +30,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.NotEqual(PropertyAction.Invalid, p.Action);
             Assert.Equal("include files", p.FullName);
             Assert.Equal("**/*.txt", ((GlobValue) p.ValueElement).GlobStr);
-            Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
+            Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
 
         [Fact]
@@ -41,21 +43,21 @@ namespace SolutionGen.Tests.Parsing
         public void ParseSingleLinePropertyWithTrueConditional()
         {
             PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (true): value");
-            Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
+            Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
         
         [Fact]
         public void ParseSingleLinePropertyWithFalseConditional()
         {
             PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (false): value");
-            Assert.False(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
+            Assert.False(parser.InvokeExpression(p.ConditionalExpression));
         }
         
         [Fact]
         public void ParseSingleLinePropertyWithNestedParenConditional()
         {
             PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (true&&(false||true)): value");
-            Assert.True(BooleanExpressionParser.InvokeExpression(p.ConditionalExpression));
+            Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
     }
 }

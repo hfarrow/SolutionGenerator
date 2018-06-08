@@ -2,7 +2,7 @@
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 
-namespace SolutionGen
+namespace SolutionGen.Generator.Reader
 {
     public class SolutionReader
     {

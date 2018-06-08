@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 
-namespace SolutionGen
+namespace SolutionGen.Generator.Reader
 {
     public class DocumentReader
     {
@@ -19,10 +20,10 @@ namespace SolutionGen
         {
             this.configDoc = configDoc;
             RootPath = rootPath;
-            ProcessSolutionDoc();
+            ProcessSolutionDocument();
         }
 
-        private void ProcessSolutionDoc()
+        private void ProcessSolutionDocument()
         {
             var moduleElements = new List<ObjectElement>();
             var templateElements = new List<ObjectElement>();
@@ -80,17 +81,20 @@ namespace SolutionGen
         
         private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
         {
-//            foreach (ObjectElement templateElement in templateElements)
-//            {
-//                if (Templates.ContainsKey(templateElement.Heading.Name))
-//                {
-//                    throw new DuplicateTemplateNameException(templateElement,
-//                        Templates[templateElement.Heading.Name].TemplateObject);
-//                }
-//
-//                var template = new Template(templateElement);
-//                Templates[templateElement.Heading.Name] = template;
-//            }
+            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
+            
+            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups);
+            foreach (ObjectElement templateElement in templateElements)
+            {
+                if (Templates.ContainsKey(templateElement.Heading.Name))
+                {
+                    throw new DuplicateTemplateNameException(templateElement,
+                        parsedObjectsLookup[templateElement.Heading.Name]);
+                }
+
+                parsedObjectsLookup[templateElement.Heading.Name] = templateElement;
+                Templates[templateElement.Heading.Name] = reader.Read(templateElement);
+            }
         }
     }
 

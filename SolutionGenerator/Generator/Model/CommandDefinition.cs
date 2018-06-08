@@ -7,11 +7,11 @@ namespace SolutionGen.Generator.Model
     public class CommandDefinition
     {
         public string Name { get; }
-        public Func<bool> Command { get; }
-        public ElementReader<CommandElement, CommandDefinition> Reader { get; }
+        public Func<SimpleCommandElement, bool> Command { get; }
+        public ElementReader<SimpleCommandElement, CommandDefinition> Reader { get; }
 
-        public CommandDefinition(string name, Func<bool> command,
-            ElementReader<CommandElement, CommandDefinition> reader)
+        public CommandDefinition(string name, Func<SimpleCommandElement, bool> command,
+            ElementReader<SimpleCommandElement, CommandDefinition> reader)
         {
             Name = name;
             Command = command;
@@ -20,9 +20,9 @@ namespace SolutionGen.Generator.Model
     }
     
     public class CommandDefinition<TReader> : CommandDefinition
-        where TReader : ElementReader<CommandElement, CommandDefinition>, new()
+        where TReader : ElementReader<SimpleCommandElement, CommandDefinition>, new()
     {
-        public CommandDefinition(string name, Func<bool> command)
+        public CommandDefinition(string name, Func<SimpleCommandElement, bool> command)
             : base(name, command, new TReader())
         {
         }

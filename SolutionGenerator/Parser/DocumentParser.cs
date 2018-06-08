@@ -100,11 +100,15 @@ namespace SolutionGen.Parser
                 from values in StronglyTypedArray(PairValue)
                 select new ConfigurationGroupElement(configName, values))
             .Token().Named("configuration-element");
-
-        public static readonly Parser<CommandElement> SimpleCommand =
+        
+        public static readonly Parser<SimpleCommandElement> SimpleCommand =
             (from cmd in BasicParser.IdentifierToken
-                from conditional in ConditionalExpression.XOr(Parse.LineTerminator)
-                select new CommandElement(cmd, conditional.Length >= 3 ? conditional : "true"))
+                from conditional in ConditionalExpression.Optional()
+                from args in BasicParser.QuotedText.Optional()
+                select new SimpleCommandElement(
+                    cmd,
+                    args.GetOrElse(string.Empty),
+                    conditional.GetOrElse(string.Empty).Length >= 3 ? conditional.GetOrDefault() : "true"))
             .Token().Named("command-element");
 
         public static readonly Parser<ObjectElement> Object =
@@ -118,9 +122,9 @@ namespace SolutionGen.Parser
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertySingleLine
                     .Or((Parser<ConfigElement>) PropertyArray)
-                    .Or(SimpleCommand)
                     .Or(ConfigurationGroup)
                     .Or(Object)
+                    .Or(SimpleCommand)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
                 select element)
             .Named("object-element");

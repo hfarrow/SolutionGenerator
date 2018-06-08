@@ -50,9 +50,9 @@ namespace SolutionGen.Generator.Reader
             public bool HasValue => false;
         }
         
-        protected static bool EvaluateConditional(string conditionalExpr)
+        protected static bool EvaluateConditional(string conditionalExpr, BooleanExpressionParser parser)
         {
-            if (!BooleanExpressionParser.TryParseExpression(conditionalExpr,
+            if (!parser.TryParseExpression(conditionalExpr,
                 out Sprache.IResult<Expression<Func<bool>>> result))
             {
                 throw new BoolExpressionEvaluationException(conditionalExpr, result.ToString());
@@ -69,9 +69,10 @@ namespace SolutionGen.Generator.Reader
         
         protected abstract IResult<IEnumerable<object>> Read(TElement element, TDefinition definition);
 
-        public IResult<IEnumerable<object>> EvaluateAndRead(TElement element, TDefinition definition)
+        public IResult<IEnumerable<object>> EvaluateAndRead(TElement element, TDefinition definition,
+            BooleanExpressionParser parser)
         {
-            ConditionalResult = EvaluateConditional(element.ConditionalExpression);
+            ConditionalResult = EvaluateConditional(element.ConditionalExpression, parser);
             if (!ConditionalResult)
             {
                 return new Result<IEnumerable<object>>(false);

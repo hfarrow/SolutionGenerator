@@ -23,6 +23,7 @@ namespace SolutionGen.Generator.Model
         }
 
         public abstract object GetOrCloneDefaultValue();
+        public abstract object CloneValue(object value);
     }
 
     
@@ -48,6 +49,12 @@ namespace SolutionGen.Generator.Model
             // It should be safe to assume all single values are basic types and will only be replaced and not
             // modified in place.
             return DefaultValueObj;
+        }
+
+        public override object CloneValue(object value)
+        {
+            // Properties are assumed to be strings, ints, bools, etc. and do not need a deep copy.
+            return value;
         }
     }
 }

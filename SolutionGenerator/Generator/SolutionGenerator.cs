@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using SolutionGen.Generator.Model;
+using SolutionGen.Generator.Reader;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Templates;

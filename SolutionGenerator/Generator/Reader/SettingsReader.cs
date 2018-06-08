@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
+using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
 
@@ -18,6 +20,7 @@ namespace SolutionGen.Generator.Reader
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_LIB_REFS),
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_DEFINE_CONSTANTS),
+            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_DELCARATIONS),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_TARGET_FRAMEWORK, "v4.6"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_LANGUAGE_VERSION, "6"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_DEBUG_SYMBOLS, "true"),
@@ -34,29 +37,66 @@ namespace SolutionGen.Generator.Reader
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, string.Empty)
         };
 
-        private static readonly List<CommandDefinition> commandDefinitions =
-            new List<CommandDefinition>()
-            {
-                new CommandDefinition<CommandReader>(Settings.CMD_SKIP, () => true),
-            };
+        private readonly List<CommandDefinition> commandDefinitions;
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =
             propertyDefinitions.ToDictionary(d => d.Name, d => d);
 
-        private static readonly Dictionary<string, CommandDefinition> commandDefinitionLookup =
-            commandDefinitions.ToDictionary(c => c.Name, c => c);
+        private readonly Dictionary<string, CommandDefinition> commandDefinitionLookup;
 
-        private readonly Dictionary<string, object> properties =
-            propertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
+        private Dictionary<string, object> properties = new Dictionary<string, object>();
 
         private readonly Dictionary<string, ConfigurationGroup> configurationGroups =
             new Dictionary<string, ConfigurationGroup>();
+
+        public Configuration Configuration { get; }
+        private readonly Settings baseSettings;
+        private readonly BooleanExpressionParser conditionalParser;
         
+        public SettingsReader(Configuration configuration, Settings baseSettings)
+        {
+            Configuration = configuration;
+            conditionalParser = new BooleanExpressionParser();
+            conditionalParser.SetConditionalConstants(configuration.Conditionals);
+            this.baseSettings = baseSettings;
+            
+            commandDefinitions = new List<CommandDefinition>
+            {
+                new CommandDefinition<CommandReader>(Settings.CMD_SKIP, _ => true),
+                new CommandDefinition<CommandReader>(Settings.CMD_DECLARE_PROJECT, ProjectDeclarationCommand)
+            };
+            
+            commandDefinitionLookup =
+                commandDefinitions.ToDictionary(c => c.Name, c => c);
+        }
+
+        public SettingsReader()
+        {
+            conditionalParser = new BooleanExpressionParser();
+        }
+
         public Settings Read(ObjectElement settingsObject)
         {
+            if (baseSettings == null)
+            {
+                properties =
+                    propertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
+            }
+            else
+            {
+                properties = new Dictionary<string, object>();
+                foreach (KeyValuePair<string, PropertyDefinition> kvp in propertyDefinitionLookup)
+                {
+                    if (baseSettings.TryGetProperty(kvp.Key, out object value))
+                    {
+                        properties[kvp.Key] = kvp.Value.CloneValue(value);
+                    }
+                }
+            }
+            
             foreach (ConfigElement element in settingsObject.Elements)
             {
-                bool terminate = false;
+                bool terminate;
                 switch (element)
                 {
                     case ConfigurationGroupElement configurationElement:
@@ -67,7 +107,7 @@ namespace SolutionGen.Generator.Reader
                         terminate = ReadProperty(propertyElement);
                         break;
 
-                    case CommandElement cmdElement when element is CommandElement:
+                    case SimpleCommandElement cmdElement when element is SimpleCommandElement:
                         terminate = ReadCommand(cmdElement);
                         break;
 
@@ -83,7 +123,7 @@ namespace SolutionGen.Generator.Reader
             
             return new Settings(properties, configurationGroups);
         }
-
+        
         private bool ReadConfiguration(ConfigurationGroupElement element)
         {
             if (configurationGroups.TryGetValue(element.ConfigurationGroupName, out ConfigurationGroup existingGroup))
@@ -92,7 +132,8 @@ namespace SolutionGen.Generator.Reader
             }
 
             var group = new ConfigurationGroup(element.ConfigurationGroupName,
-                element.Configurations.ToDictionary(kvp => kvp.Key, kvp => new Configuration(kvp.Key, kvp.Value)));
+                element.Configurations.ToDictionary(kvp => kvp.Key,
+                    kvp => new Configuration(element.ConfigurationGroupName, kvp.Key, kvp.Value)));
             configurationGroups[group.Name] = group;
 
             return false;
@@ -104,61 +145,80 @@ namespace SolutionGen.Generator.Reader
             {
                 throw new UnrecognizedPropertyException(element);
             }
+
+            ElementReader.IResult<IEnumerable<object>> result =
+                definition.Reader.EvaluateAndRead(element, definition, conditionalParser);
             
-            ElementReader.IResult<IEnumerable<object>> result = definition.Reader.EvaluateAndRead(element, definition);
-            
-            switch (definition)
+            if (result.HasValue)
             {
-                case PropertyCollectionDefinition collectionDefinition:
-                    if (element.Action == PropertyAction.Set)
-                    {
-                        collectionDefinition.ClearCollection(properties[definition.Name]);
-                    }
+                switch (definition)
+                {
+                    // TODO add abstract function for ClearCollection/ClearDictionary. No need for a switch here... just
+                    // have the concrete definition objects do the work.
+                    case PropertyCollectionDefinition collectionDefinition:
+                        if (element.Action == PropertyAction.Set)
+                        {
+                            collectionDefinition.ClearCollection(properties[definition.Name]);
+                        }
 
-                    object collection = properties[definition.Name];
-                    foreach (object propertyValue in result.Value)
-                    {
-                        collectionDefinition.AddToCollection(collection, propertyValue);
-                    }
+                        object collection = properties[definition.Name];
+                        foreach (object propertyValue in result.Value)
+                        {
+                            collectionDefinition.AddToCollection(collection, propertyValue);
+                        }
 
-                    break;
-                case PropertyDictionaryDefinition dictionaryDefinition:
-                    if (element.Action == PropertyAction.Set)
-                    {
-                        dictionaryDefinition.ClearDictionary(properties[definition.Name]);
-                    }
+                        break;
+                    case PropertyDictionaryDefinition dictionaryDefinition:
+                        if (element.Action == PropertyAction.Set)
+                        {
+                            dictionaryDefinition.ClearDictionary(properties[definition.Name]);
+                        }
 
-                    object dictionary = properties[definition.Name];
-                    foreach (object value in result.Value)
-                    {
-                        var kvp = (Box<KeyValuePair<string, string>>) value;
-                        dictionaryDefinition.AddToDictionary(dictionary, kvp.Value.Key, kvp.Value.Value);
-                    }
+                        object dictionary = properties[definition.Name];
+                        foreach (object value in result.Value)
+                        {
+                            var kvp = (Box<KeyValuePair<string, string>>) value;
+                            dictionaryDefinition.AddToDictionary(dictionary, kvp.Value.Key, kvp.Value.Value);
+                        }
 
-                    break;
-                default:
-                    if (element.Action != PropertyAction.Set)
-                    {
-                        throw new InvalidPropertyActionException(element,
-                            "Properties that are not a collection may only set values");
-                    }
+                        break;
+                    default:
+                        if (element.Action != PropertyAction.Set)
+                        {
+                            throw new InvalidPropertyActionException(element,
+                                "Properties that are not a collection may only set values");
+                        }
 
-                    properties[definition.Name] = result.Value.First();
-                    break;
+                        properties[definition.Name] = result.Value.First();
+                        break;
+                }
             }
 
             return result.Terminate;
         }
 
-        private bool ReadCommand(CommandElement element)
+        private bool ReadCommand(SimpleCommandElement element)
         {
             if (!commandDefinitionLookup.TryGetValue(element.CommandName, out CommandDefinition definition))
             {
                 throw new UnrecognizedCommandException(element);
             }
+
+            ElementReader.IResult<IEnumerable<object>> result =
+                definition.Reader.EvaluateAndRead(element, definition, conditionalParser);
             
-            ElementReader.IResult<IEnumerable<object>> result = definition.Reader.EvaluateAndRead(element, definition);
             return result.Terminate;
+        }
+
+        private bool ProjectDeclarationCommand(SimpleCommandElement element)
+        {
+            object projects = properties[Settings.PROP_PROJECT_DELCARATIONS];
+            var projectsDefinition =
+                (PropertyCollectionDefinition) propertyDefinitionLookup[Settings.PROP_PROJECT_DELCARATIONS];
+
+            projectsDefinition.AddToCollection(projects, element.ArgumentStr);
+            
+            return false;
         }
     }
     

@@ -9,23 +9,47 @@ namespace SolutionGen.Tests.Parsing
     public class ParseSimpleCommandTests
     {
         [Fact]
-        public void CanParseSimpleCommandWithoutConditional()
+        public void CanParseSimpleCommandWithoutConditionalWithoutArgs()
         {
             const string input = Settings.CMD_SKIP;
-            CommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
+            SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
             Assert.NotNull(cmd);
             Assert.Equal(Settings.CMD_SKIP, cmd.CommandName);
             Assert.Equal("true", cmd.ConditionalExpression);
+            Assert.Equal(string.Empty, cmd.ArgumentStr);
         }
 
         [Fact]
-        public void CanParseSimpleCommandWithConditional()
+        public void CanParseSimpleCommandWithConditionalWithoutArgs()
         {
             string input = $"{Settings.CMD_SKIP} (my-define)";
-            CommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
+            SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
             Assert.NotNull(cmd);
             Assert.Equal(Settings.CMD_SKIP, cmd.CommandName);
             Assert.Equal("my-define", cmd.ConditionalExpression);
+            Assert.Equal(string.Empty, cmd.ArgumentStr);
+        }
+
+        [Fact]
+        public void CanParseSimpleCommandWithoutConditionalWithArgs()
+        {
+            const string commandArgs = "ProjectName : SettingsName";
+            string input = $"{Settings.CMD_DECLARE_PROJECT} \"{commandArgs}\"";
+            SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
+            Assert.Equal(Settings.CMD_DECLARE_PROJECT, cmd.CommandName);
+            Assert.Equal("true", cmd.ConditionalExpression);
+            Assert.Equal(commandArgs, cmd.ArgumentStr);
+        }
+        
+        [Fact]
+        public void CanParseSimpleCommandWithConditionalWithArgs()
+        {
+            const string commandArgs = "ProjectName : SettingsName";
+            string input = $"{Settings.CMD_DECLARE_PROJECT} (my-define) \"{commandArgs}\"";
+            SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
+            Assert.Equal(Settings.CMD_DECLARE_PROJECT, cmd.CommandName);
+            Assert.Equal("my-define", cmd.ConditionalExpression);
+            Assert.Equal(commandArgs, cmd.ArgumentStr);
         }
     }
 }

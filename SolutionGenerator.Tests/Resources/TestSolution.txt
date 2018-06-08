@@ -45,8 +45,8 @@ module OtherTestModule : TestTemplate
 
 template TestTemplate
 {
-    add project $(MODULE_NAME) : project
-    add project $(MODULE_NAME).Tests : project.tests
+    project "$(MODULE_NAME) : project"
+    project "$(MODULE_NAME).Tests : project.tests"
 
     settings project
     {

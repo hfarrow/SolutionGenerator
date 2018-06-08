@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System;
 
 namespace SolutionGen.Generator.Model
 {
@@ -7,6 +7,7 @@ namespace SolutionGen.Generator.Model
         string Value { get; }
     }
 
+    [Serializable]
     public class LiteralPath : IPath
     {
         public string Value { get; }
@@ -17,6 +18,7 @@ namespace SolutionGen.Generator.Model
         }
     }
 
+    [Serializable]
     public class GlobPath : IPath
     {
         public string Value { get; }

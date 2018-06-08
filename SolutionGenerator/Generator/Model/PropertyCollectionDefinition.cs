@@ -13,9 +13,9 @@ namespace SolutionGen.Generator.Model
         {
         }
 
-//        public abstract object CreateEmptyCollection();
         public abstract void AddToCollection(object collection, object value);
         public abstract void ClearCollection(object collection);
+        public abstract object CloneCollection(object collection);
     }
     
     public class PropertyCollectionDefinition<TCollection, TValue, TReader> : PropertyCollectionDefinition
@@ -34,12 +34,6 @@ namespace SolutionGen.Generator.Model
             : this(name, new TCollection())
         {
         }
-
-//        public override object CreateEmptyCollection()
-//        {
-//            return new TCollection();
-//        }
-
 
         public override void AddToCollection(object collection, object value)
         {
@@ -64,6 +58,19 @@ namespace SolutionGen.Generator.Model
             ((TCollection)collection).Clear();
         }
 
+        public override object CloneCollection(object collection)
+        {
+            CheckCollectionType(collection);
+            var castedCollection = (TCollection) collection;
+            var copy = new TCollection();
+            foreach (TValue value in castedCollection)
+            {
+                copy.Add(value);
+            }
+
+            return copy;
+        }
+
         public override object GetOrCloneDefaultValue()
         {
             var copy = new TCollection();
@@ -74,7 +81,12 @@ namespace SolutionGen.Generator.Model
 
             return copy;
         }
-        
+
+        public override object CloneValue(object value)
+        {
+            return CloneCollection(value);
+        }
+
         private static void CheckCollectionType(object collection)
         {
             if (!(collection is TCollection))
