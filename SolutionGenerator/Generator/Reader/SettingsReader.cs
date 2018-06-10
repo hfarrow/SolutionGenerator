@@ -75,6 +75,11 @@ namespace SolutionGen.Generator.Reader
             conditionalParser = new BooleanExpressionParser();
         }
 
+        public static PropertyDefinition GetPropertyDefinition(string propertyName)
+        {
+            return propertyDefinitionLookup[propertyName];
+        }
+
         public Settings Read(ObjectElement settingsObject)
         {
             if (baseSettings == null)

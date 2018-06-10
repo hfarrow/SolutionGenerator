@@ -57,6 +57,24 @@ namespace SolutionGen.Generator.Reader
             ProcessModules(moduleElements);
         }
 
+        private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
+        {
+            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
+            
+            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups);
+            foreach (ObjectElement templateElement in templateElements)
+            {
+                if (Templates.ContainsKey(templateElement.Heading.Name))
+                {
+                    throw new DuplicateTemplateNameException(templateElement,
+                        parsedObjectsLookup[templateElement.Heading.Name]);
+                }
+
+                parsedObjectsLookup[templateElement.Heading.Name] = templateElement;
+                Templates[templateElement.Heading.Name] = reader.Read(templateElement);
+            }
+        }
+        
         private void ProcessModules(IEnumerable<ObjectElement> moduleElements)
         {
 //            foreach (ObjectElement moduleElement in moduleElements)
@@ -77,24 +95,6 @@ namespace SolutionGen.Generator.Reader
 //                var module = new Module(Solution, moduleElement, RootPath);
 //                Modules[moduleElement.Heading.Name] = module;
 //            }
-        }
-        
-        private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
-        {
-            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
-            
-            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups);
-            foreach (ObjectElement templateElement in templateElements)
-            {
-                if (Templates.ContainsKey(templateElement.Heading.Name))
-                {
-                    throw new DuplicateTemplateNameException(templateElement,
-                        parsedObjectsLookup[templateElement.Heading.Name]);
-                }
-
-                parsedObjectsLookup[templateElement.Heading.Name] = templateElement;
-                Templates[templateElement.Heading.Name] = reader.Read(templateElement);
-            }
         }
     }
 
