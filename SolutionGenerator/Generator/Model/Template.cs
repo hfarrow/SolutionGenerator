@@ -11,6 +11,11 @@ namespace SolutionGen.Generator.Model
         {
             Configurations = configurations;
         }
+        
+        public static string ExpandModuleName(string str, string moduleName)
+        {
+            return str.Replace("$(MODULE_NAME)", moduleName);
+        }
     }
     
     public class TemplateConfiguration

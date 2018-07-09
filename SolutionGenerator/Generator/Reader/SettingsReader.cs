@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +16,7 @@ namespace SolutionGen.Generator.Reader
         {
             // Module / Project Settings
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_FILES,
-                new HashSet<IPath>(){new GlobPath(".{cs,txt,json,xml,md}")}),
+                new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}")}),
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_EXCLUDE_FILES),
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_LIB_REFS),
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
@@ -52,22 +53,31 @@ namespace SolutionGen.Generator.Reader
         public Configuration Configuration { get; }
         private readonly Settings baseSettings;
         private readonly BooleanExpressionParser conditionalParser;
-        
-        public SettingsReader(Configuration configuration, Settings baseSettings)
+        private readonly IReadOnlyDictionary<string, string> variableExpansions;
+
+        public SettingsReader(Configuration configuration, Settings baseSettings,
+            IReadOnlyDictionary<string, string> variableExpansions)
         {
             Configuration = configuration;
             conditionalParser = new BooleanExpressionParser();
             conditionalParser.SetConditionalConstants(configuration.Conditionals);
+            this.variableExpansions = variableExpansions;
             this.baseSettings = baseSettings;
-            
+
             commandDefinitions = new List<CommandDefinition>
             {
                 new CommandDefinition<CommandReader>(Settings.CMD_SKIP, _ => true),
                 new CommandDefinition<CommandReader>(Settings.CMD_DECLARE_PROJECT, ProjectDeclarationCommand)
             };
-            
+
             commandDefinitionLookup =
                 commandDefinitions.ToDictionary(c => c.Name, c => c);
+        }
+
+        public SettingsReader(Configuration configuration, Settings baseSettings)
+            : this(configuration, baseSettings, null)
+        {
+            
         }
 
         public SettingsReader()
@@ -115,6 +125,15 @@ namespace SolutionGen.Generator.Reader
                     case SimpleCommandElement cmdElement when element is SimpleCommandElement:
                         terminate = ReadCommand(cmdElement);
                         break;
+                    
+                    // Skip object elements as they cannot be nested but the root template settings also use this code.
+                    case ObjectElement _ when element is ObjectElement:
+                        terminate = false;
+                        break;
+                    
+                    case CommentElement _ when element is CommentElement:
+                        terminate = false;
+                        break;
 
                     default:
                         throw new UnrecognizedSettingsElementException(element);
@@ -125,6 +144,8 @@ namespace SolutionGen.Generator.Reader
                     break;
                 }
             }
+            
+            ExpandVariables(properties);
             
             return new Settings(properties, configurationGroups);
         }
@@ -224,6 +245,23 @@ namespace SolutionGen.Generator.Reader
             projectsDefinition.AddToCollection(projects, element.ArgumentStr);
             
             return false;
+        }
+
+        private void ExpandVariables(Dictionary<string, object> properties)
+        {
+            if (variableExpansions != null && variableExpansions.Count > 0)
+            {
+                foreach (KeyValuePair<string, object> kvp in properties)
+                {
+                    foreach (KeyValuePair<string, string> expansion in variableExpansions)
+                    {
+                        PropertyDefinition propertyDefinition = GetPropertyDefinition(kvp.Key);
+                        // TODO: implement IExpandableVariable for IPath types
+                        //         then remove Template.ExpandModuleName
+                        propertyDefinition.ExpandVariables(kvp.Value, expansion.Key, expansion.Value);
+                    }
+                }
+            }
         }
     }
     

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 
@@ -11,15 +10,15 @@ namespace SolutionGen.Generator.Reader
         private readonly ConfigDocument configDoc;
         private SolutionReader solutionReader;
         
-        public string RootPath { get; }
+        public string SolutionConfigDirectory { get; }
         public Solution Solution { get; private set; }
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
         
-        public DocumentReader(ConfigDocument configDoc, string rootPath)
+        public DocumentReader(ConfigDocument configDoc, string solutionConfigDirectory)
         {
             this.configDoc = configDoc;
-            RootPath = rootPath;
+            SolutionConfigDirectory = solutionConfigDirectory;
             ProcessSolutionDocument();
         }
 
@@ -34,7 +33,7 @@ namespace SolutionGen.Generator.Reader
                 {
                     if (obj.Heading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
                     {
-                        solutionReader = new SolutionReader(obj);
+                        solutionReader = new SolutionReader(obj, SolutionConfigDirectory);
                         Solution = solutionReader.Solution;
                     }
                     else if (obj.Heading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
@@ -77,24 +76,19 @@ namespace SolutionGen.Generator.Reader
         
         private void ProcessModules(IEnumerable<ObjectElement> moduleElements)
         {
-//            foreach (ObjectElement moduleElement in moduleElements)
-//            {
-//                string templateName = moduleElement.Heading.InheritedObjectName;
-//
-//                if (Modules.ContainsKey(moduleElement.Heading.Name))
-//                {
-//                    throw new DuplicateModuleNameException(moduleElement,
-//                        Modules[moduleElement.Heading.Name].ModuleElement);
-//                }
-//                
-//                if (string.IsNullOrEmpty(templateName))
-//                {
-//                    throw new ModuleMissingTemplateInheritanceException(moduleElement);
-//                }
-//
-//                var module = new Module(Solution, moduleElement, RootPath);
-//                Modules[moduleElement.Heading.Name] = module;
-//            }
+            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
+            var reader = new ModuleReader(Solution, Templates);
+            foreach (ObjectElement moduleElement in moduleElements)
+            {
+                if (Modules.ContainsKey(moduleElement.Heading.Name))
+                {
+                    throw new DuplicateModuleNameException(moduleElement,
+                        parsedObjectsLookup[moduleElement.Heading.Name]);
+                }
+                
+                parsedObjectsLookup[moduleElement.Heading.Name] = moduleElement;
+                Modules[moduleElement.Heading.Name] = reader.Read(moduleElement);
+            }
         }
     }
 
@@ -133,15 +127,6 @@ namespace SolutionGen.Generator.Reader
     {
         public DuplicateModuleNameException(ObjectElement newElement, ObjectElement existingElement)
             : base("module", newElement, existingElement)
-        {
-            
-        }
-    }
-
-    public sealed class ModuleMissingTemplateInheritanceException : Exception
-    {
-        public ModuleMissingTemplateInheritanceException(ObjectElement module)
-            : base($"Module '{module.Heading.Name}' does not specify a template to inherit from.")
         {
             
         }

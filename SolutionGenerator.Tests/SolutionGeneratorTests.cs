@@ -37,6 +37,9 @@ namespace SolutionGen.Tests
         public SolutionGeneratorTests(SolutionGeneratorFixture fixture)
         {
             generator = SolutionGenerator.FromText(fixture.ConfigText, Directory.GetCurrentDirectory());
+            
+            // Temp (Make the individual tests call this
+            generator.GenerateSolution("everything");
         }
         
         [Fact]

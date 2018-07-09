@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+﻿using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
 
@@ -11,7 +9,11 @@ namespace SolutionGen.Templates
         public SolutionGenerator Generator { get; set; }
         public Solution Solution { get; set; }
         public Module Module { get; set; }
-        public Project Project { get; set; }
+        public string ProjectName { get; set; }
+        public Configuration CurrentConfiguration { get; set; }
+        public Dictionary<string, Project.Identifier> ProjectIdLookup { get; set; }
+        
+        public Project Project => Module.Configurations[CurrentConfiguration].Projects[ProjectName];
 
         public string DefaultConfiguration
         {
@@ -34,21 +36,20 @@ namespace SolutionGen.Templates
         
         public string RootNamespace => Solution.RootNamespace;
 
-        public string TargetFrameworkVersion => "v4.6";
-//            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>(Settings.PROP_TARGET_FRAMEWORK);
+        public string TargetFrameworkVersion =>
+            GetStringProperty(Settings.PROP_TARGET_FRAMEWORK);
 
-        public string LanguageVersion => "6";
-//            Project.GetConfiguration(DefaultConfiguration).GetProperty<string>(Settings.PROP_LANGUAGE_VERSION);
+        public string LanguageVersion =>
+            GetStringProperty(Settings.PROP_LANGUAGE_VERSION);
 
-        public string GetStringProperty(string configuration, string property) => string.Empty;
-//            Project.GetConfiguration(configuration).GetProperty<string>(property);
+        public string GetStringProperty(string property) =>
+            Project.Settings.GetProperty<string>(property);
 
-        public HashSet<string> GetStringHashSetProperty(string configuration, string property) => new HashSet<string>();
-//            Project.GetConfiguration(configuration).GetProperty<HashSet<object>>(property).Select(obj => obj.ToString())
-//                .ToHashSet();
+        public HashSet<string> GetStringHashSetProperty(string property) =>
+            Project.Settings.GetProperty<HashSet<string>>(property);
 
-        public string GetDefineConstants(string configuration) => string.Empty;
-//            string.Join(';', Project.GetConfiguration(configuration).DefineConstants);
+        public string GetDefineConstants() =>
+            string.Join(';', GetStringHashSetProperty(Settings.PROP_DEFINE_CONSTANTS));
 
         public IEnumerable<string> TargetPlatforms => Solution.TargetPlatforms.Select(RemoveWhitespace);
         
@@ -59,69 +60,69 @@ namespace SolutionGen.Templates
                 .ToArray());
         }
 
-        public IReadOnlyCollection<string> ActiveConfigurations => Solution.Settings
-            .ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Keys.ToArray();
+        public IReadOnlyCollection<Configuration> ActiveConfigurations => Solution.Settings
+            .ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Values.ToArray();
 
         private HashSet<string> commonIncludes;
-        public HashSet<string> GetCommonIncludes() => new HashSet<string>();
-//        {
-//            if (commonIncludes == null)
-//            {
-//                List<IReadOnlyCollection<string>> collections =
-//                    ActiveConfigurations
-//                        .Select(Project.GetConfiguration)
-//                        .Select(c => c.IncludeFiles)
-//                        .ToList();
-//
-//                commonIncludes = collections
-//                    .Skip(1)
-//                    .Aggregate(new HashSet<string>(collections.First()),
-//                        (h, e) =>
-//                        {
-//                            h.IntersectWith(e);
-//                            return h;
-//                        });
-//            }
-//
-//            return commonIncludes;
-//        }
+        public HashSet<string> GetCommonIncludes()
+        {
+            if (commonIncludes == null)
+            {
+                List<IReadOnlyCollection<string>> collections =
+                    ActiveConfigurations
+                        .Select(c => Module.Configurations[c].Projects[Project.Name])
+                        .Select(c => c.IncludeFiles)
+                        .ToList();
 
-        public HashSet<string> GetConfigurationSpecificIncludes(string configuration) => new HashSet<string>();
-//        {
-//            return Project.GetConfiguration(configuration)
-//                .IncludeFiles.Except(GetCommonIncludes())
-//                .ToHashSet();
-//        }
+                commonIncludes = collections
+                    .Skip(1)
+                    .Aggregate(new HashSet<string>(collections.First()),
+                        (h, e) =>
+                        {
+                            h.IntersectWith(e);
+                            return h;
+                        });
+            }
+
+            return commonIncludes;
+        }
+
+        public HashSet<string> GetConfigurationSpecificIncludes()
+        {
+            return Project.IncludeFiles
+                .Except(GetCommonIncludes())
+                .ToHashSet();
+        }
 
         private HashSet<string> commonProjectRefs;
-        public HashSet<string> GetCommonProjectRefs() => new HashSet<string>();
-//        {
-//            if (commonProjectRefs == null)
-//            {
-//                List<IReadOnlyCollection<string>> collections =
-//                    Solution.ActiveConfigurations.Keys
-//                        .Select(Project.GetConfiguration)
-//                        .Select(c => c.ProjectRefs)
-//                        .ToList();
-//
-//                commonProjectRefs = collections
-//                    .Skip(1)
-//                    .Aggregate(new HashSet<string>(collections.First()),
-//                        (h, e) =>
-//                        {
-//                            h.IntersectWith(e);
-//                            return h;
-//                        });
-//            }
-//
-//            return commonProjectRefs;
-//        }
+        public HashSet<string> GetCommonProjectRefs()
+        {
+            if (commonProjectRefs == null)
+            {
+                List<IReadOnlyCollection<string>> collections =
+                    ActiveConfigurations
+                        .Select(c => Module.Configurations[c].Projects[ProjectName])
+                        .Select(c => c.ProjectRefs)
+                        .ToList();
 
-        public HashSet<string> GetConfigurationSpecificProjectRefs(string configuration) => new HashSet<string>();
-//        {
-//            return Project.GetConfiguration(configuration)
-//                .ProjectRefs.Except(GetCommonProjectRefs())
-//                .ToHashSet();
-//        }
+                commonProjectRefs = collections
+                    .Skip(1)
+                    .Aggregate(new HashSet<string>(collections.First()),
+                        (h, e) =>
+                        {
+                            h.IntersectWith(e);
+                            return h;
+                        });
+            }
+
+            return commonProjectRefs;
+        }
+
+        public HashSet<string> GetConfigurationSpecificProjectRefs()
+        {
+            return Project.ProjectRefs
+                .Except(GetCommonProjectRefs())
+                .ToHashSet();
+        }
     }
 }

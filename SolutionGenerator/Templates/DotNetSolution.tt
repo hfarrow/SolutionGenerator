@@ -5,12 +5,12 @@
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="SolutionGen.Generator.Model" #>
 Microsoft Visual Studio Solution File, Format Version 12.00
-<# foreach (Module module in Solution.Modules.Values)
+<# foreach (Module module in Modules.Values)
 {
-    foreach (Project project in module.Projects.Values)
+    foreach (Project.Identifier project in module.ProjectIdLookup.Values)
     {
 #>
-Project("{<#= SolutionGuid #>}") = "<#= project.Name #>", "<#= project.Name #>.csproj", "{<#= GetProjectGuid(project) #>}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "<#= project.Name #>", "<#= project.Name #>.csproj", "{<#= project.Guid #>}"
 EndProject
 <#  }
 } #>
@@ -25,16 +25,16 @@ Global
 } #>
     EndGlobalSection
     GlobalSection(ProjectConfigurationPlatforms) = postSolution
-<# foreach (Module module in Solution.Modules.Values)
+<# foreach (Module module in Modules.Values)
 {
-    foreach (Project project in module.Projects.Values)
+    foreach (Project.Identifier project in module.ProjectIdLookup.Values)
     {
         foreach (string configuration in ActiveConfigurations)
         {
             foreach (string platform in Solution.TargetPlatforms)
             { #>
-        {<#= GetProjectGuid(project) #>}.<#= configuration #>|<#= platform #>.ActiveCfg = <#= configuration #>|Any CPU
-        {<#= GetProjectGuid(project) #>}.<#= configuration #>|<#= platform #>.Build.0 = <#= configuration #>|Any CPU
+        {<#= project.Guid #>}.<#= configuration #>|<#= platform #>.ActiveCfg = <#= configuration #>|Any CPU
+        {<#= project.Guid #>}.<#= configuration #>|<#= platform #>.Build.0 = <#= configuration #>|Any CPU
 <#          }
         }
     }

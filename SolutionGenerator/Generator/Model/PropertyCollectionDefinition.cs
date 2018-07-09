@@ -16,6 +16,9 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToCollection(object collection, object value);
         public abstract void ClearCollection(object collection);
         public abstract object CloneCollection(object collection);
+
+        public abstract object ExpandVariablesInCollection(object collection, string variableName,
+            string variableExpansion);
     }
     
     public class PropertyCollectionDefinition<TCollection, TValue, TReader> : PropertyCollectionDefinition
@@ -71,6 +74,28 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
 
+        public override object ExpandVariablesInCollection(object collection, string variableName,
+            string variableExpansion)
+        {
+            CheckCollectionType(collection);
+            var castedCollection = (TCollection) collection;
+            foreach (TValue value in castedCollection)
+            {
+                string strValue = value as string;
+                if (strValue != null)
+                {
+                    string expandedValueStr = strValue.Replace(variableName, variableExpansion);
+                    if (expandedValueStr != strValue)
+                    {
+                        castedCollection.Remove(value);
+                        castedCollection.Add((TValue)(object)expandedValueStr);
+                    }
+                }
+            }
+
+            return collection;
+        }
+
         public override object GetOrCloneDefaultValue()
         {
             var copy = new TCollection();
@@ -85,6 +110,11 @@ namespace SolutionGen.Generator.Model
         public override object CloneValue(object value)
         {
             return CloneCollection(value);
+        }
+
+        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        {
+            return ExpandVariablesInCollection(value, variableName, variableExpansion);
         }
 
         private static void CheckCollectionType(object collection)

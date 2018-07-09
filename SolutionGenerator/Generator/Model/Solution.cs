@@ -7,25 +7,20 @@ namespace SolutionGen.Generator.Model
     {
         public string Name { get; }
         public readonly Guid Guid;
-
+        public string SolutionConfigPath { get; }
         public readonly Settings Settings;
-        public IReadOnlyDictionary<string, Module> Modules => modules;
-        private readonly Dictionary<string, Module> modules = new Dictionary<string, Module>();
-        public IReadOnlyDictionary<string, Project> Projects => projects;
-        private readonly Dictionary<string, Project> projects = new Dictionary<string, Project>();
-
-        public Project GetProject(string name) => projects[name];
 
         public IReadOnlyCollection<string> TargetPlatforms =>
             Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_TARGET_PLATFORMS);
 
         public string RootNamespace => Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE);
 
-        public Solution(string name, Settings settings)
+        public Solution(string name, Settings settings, string solutionConfigPath)
         {
             Name = name;
             Guid = Guid.NewGuid();
             Settings = settings;
+            SolutionConfigPath = solutionConfigPath;
         }
     }
 }

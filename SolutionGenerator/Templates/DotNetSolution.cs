@@ -28,9 +28,9 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 8 ".\Templates\DotNetSolution.tt"
- foreach (Module module in Solution.Modules.Values)
+ foreach (Module module in Modules.Values)
 {
-    foreach (Project project in module.Projects.Values)
+    foreach (Project.Identifier project in module.ProjectIdLookup.Values)
     {
 
             
@@ -80,7 +80,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 13 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetProjectGuid(project) ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
             
             #line default
             #line hidden
@@ -170,9 +170,9 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 28 ".\Templates\DotNetSolution.tt"
- foreach (Module module in Solution.Modules.Values)
+ foreach (Module module in Modules.Values)
 {
-    foreach (Project project in module.Projects.Values)
+    foreach (Project.Identifier project in module.ProjectIdLookup.Values)
     {
         foreach (string configuration in ActiveConfigurations)
         {
@@ -189,7 +189,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 36 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetProjectGuid(project) ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
             
             #line default
             #line hidden
@@ -237,7 +237,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 37 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetProjectGuid(project) ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
             
             #line default
             #line hidden

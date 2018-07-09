@@ -21,19 +21,20 @@
         <LangVersion><#= LanguageVersion #></LangVersion>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
-<# foreach (string configuration in ActiveConfigurations)
+<# foreach (Configuration configuration in ActiveConfigurations)
 {
+    CurrentConfiguration = configuration;
     foreach (string platform in TargetPlatforms)
     {#>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '<#= configuration #>|<#= platform #>' ">
-        <PlatformTarget><#= GetStringProperty(configuration, Settings.PROP_CONFIGURATION_PLATFORM_TARGET) #></PlatformTarget>
-        <DebugSymbols><#= GetStringProperty(configuration, Settings.PROP_DEBUG_SYMBOLS) #></DebugSymbols>
-        <DebugType><#= GetStringProperty(configuration, Settings.PROP_DEBUG_TYPE) #></DebugType>
-        <Optimize><#= GetStringProperty(configuration, Settings.PROP_OPTIMIZE) #></Optimize>
+        <PlatformTarget><#= GetStringProperty(Settings.PROP_CONFIGURATION_PLATFORM_TARGET) #></PlatformTarget>
+        <DebugSymbols><#= GetStringProperty(Settings.PROP_DEBUG_SYMBOLS) #></DebugSymbols>
+        <DebugType><#= GetStringProperty(Settings.PROP_DEBUG_TYPE) #></DebugType>
+        <Optimize><#= GetStringProperty(Settings.PROP_OPTIMIZE) #></Optimize>
         <OutputPath>bin\<#= configuration #>\</OutputPath>
-        <DefineConstants><#= GetDefineConstants(configuration) #></DefineConstants>
-        <ErrorReport><#= GetStringProperty(configuration, Settings.PROP_ERROR_REPORT) #></ErrorReport>
-        <WarningLevel><#= GetStringProperty(configuration, Settings.PROP_WARNING_LEVEL) #></WarningLevel>
+        <DefineConstants><#= GetDefineConstants() #></DefineConstants>
+        <ErrorReport><#= GetStringProperty(Settings.PROP_ERROR_REPORT) #></ErrorReport>
+        <WarningLevel><#= GetStringProperty(Settings.PROP_WARNING_LEVEL) #></WarningLevel>
     </PropertyGroup>
 <#  }
 }#>
@@ -52,24 +53,25 @@
 foreach (string projectName in GetCommonProjectRefs())
 {#>
         <ProjectReference Include="<#= projectName #>.csproj" >
-            <Project>{<#=Solution.GetProject(projectName).Guid #>}</Project>
+            <Project>{<#=ProjectIdLookup[projectName].Guid #>}</Project>
             <Name><#= projectName #></Name>
         </ProjectReference>
 <#}#>
     </ItemGroup>
 
-<# foreach (string configuration in ActiveConfigurations)
-{#>
+<# foreach (Configuration configuration in ActiveConfigurations)
+{
+    CurrentConfiguration = configuration;#>
     <ItemGroup Condition=" '$(Configuration)' == '<#= configuration #>' ">
-<#  foreach(string file in GetConfigurationSpecificIncludes(configuration))
+<#  foreach(string file in GetConfigurationSpecificIncludes())
     {#>
         <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
 <#  }
 
-    foreach(string projectName in GetConfigurationSpecificProjectRefs(configuration))
+    foreach(string projectName in GetConfigurationSpecificProjectRefs())
     {#>
         <ProjectReference Include="<#= projectName #>.csproj" >
-            <Project>{<#=Solution.GetProject(projectName).Guid #>}</Project>
+            <Project>{<#=ProjectIdLookup[projectName].Guid #>}</Project>
             <Name><#= projectName #></Name>
         </ProjectReference>
 <#  }#>

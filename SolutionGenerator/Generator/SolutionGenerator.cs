@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser;
@@ -13,10 +15,10 @@ namespace SolutionGen
 {
     public class SolutionGenerator
     {
-        internal ConfigDocument configDoc;
-        internal DocumentReader reader;
+        internal ConfigDocument ConfigDoc;
+        internal DocumentReader Reader;
 
-        public string ActiveConfigurationGroup { get; }
+        public string ActiveConfigurationGroup { get; private set; }
         
         public static SolutionGenerator FromPath(string solutionConfigPath)
         {
@@ -51,57 +53,46 @@ namespace SolutionGen
                 throw new DataException($"Solution config could not be parsed: {result}");
             }
 
-            configDoc = result.Value;
-            reader = new DocumentReader(configDoc, rootPath);
+            ConfigDoc = result.Value;
+            Reader = new DocumentReader(ConfigDoc, rootPath);
         }
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
-//            reader.Solution.ActiveConfigurationGroup = configurationGroup;
-//            
-//            foreach (Template template in reader.Templates.Values)
-//            {
-//                template.Compile(reader.Solution, externalDefineConstants);
-//            }
-//            
-//            foreach (Module module in reader.Modules.Values)
-//            {
-//                reader.Solution.AddModule(module);
-//                string templateName = module.ModuleElement.Heading.InheritedObjectName;
-//                if (!reader.Templates.TryGetValue(templateName, out Template template))
-//                {
-//                    throw new UndefinedTemplateException(templateName);
-//                }
-//
-//                template.ApplyToModule(configurationGroup, reader.Solution, module, externalDefineConstants);
-//                foreach (Project project in module.Projects)
-//                {
-//                    var projectTemplate = new DotNetProject
-//                    {
-//                        Solution = reader.Solution,
-//                        Module = module,
-//                        Project = project
-//                    };
-//
-//                    File.WriteAllText(Path.Combine(module.RootPath, project.Name) + ".csproj", projectTemplate.TransformText());
-//                }
-//            }
-//
-//            var solutionTemplate = new DotNetSolution()
-//            {
-//                Solution = reader.Solution
-//            };
-//            
-//            File.WriteAllText(Path.Combine(reader.RootPath, reader.Solution.Name) + ".sln", solutionTemplate.TransformText());
-        }
-    }
+            ActiveConfigurationGroup = configurationGroup;
+            foreach (Module module in Reader.Modules.Values)
+            {
+                foreach (Project.Identifier project in module.ProjectIdLookup.Values)
+                {
+                    var projectTemplate = new DotNetProject
+                    {
+                        Generator = this,
+                        Solution = Reader.Solution,
+                        Module = module,
+                        ProjectName = project.Name,
+                        ProjectIdLookup = Reader.Modules
+                            .SelectMany(kvp => kvp.Value.ProjectIdLookup)
+                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                        CurrentConfiguration =
+                            Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup].Configurations
+                                .First().Value
+                    };
 
-    public sealed class UndefinedTemplateException : Exception
-    {
-        public UndefinedTemplateException(string templateName)
-            : base($"A template named '{templateName}' could not be found. Was it included by the solution config?")
-        {
-            
+                    string projectText = projectTemplate.TransformText();
+                    File.WriteAllText(Path.Combine(module.SourcePath, project.Name) + ".csproj", projectText);
+                }
+            }
+
+            var solutionTemplate = new DotNetSolution
+            {
+                Generator = this,
+                Solution = Reader.Solution,
+                Modules = Reader.Modules
+            };
+
+            string solutionText = solutionTemplate.TransformText();
+            File.WriteAllText(Path.Combine(Reader.SolutionConfigDirectory, Reader.Solution.Name) + ".sln",
+                solutionText);
         }
     }
 }

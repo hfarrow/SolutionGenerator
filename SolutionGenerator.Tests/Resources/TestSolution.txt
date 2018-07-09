@@ -28,6 +28,9 @@ module OtherTestModule : TestTemplate
 {
     settings project
     {
+        // TODO: allow fixed guid per project
+        // set guid: 1a2b3c4d...
+
         add project refs
         [
             TestModule
@@ -36,6 +39,8 @@ module OtherTestModule : TestTemplate
 
     settings project.tests : project
     {
+        // set guid: a1b2c3d4...
+
         add project refs
         [
             TestModule.Tests
@@ -98,10 +103,11 @@ template TestTemplate
         set include files: none
         set exclude files: none
 
-        exclude (no-tests)
+        // TODO: implement exclude command if needed
+        // exclude (no-tests)
         skip (!test)
 
-        set include files: glob "**/Tests/**/*.{cs,txt,json,xml,md}"
+        set include files: glob "**/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
         set exclude files: empty
 
         add project refs

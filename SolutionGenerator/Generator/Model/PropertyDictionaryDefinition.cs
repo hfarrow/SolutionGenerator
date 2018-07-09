@@ -17,6 +17,9 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToDictionary(object dictionary, string key, object value);
         public abstract void ClearDictionary(object dictionary);
         public abstract object CloneDictionary(object dictionary);
+
+        public abstract object ExpandVariablesInDictionary(object dictionary, string variableName,
+            string variableExpansion);
     }
 
     public class PropertyDictionaryDefinition<TDictionary, TValue, TReader> : PropertyDictionaryDefinition
@@ -64,12 +67,32 @@ namespace SolutionGen.Generator.Model
             CheckDictionaryType(dictionary);
             var castedDictionary = (TDictionary) dictionary;
             var copy = new TDictionary();
-            foreach (KeyValuePair<string,TValue> kvp in castedDictionary)
+            foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
                 copy[kvp.Key] = kvp.Value;
             }
 
             return copy;
+        }
+        
+        public override object ExpandVariablesInDictionary(object dictionary, string variableName,
+            string variableExpansion)
+        {
+            CheckDictionaryType(dictionary);
+            var castedDictionary = (TDictionary) dictionary;
+            foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
+            {
+                TValue expandedValue = kvp.Value;
+                string strValue = kvp.Value as string;
+                if (strValue != null)
+                {
+                    expandedValue = (TValue)(object)strValue.Replace(variableName, variableExpansion);
+                }
+
+                castedDictionary[kvp.Key] = expandedValue;
+            }
+
+            return dictionary;
         }
 
         public override object GetOrCloneDefaultValue()
@@ -86,6 +109,11 @@ namespace SolutionGen.Generator.Model
         public override object CloneValue(object value)
         {
             return CloneDictionary(value);
+        }
+
+        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        {
+            return ExpandVariablesInDictionary(value, variableName, variableExpansion);
         }
 
         private static void CheckDictionaryType(object dictionary)

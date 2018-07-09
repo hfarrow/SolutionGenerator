@@ -8,6 +8,8 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
+using System.Diagnostics;
+
 namespace SolutionGen.Templates {
     using System.Linq;
     using System.Text;
@@ -120,148 +122,149 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 24 ".\Templates\DotNetProject.tt"
- foreach (string configuration in ActiveConfigurations)
+ foreach (Configuration configuration in ActiveConfigurations)
 {
+    CurrentConfiguration = configuration;
     foreach (string platform in TargetPlatforms)
     {
             
             #line default
             #line hidden
             
-            #line 28 ".\Templates\DotNetProject.tt"
+            #line 29 ".\Templates\DotNetProject.tt"
             this.Write("    <PropertyGroup Condition=\" \'$(Configuration)|$(Platform)\' == \'");
             
             #line default
             #line hidden
             
-            #line 28 ".\Templates\DotNetProject.tt"
+            #line 29 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 28 ".\Templates\DotNetProject.tt"
+            #line 29 ".\Templates\DotNetProject.tt"
             this.Write("|");
             
             #line default
             #line hidden
             
-            #line 28 ".\Templates\DotNetProject.tt"
+            #line 29 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( platform ));
             
             #line default
             #line hidden
             
-            #line 28 ".\Templates\DotNetProject.tt"
+            #line 29 ".\Templates\DotNetProject.tt"
             this.Write("\' \">\r\n        <PlatformTarget>");
             
             #line default
             #line hidden
             
-            #line 29 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_CONFIGURATION_PLATFORM_TARGET) ));
+            #line 30 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_CONFIGURATION_PLATFORM_TARGET) ));
             
             #line default
             #line hidden
             
-            #line 29 ".\Templates\DotNetProject.tt"
+            #line 30 ".\Templates\DotNetProject.tt"
             this.Write("</PlatformTarget>\r\n        <DebugSymbols>");
             
             #line default
             #line hidden
             
-            #line 30 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_DEBUG_SYMBOLS) ));
+            #line 31 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_DEBUG_SYMBOLS) ));
             
             #line default
             #line hidden
             
-            #line 30 ".\Templates\DotNetProject.tt"
+            #line 31 ".\Templates\DotNetProject.tt"
             this.Write("</DebugSymbols>\r\n        <DebugType>");
             
             #line default
             #line hidden
             
-            #line 31 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_DEBUG_TYPE) ));
+            #line 32 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_DEBUG_TYPE) ));
             
             #line default
             #line hidden
             
-            #line 31 ".\Templates\DotNetProject.tt"
+            #line 32 ".\Templates\DotNetProject.tt"
             this.Write("</DebugType>\r\n        <Optimize>");
             
             #line default
             #line hidden
             
-            #line 32 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_OPTIMIZE) ));
+            #line 33 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_OPTIMIZE) ));
             
             #line default
             #line hidden
             
-            #line 32 ".\Templates\DotNetProject.tt"
+            #line 33 ".\Templates\DotNetProject.tt"
             this.Write("</Optimize>\r\n        <OutputPath>bin\\");
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetProject.tt"
+            #line 34 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetProject.tt"
+            #line 34 ".\Templates\DotNetProject.tt"
             this.Write("\\</OutputPath>\r\n        <DefineConstants>");
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetDefineConstants(configuration) ));
+            #line 35 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetDefineConstants() ));
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetProject.tt"
+            #line 35 ".\Templates\DotNetProject.tt"
             this.Write("</DefineConstants>\r\n        <ErrorReport>");
             
             #line default
             #line hidden
             
-            #line 35 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_ERROR_REPORT) ));
+            #line 36 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_ERROR_REPORT) ));
             
             #line default
             #line hidden
             
-            #line 35 ".\Templates\DotNetProject.tt"
+            #line 36 ".\Templates\DotNetProject.tt"
             this.Write("</ErrorReport>\r\n        <WarningLevel>");
             
             #line default
             #line hidden
             
-            #line 36 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(configuration, Settings.PROP_WARNING_LEVEL) ));
+            #line 37 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetStringProperty(Settings.PROP_WARNING_LEVEL) ));
             
             #line default
             #line hidden
             
-            #line 36 ".\Templates\DotNetProject.tt"
+            #line 37 ".\Templates\DotNetProject.tt"
             this.Write("</WarningLevel>\r\n    </PropertyGroup>\r\n");
             
             #line default
             #line hidden
             
-            #line 38 ".\Templates\DotNetProject.tt"
+            #line 39 ".\Templates\DotNetProject.tt"
   }
 }
             
             #line default
             #line hidden
             
-            #line 40 ".\Templates\DotNetProject.tt"
+            #line 41 ".\Templates\DotNetProject.tt"
             this.Write(@"    <ItemGroup>
         <Reference Include=""System""/>
         <Reference Include=""System.Core""/>
@@ -275,44 +278,44 @@ namespace SolutionGen.Templates {
             #line default
             #line hidden
             
-            #line 48 ".\Templates\DotNetProject.tt"
+            #line 49 ".\Templates\DotNetProject.tt"
  foreach (string file in GetCommonIncludes())
 {
             
             #line default
             #line hidden
             
-            #line 50 ".\Templates\DotNetProject.tt"
+            #line 51 ".\Templates\DotNetProject.tt"
             this.Write("        <");
             
             #line default
             #line hidden
             
-            #line 50 ".\Templates\DotNetProject.tt"
+            #line 51 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( Path.GetExtension(file) == ".cs" ? "Compile" : "Content" ));
             
             #line default
             #line hidden
             
-            #line 50 ".\Templates\DotNetProject.tt"
+            #line 51 ".\Templates\DotNetProject.tt"
             this.Write(" Include=\"");
             
             #line default
             #line hidden
             
-            #line 50 ".\Templates\DotNetProject.tt"
+            #line 51 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( file ));
             
             #line default
             #line hidden
             
-            #line 50 ".\Templates\DotNetProject.tt"
+            #line 51 ".\Templates\DotNetProject.tt"
             this.Write("\" />\r\n");
             
             #line default
             #line hidden
             
-            #line 51 ".\Templates\DotNetProject.tt"
+            #line 52 ".\Templates\DotNetProject.tt"
 }
 foreach (string projectName in GetCommonProjectRefs())
 {
@@ -320,192 +323,193 @@ foreach (string projectName in GetCommonProjectRefs())
             #line default
             #line hidden
             
-            #line 54 ".\Templates\DotNetProject.tt"
+            #line 55 ".\Templates\DotNetProject.tt"
             this.Write("        <ProjectReference Include=\"");
             
             #line default
             #line hidden
             
-            #line 54 ".\Templates\DotNetProject.tt"
+            #line 55 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
             
             #line default
             #line hidden
             
-            #line 54 ".\Templates\DotNetProject.tt"
+            #line 55 ".\Templates\DotNetProject.tt"
             this.Write(".csproj\" >\r\n            <Project>{");
             
             #line default
             #line hidden
             
-            #line 55 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Solution.GetProject(projectName).Guid ));
+            #line 56 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(ProjectIdLookup[projectName].Guid ));
             
             #line default
             #line hidden
             
-            #line 55 ".\Templates\DotNetProject.tt"
+            #line 56 ".\Templates\DotNetProject.tt"
             this.Write("}</Project>\r\n            <Name>");
             
             #line default
             #line hidden
             
-            #line 56 ".\Templates\DotNetProject.tt"
+            #line 57 ".\Templates\DotNetProject.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
             
             #line default
             #line hidden
             
-            #line 56 ".\Templates\DotNetProject.tt"
+            #line 57 ".\Templates\DotNetProject.tt"
             this.Write("</Name>\r\n        </ProjectReference>\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 58 ".\Templates\DotNetProject.tt"
-}
             
             #line default
             #line hidden
             
             #line 59 ".\Templates\DotNetProject.tt"
-            this.Write("    </ItemGroup>\r\n\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 61 ".\Templates\DotNetProject.tt"
- foreach (string configuration in ActiveConfigurations)
-{
-            
-            #line default
-            #line hidden
-            
-            #line 63 ".\Templates\DotNetProject.tt"
-            this.Write("    <ItemGroup Condition=\" \'$(Configuration)\' == \'");
-            
-            #line default
-            #line hidden
-            
-            #line 63 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
-            
-            #line default
-            #line hidden
-            
-            #line 63 ".\Templates\DotNetProject.tt"
-            this.Write("\' \">\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 64 ".\Templates\DotNetProject.tt"
-  foreach(string file in GetConfigurationSpecificIncludes(configuration))
-    {
-            
-            #line default
-            #line hidden
-            
-            #line 66 ".\Templates\DotNetProject.tt"
-            this.Write("        <");
-            
-            #line default
-            #line hidden
-            
-            #line 66 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( Path.GetExtension(file) == ".cs" ? "Compile" : "Content" ));
-            
-            #line default
-            #line hidden
-            
-            #line 66 ".\Templates\DotNetProject.tt"
-            this.Write(" Include=\"");
-            
-            #line default
-            #line hidden
-            
-            #line 66 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( file ));
-            
-            #line default
-            #line hidden
-            
-            #line 66 ".\Templates\DotNetProject.tt"
-            this.Write("\" />\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 67 ".\Templates\DotNetProject.tt"
-  }
-
-    foreach(string projectName in GetConfigurationSpecificProjectRefs(configuration))
-    {
-            
-            #line default
-            #line hidden
-            
-            #line 71 ".\Templates\DotNetProject.tt"
-            this.Write("        <ProjectReference Include=\"");
-            
-            #line default
-            #line hidden
-            
-            #line 71 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
-            
-            #line default
-            #line hidden
-            
-            #line 71 ".\Templates\DotNetProject.tt"
-            this.Write(".csproj\" >\r\n            <Project>{");
-            
-            #line default
-            #line hidden
-            
-            #line 72 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(Solution.GetProject(projectName).Guid ));
-            
-            #line default
-            #line hidden
-            
-            #line 72 ".\Templates\DotNetProject.tt"
-            this.Write("}</Project>\r\n            <Name>");
-            
-            #line default
-            #line hidden
-            
-            #line 73 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
-            
-            #line default
-            #line hidden
-            
-            #line 73 ".\Templates\DotNetProject.tt"
-            this.Write("</Name>\r\n        </ProjectReference>\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 75 ".\Templates\DotNetProject.tt"
-  }
-            
-            #line default
-            #line hidden
-            
-            #line 76 ".\Templates\DotNetProject.tt"
-            this.Write("    </ItemGroup>\r\n");
-            
-            #line default
-            #line hidden
-            
-            #line 77 ".\Templates\DotNetProject.tt"
 }
             
             #line default
             #line hidden
             
+            #line 60 ".\Templates\DotNetProject.tt"
+            this.Write("    </ItemGroup>\r\n\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 62 ".\Templates\DotNetProject.tt"
+ foreach (Configuration configuration in ActiveConfigurations)
+{
+    CurrentConfiguration = configuration;
+            
+            #line default
+            #line hidden
+            
+            #line 65 ".\Templates\DotNetProject.tt"
+            this.Write("    <ItemGroup Condition=\" \'$(Configuration)\' == \'");
+            
+            #line default
+            #line hidden
+            
+            #line 65 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
+            
+            #line default
+            #line hidden
+            
+            #line 65 ".\Templates\DotNetProject.tt"
+            this.Write("\' \">\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 66 ".\Templates\DotNetProject.tt"
+  foreach(string file in GetConfigurationSpecificIncludes())
+    {
+            
+            #line default
+            #line hidden
+            
+            #line 68 ".\Templates\DotNetProject.tt"
+            this.Write("        <");
+            
+            #line default
+            #line hidden
+            
+            #line 68 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( Path.GetExtension(file) == ".cs" ? "Compile" : "Content" ));
+            
+            #line default
+            #line hidden
+            
+            #line 68 ".\Templates\DotNetProject.tt"
+            this.Write(" Include=\"");
+            
+            #line default
+            #line hidden
+            
+            #line 68 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( file ));
+            
+            #line default
+            #line hidden
+            
+            #line 68 ".\Templates\DotNetProject.tt"
+            this.Write("\" />\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 69 ".\Templates\DotNetProject.tt"
+  }
+
+    foreach(string projectName in GetConfigurationSpecificProjectRefs())
+    {
+            
+            #line default
+            #line hidden
+            
+            #line 73 ".\Templates\DotNetProject.tt"
+            this.Write("        <ProjectReference Include=\"");
+            
+            #line default
+            #line hidden
+            
+            #line 73 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
+            
+            #line default
+            #line hidden
+            
+            #line 73 ".\Templates\DotNetProject.tt"
+            this.Write(".csproj\" >\r\n            <Project>{");
+            
+            #line default
+            #line hidden
+            
+            #line 74 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(ProjectIdLookup[projectName].Guid ));
+            
+            #line default
+            #line hidden
+            
+            #line 74 ".\Templates\DotNetProject.tt"
+            this.Write("}</Project>\r\n            <Name>");
+            
+            #line default
+            #line hidden
+            
+            #line 75 ".\Templates\DotNetProject.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
+            
+            #line default
+            #line hidden
+            
+            #line 75 ".\Templates\DotNetProject.tt"
+            this.Write("</Name>\r\n        </ProjectReference>\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 77 ".\Templates\DotNetProject.tt"
+  }
+            
+            #line default
+            #line hidden
+            
             #line 78 ".\Templates\DotNetProject.tt"
+            this.Write("    </ItemGroup>\r\n");
+            
+            #line default
+            #line hidden
+            
+            #line 79 ".\Templates\DotNetProject.tt"
+}
+            
+            #line default
+            #line hidden
+            
+            #line 80 ".\Templates\DotNetProject.tt"
             this.Write(@"    <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets""/>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

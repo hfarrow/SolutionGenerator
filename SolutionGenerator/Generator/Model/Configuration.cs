@@ -6,7 +6,7 @@ namespace SolutionGen.Generator.Model
     {
         public string GroupName { get; }
         public string Name { get; }
-        public IReadOnlyCollection<string> Conditionals { get; }
+        public IEnumerable<string> Conditionals => conditionals;
 
         private readonly HashSet<string> conditionals;
         

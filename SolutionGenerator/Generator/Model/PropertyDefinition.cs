@@ -9,7 +9,7 @@ namespace SolutionGen.Generator.Model
     {
         public string Name { get; }
         public Type ValueType { get; }
-        public ElementReader<PropertyElement, PropertyDefinition> Reader;
+        public readonly ElementReader<PropertyElement, PropertyDefinition> Reader;
         
         protected object DefaultValueObj { get; }
 
@@ -24,8 +24,8 @@ namespace SolutionGen.Generator.Model
 
         public abstract object GetOrCloneDefaultValue();
         public abstract object CloneValue(object value);
+        public abstract object ExpandVariables(object value, string variableName, string variableExpansion);
     }
-
     
     public class PropertyDefinition<TValue, TReader> : PropertyDefinition
         where TReader : ElementReader<PropertyElement, PropertyDefinition>, new()
@@ -54,6 +54,17 @@ namespace SolutionGen.Generator.Model
         public override object CloneValue(object value)
         {
             // Properties are assumed to be strings, ints, bools, etc. and do not need a deep copy.
+            return value;
+        }
+
+        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        {
+            // Only strings contain variables to be expanded.
+            if (value is string strValue)
+            {
+                return strValue.Replace(variableName, variableExpansion);
+            }
+
             return value;
         }
     }
