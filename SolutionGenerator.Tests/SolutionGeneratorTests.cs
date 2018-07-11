@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
+using SolutionGen.Generator.Model;
+using SolutionGen.Generator.Reader;
 using Xunit;
+using Module = SolutionGen.Generator.Model.Module;
 
 namespace SolutionGen.Tests
 {
@@ -53,7 +55,7 @@ namespace SolutionGen.Tests
 //        [InlineData("no-tests")]
 //        public void CanGeneratorSolution(string configurationGroup)
 //        {
-//            DocumentReader sol = generator.reader;
+//            DocumentReader sol = generator.Reader;
 //            generator.GenerateSolution(configurationGroup);
 //            Assert.Single(sol.Templates);
 //            Assert.Equal(2, sol.Modules.Count);
@@ -64,8 +66,8 @@ namespace SolutionGen.Tests
 //            Assert.True(sol.Templates.ContainsKey("TestTemplate"));
 //
 //            Module module = sol.Modules["TestModule"];
-//            Assert.Equal("TestModule", module.ModuleElement.Heading.Name);
-//            Assert.Equal(configurationGroup == "everything" ? 2 : 1, module.Projects.Count);
+//            Assert.Equal("TestModule", module.Name);
+//            Assert.Equal(configurationGroup == "everything" ? 2 : 1, module.ProjectIdLookup.Count);
 //            Assert.Equal("TestModule", module.Projects.ElementAt(0).Name);
 //            if (configurationGroup == "everything")
 //            {

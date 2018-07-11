@@ -25,6 +25,8 @@ namespace SolutionGen.Generator.Model
         public abstract object GetOrCloneDefaultValue();
         public abstract object CloneValue(object value);
         public abstract object ExpandVariable(object value, string varName, string varExpansion);
+
+        public abstract string PrintValue(object value);
     }
     
     public class PropertyDefinition<TValue, TReader> : PropertyDefinition
@@ -66,6 +68,11 @@ namespace SolutionGen.Generator.Model
             }
 
             return value;
+        }
+
+        public override string PrintValue(object value)
+        {
+            return value.ToString();
         }
     }
 }

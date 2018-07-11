@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Operations;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -28,91 +29,136 @@ namespace SolutionGen.Generator.Reader
 
         public Template Read(ObjectElement templateElement)
         {
-            Log.WriteLine("Reading template element: {0}", templateElement);
+            Log.WriteLine("Reading template element with base template '{0}': {1}",
+                baseTemplate?.Name ?? "none", templateElement);
             
-            Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
-                configurationGroups.Values.SelectMany(g => g.Configurations.Values)
-                    .ToDictionary(cfg => cfg, cfg => CreateTemplateConfig(templateElement, cfg));
+            using (var _ = new Log.ScopedIndent(true))
+            {
+                Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
+                    configurationGroups.Values.SelectMany(g => g.Configurations.Values)
+                        .ToDictionary(cfg => cfg, cfg => CreateTemplateConfig(templateElement, cfg));
 
-            return new Template(templateElement.Heading.Name, templateConfigurations);
+                Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Elements
+                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
+                    .Cast<ObjectElement>().ToDictionary(obj => obj.Heading.Name, obj => obj);
+                
+                return new Template(
+                    templateElement.Heading.Name,
+                    templateElement,
+                    settingsSourceElements,
+                    templateConfigurations);
+            }
         }
         
         private TemplateConfiguration CreateTemplateConfig(ObjectElement templateElement, Configuration configuration)
         {
             Log.WriteLine("Creating template config '{0} - {1}' for template '{2}'",
                 configuration.GroupName, configuration.Name, templateElement.Heading.Name);
-                
-            // When reading a template element there will be no base settings. However, when reading a module element
-            // which is treated like a template there will will be base settings. Those base settings are the root template
-            // element where project declarations are normally made.
-            Settings rootBaseSettings = null;
-            baseTemplate?.Configurations[configuration].Settings
-                .TryGetValue(ROOT_SETTINGS_NAME, out rootBaseSettings);
 
-            var rootReader = new SettingsReader(configuration, rootBaseSettings);
-            Settings rootSettings = rootReader.Read(templateElement);
-
-            if (!rootSettings.TryGetProperty(Settings.PROP_PROJECT_DELCARATIONS, out HashSet<string> declarations))
+            using (var _ = new Log.ScopedIndent(true))
             {
-                throw new MissingProjectDeclarationsException(templateElement, configuration);
-            }
+                // When reading a template element there will be no base settings. However, when reading a module element
+                // which is treated like a template there will be base settings. Those base settings are the root template
+                // element where project declarations are normally made.
+                Settings rootBaseSettings = null;
+                baseTemplate?.Configurations[configuration].Settings
+                    .TryGetValue(ROOT_SETTINGS_NAME, out rootBaseSettings);
 
-            Dictionary<string, Settings> settingsLookup = baseTemplate != null
-                ? new Dictionary<string, Settings>(baseTemplate.Configurations[configuration].Settings)
-                : new Dictionary<string, Settings>();
+                var rootReader = new SettingsReader(configuration, rootBaseSettings);
+                Settings rootSettings = rootReader.Read(templateElement);
 
-            settingsLookup[ROOT_SETTINGS_NAME] = rootSettings;
-            
-            var projectDelcarations = new List<ProjectDelcaration>();
-            foreach (string declaration in declarations)
-            {
-                string[] parts = declaration.Split(':');
-                if (parts.Length != 2)
+                if (!rootSettings.TryGetProperty(Settings.PROP_PROJECT_DELCARATIONS, out HashSet<string> declarations))
                 {
-                    throw new InvalidProjectDeclarationException(declaration);
+                    throw new MissingProjectDeclarationsException(templateElement, configuration);
                 }
-                projectDelcarations.Add(new ProjectDelcaration(parts[0].Trim(), parts[1].Trim()));
-            }
 
-            foreach (ConfigElement element in templateElement.Elements)
-            {
-                if (element is ObjectElement objElement && objElement.Heading.Type == SectionType.SETTINGS)
+                Dictionary<string, Settings> settingsLookup = baseTemplate != null
+                    ? new Dictionary<string, Settings>(baseTemplate.Configurations[configuration].Settings)
+                    : new Dictionary<string, Settings>();
+
+                settingsLookup[ROOT_SETTINGS_NAME] = rootSettings;
+
+                var projectDelcarations = new List<ProjectDelcaration>();
+                foreach (string declaration in declarations)
                 {
-                    string settingsName = objElement.Heading.Name;
-                    string baseSettingsName = objElement.Heading.InheritedObjectName;
-
-                    Settings baseSettings = null;
-                    if (!string.IsNullOrEmpty(baseSettingsName) &&
-                        !settingsLookup.TryGetValue(baseSettingsName, out baseSettings))
+                    string[] parts = declaration.Split(':');
+                    if (parts.Length != 2)
                     {
-                        throw new UndefinedBaseSettingsException(settingsName, baseSettingsName);
-                    }
-                    
-                    // Only check for duplicate settings when reading a template object. Module objects get a copy of
-                    // their template's settings. The module can then overwrite the settings as needed.
-                    if (baseTemplate == null && settingsLookup.ContainsKey(settingsName))
-                    {
-                        throw new DuplicateSettingsNameException(settingsName);
+                        throw new InvalidProjectDeclarationException(declaration);
                     }
 
-                    Settings settings;
-                    if (baseSettings == null && baseTemplate != null &&
-                        baseTemplate.Configurations[configuration].Settings
-                            .TryGetValue(settingsName, out Settings baseTemplateBaseSettings))
-                    {
-                        settings = new SettingsReader(configuration, baseTemplateBaseSettings).Read(objElement);
-                    }
-                    else
-                    {
-                        settings = new SettingsReader(configuration, baseSettings).Read(objElement);
-                    }
-                    settingsLookup[settingsName] = settings;
+                    projectDelcarations.Add(new ProjectDelcaration(parts[0].Trim(), parts[1].Trim()));
                 }
-            }
 
-            return new TemplateConfiguration(
-                projectDelcarations.ToDictionary(d => d.ProjectName, d => d),
-                settingsLookup);
+                foreach (ConfigElement element in templateElement.Elements)
+                {
+                    if (element is ObjectElement objElement && objElement.Heading.Type == SectionType.SETTINGS)
+                    {
+                        string settingsName = objElement.Heading.Name;
+                        string baseSettingsName = objElement.Heading.InheritedObjectName;
+
+                        Settings inheritedSettings = null;
+                        if (!string.IsNullOrEmpty(baseSettingsName) &&
+                            !settingsLookup.TryGetValue(baseSettingsName, out inheritedSettings))
+                        {
+                            throw new UndefinedBaseSettingsException(settingsName, baseSettingsName);
+                        }
+
+                        // Only check for duplicate settings when reading a template object. Module objects get a copy of
+                        // their template's settings. The module can then overwrite the settings as needed.
+                        if (baseTemplate == null && settingsLookup.ContainsKey(settingsName))
+                        {
+                            throw new DuplicateSettingsNameException(settingsName);
+                        }
+
+                        Settings baseSettings;
+                        // 1. reading a template object (as opposed to a module object read as a template) so use the
+                        //    inherited settings as the base.
+                        if (baseTemplate == null)
+                        {
+                            Log.WriteLine("Using inherited settings '{0}' for base settings (1)", baseSettingsName);
+                            // Can be null if the settings element does not inherit anything
+                            baseSettings = inheritedSettings;
+                        }
+                        // 2. reading a module object without inheritance so use the template settings of the same name
+                        //    as the base settings if they exist
+                        else if (inheritedSettings == null)
+                        {
+                            Log.WriteLine("Using template settings of same name '{0}' for base settings (2)", settingsName);
+                            settingsLookup.TryGetValue(settingsName, out baseSettings);
+                        }
+                        // 3. reading a module object with inheritance
+                        else
+                        {
+                            // a. Re-read template settings of the same name using inherited settings as the base but
+                            // only if the template contains settings of the same name.
+                            if (baseTemplate.SettingsSourceElements.TryGetValue(settingsName, out ObjectElement sourceElement))
+                            {
+                                Log.WriteLine("Re-reading template settings of same name '{0}' for base settings (3.a)",
+                                    settingsName);
+                                baseSettings =
+                                    new SettingsReader(configuration, inheritedSettings).Read(sourceElement);
+                            }
+                            // b. Template does not contain settings same name so use the inheritedSettings
+                            else
+                            {
+                                Log.WriteLine(
+                                    "Template does not contain settings of same name '{0}' so using inherited settings " +
+                                    "'{0}' for base settings (3.b)",
+                                    settingsName, baseSettingsName);
+                                baseSettings = inheritedSettings;
+                            }
+                        }
+
+                        settingsLookup[settingsName] =
+                            new SettingsReader(configuration, baseSettings).Read(objElement);
+                    }
+                }
+
+                return new TemplateConfiguration(
+                    projectDelcarations.ToDictionary(d => d.ProjectName, d => d),
+                    settingsLookup);
+            }
         }
     }
 

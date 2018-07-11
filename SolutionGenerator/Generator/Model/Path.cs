@@ -17,14 +17,19 @@ namespace SolutionGen.Generator.Model
             Value = value;
         }
         
-        public void ExpandVariable(string varName, string varExpansion)
+        public void ExpandVariableInPlace(string varName, string varExpansion)
         {
-            object expanded = ExpandableVar.Expand(Value, varName, varExpansion);
-            if (expanded != null)
-            {
-                Value = expanded.ToString();
-            }
+            Value = (string) ExpandableVar.ExpandInCopy(Value, varName, varExpansion);
         }
+
+        public IExpandable ExpandVairableInCopy(string varName, string varExpansion)
+        {
+            Path copy = Copy();
+            copy.Value = (string) ExpandableVar.ExpandInCopy(Value, varName, varExpansion);
+            return copy;
+        }
+
+        protected abstract Path Copy();
     }
 
     [Serializable]
@@ -34,6 +39,16 @@ namespace SolutionGen.Generator.Model
             : base(value)
         {
         }
+
+        public override string ToString()
+        {
+            return Value;
+        }
+
+        protected override Path Copy()
+        {
+            return new LiteralPath(Value);
+        }
     }
 
     [Serializable]
@@ -42,6 +57,16 @@ namespace SolutionGen.Generator.Model
         public GlobPath(string value)
             : base(value)
         {
+        }
+
+        public override string ToString()
+        {
+            return $"glob \"{Value}\"";
+        }
+
+        protected override Path Copy()
+        {
+            return new GlobPath(Value);
         }
     }
 }

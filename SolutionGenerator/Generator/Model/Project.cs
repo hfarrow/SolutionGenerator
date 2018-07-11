@@ -66,10 +66,16 @@ namespace SolutionGen.Generator.Model
             Log.WriteLine(
                 "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
-            Log.WriteLine("\tinclude patterns:\n{0}", string.Join("\n\t\t", includePatterns));
-            Log.WriteLine("\texclude patterns:\n{0}", string.Join("\n\t\t", excludePatterns));
-            Log.WriteLine("\tmatched files:\n{0}", string.Join("\n\t\t", matches));
-            Log.WriteLine("");
+            
+            using (var _ = new Log.ScopedIndent())
+            {
+                Log.WriteLine("include patterns:");
+                Log.WriteIndentedCollection(s => s, includePatterns);
+                Log.WriteLine("exclude patterns:");
+                Log.WriteIndentedCollection(s => s, excludePatterns);
+                Log.WriteLine("matched files:");
+                Log.WriteIndentedCollection(s => s, matches);
+            }
 
             IncludeFiles = includeFiles
                 .Concat(matches)
@@ -78,7 +84,7 @@ namespace SolutionGen.Generator.Model
             
             LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
             ProjectRefs = projectRefsValues
-                .Select(str => ExpandableVar.ExpandModuleName(str, ModuleName).ToString())
+                .Select(str => ExpandableVar.ExpandModuleNameInCopy(str, ModuleName).ToString())
                 .ToHashSet();
         }
 
@@ -86,19 +92,18 @@ namespace SolutionGen.Generator.Model
         {
             foreach (object includeFilesValue in filesValues)
             {
-                object expandedIncludeFileValue =
-                    ExpandableVar.ExpandModuleName(includeFilesValue, ModuleName);
+                object includeFilesValueCopy = ExpandableVar.ExpandModuleNameInCopy(includeFilesValue, ModuleName);
                 
-                switch (expandedIncludeFileValue)
+                switch (includeFilesValueCopy)
                 {
-                    case GlobPath glob when expandedIncludeFileValue is GlobPath:
+                    case GlobPath glob when includeFilesValueCopy is GlobPath:
                         globs.Add(glob.Value);
                         break;
-                    case LiteralPath file when expandedIncludeFileValue is LiteralPath:
+                    case LiteralPath file when includeFilesValueCopy is LiteralPath:
                         files.Add(file.Value);
                         break;
                     default:
-                        Console.WriteLine(
+                        Log.WriteLineWarning(
                             "Unrecognized include files value type will be skipped: " +
                             includeFilesValue.GetType().FullName);
                         break;

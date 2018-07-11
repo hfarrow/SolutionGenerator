@@ -15,9 +15,12 @@ namespace SolutionGen.Generator.Reader
             this.solutionElement = solutionElement;
             
             Log.WriteLine("Reading solution element: {0}", solutionElement);
-            var settingsReader = new SettingsReader();
-            Settings settings = settingsReader.Read(solutionElement);
-            Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir);
+            using (var _ = new Log.ScopedIndent(true))
+            {
+                var settingsReader = new SettingsReader();
+                Settings settings = settingsReader.Read(solutionElement);
+                Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir);
+            }
         }
     }
 }

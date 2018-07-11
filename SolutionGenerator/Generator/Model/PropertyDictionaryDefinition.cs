@@ -107,6 +107,13 @@ namespace SolutionGen.Generator.Model
         {
             return CloneDictionary(value);
         }
+        
+        public override string PrintValue(object value)
+        {
+            CheckDictionaryType(value);
+            var castedCollection = (TDictionary) value;
+            return string.Join(", ", castedCollection.Select(kvp => $"{kvp.Key}=>{kvp.Value}"));
+        }
 
         public override object ExpandVariable(object value, string varName, string varExpansion)
         {

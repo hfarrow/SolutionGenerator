@@ -1,16 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using SolutionGen.Parser.Model;
 
 namespace SolutionGen.Generator.Model
 {
     public class Template
     {
         public readonly string Name;
+        public ObjectElement SourceElement { get; }
+        public IReadOnlyDictionary<string, ObjectElement> SettingsSourceElements { get; }
         public IReadOnlyDictionary<Configuration, TemplateConfiguration> Configurations { get; }
         
-        public Template(string name, IReadOnlyDictionary<Configuration, TemplateConfiguration> configurations)
+        public Template(string name, ObjectElement sourceElement,
+            IReadOnlyDictionary<string, ObjectElement> settingsSourceElements,
+            IReadOnlyDictionary<Configuration, TemplateConfiguration> configurations)
         {
             Name = name;
+            SourceElement = sourceElement;
+            SettingsSourceElements = settingsSourceElements;
             Configurations = configurations;
         }
     }

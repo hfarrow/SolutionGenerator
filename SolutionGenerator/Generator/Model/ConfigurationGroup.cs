@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SolutionGen.Generator.Model
 {
@@ -15,7 +16,9 @@ namespace SolutionGen.Generator.Model
 
         public override string ToString()
         {
-            return $"Configuration{{{Name}:{string.Join(',', Configurations.Keys)}}}";
+            // Format: Configuration{GROUP_NAME_N:CONFIGURATION_N{CONDITIONALS}}
+            return
+                $"Configuration{{{Name}:{string.Join(',', Configurations.Select(kvp => $"{kvp.Key}{{{string.Join(',', kvp.Value.Conditionals)}}}"))}}}";
         }
     }
 }

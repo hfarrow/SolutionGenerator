@@ -23,34 +23,37 @@ namespace SolutionGen.Generator.Reader
         public Module Read(ObjectElement moduleElement)
         {
             Log.WriteLine("Reading module element: {0}", moduleElement);
-            
-            string moduleName = moduleElement.Heading.Name;
-            string templateName = moduleElement.Heading.InheritedObjectName;
-            var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
-            string moduleSourcePath = Path.Combine(solution.SolutionConfigDir, moduleName);
-            idLookup = new Dictionary<string, Project.Identifier>();
-            
-            if (!string.IsNullOrEmpty(templateName))
+
+            using (var _ = new Log.ScopedIndent(true))
             {
-                if (!templates.TryGetValue(templateName, out Template baseTemplate))
+                string moduleName = moduleElement.Heading.Name;
+                string templateName = moduleElement.Heading.InheritedObjectName;
+                var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
+                string moduleSourcePath = Path.Combine(solution.SolutionConfigDir, moduleName);
+                idLookup = new Dictionary<string, Project.Identifier>();
+
+                if (!string.IsNullOrEmpty(templateName))
                 {
-                    throw new UndefinedTemplateException(templateName);
+                    if (!templates.TryGetValue(templateName, out Template baseTemplate))
+                    {
+                        throw new UndefinedTemplateException(templateName);
+                    }
+
+                    var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
+                    Template template = templateReader.Read(moduleElement);
+                    moduleConfigs = CreateModuleConfigs(template, moduleName, moduleSourcePath);
+                }
+                else
+                {
+                    throw new NotImplementedException(
+                        $"Module named '{moduleName} must inherit from a template" +
+                        "but this could be supported in the future");
                 }
 
-                var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
-                Template template = templateReader.Read(moduleElement);
-                moduleConfigs = CreateModuleConfigs(template, moduleName, moduleSourcePath);
+                return new Module(solution, moduleName, moduleConfigs, idLookup,
+                    // TODO: default to the module path below but allow override in settings
+                    moduleSourcePath);
             }
-            else
-            {
-                throw new NotImplementedException(
-                    $"Module named '{moduleName} must inherit from a template" +
-                    "but this could be supported in the future");
-            }
-
-            return new Module(solution, moduleName, moduleConfigs, idLookup,
-                // TODO: default to the module path below but allow override in settings
-                moduleSourcePath);
         }
 
         private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName,
@@ -58,15 +61,18 @@ namespace SolutionGen.Generator.Reader
         {
             Log.WriteLine("Creating module configs for module '{0}' from template '{1}",
                 moduleName, template.Name);
-            
-            var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
-            foreach (KeyValuePair<Configuration,TemplateConfiguration> kvp in template.Configurations)
-            {
-                List<Project> projects = CreateProjectsForConfig(moduleName, moduleSourcePath, kvp.Key, kvp.Value);
-                moduleConfigs[kvp.Key] = new ModuleConfiguration(projects.ToDictionary(p => p.Name, p => p));
-            }
 
-            return moduleConfigs;
+            using (var _ = new Log.ScopedIndent())
+            {
+                var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
+                foreach (KeyValuePair<Configuration, TemplateConfiguration> kvp in template.Configurations)
+                {
+                    List<Project> projects = CreateProjectsForConfig(moduleName, moduleSourcePath, kvp.Key, kvp.Value);
+                    moduleConfigs[kvp.Key] = new ModuleConfiguration(projects.ToDictionary(p => p.Name, p => p));
+                }
+
+                return moduleConfigs;
+            }
         }
 
         private List<Project> CreateProjectsForConfig(string moduleName, string moduleSourcePath, Configuration config,
@@ -77,21 +83,24 @@ namespace SolutionGen.Generator.Reader
             {
                 Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}) with settings '{4}'",
                     config.GroupName, config.Name, declaration.ProjectName, moduleName, declaration.SettingsName);
-                
-                Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
-                string projectName = ExpandableVar.ExpandModuleName(declaration.ProjectName, moduleName).ToString();
-                // All configurations of a project must have the same guid.
-                if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
-                {
-                    id = new Project.Identifier(projectName, Guid.NewGuid(), moduleSourcePath);
-                    idLookup[projectName] = id;
-                }
 
-                // TODO: set guid from project settings object
-                var project = new Project(solution, moduleName, id, config,
-                    projectSettings);
-                
-                projects.Add(project);
+                using (var _ = new Log.ScopedIndent(true))
+                {
+                    Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
+                    string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName).ToString();
+                    // All configurations of a project must have the same guid.
+                    if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
+                    {
+                        id = new Project.Identifier(projectName, Guid.NewGuid(), moduleSourcePath);
+                        idLookup[projectName] = id;
+                    }
+
+                    // TODO: set guid from project settings object
+                    var project = new Project(solution, moduleName, id, config,
+                        projectSettings);
+
+                    projects.Add(project);
+                }
             }
             
             return projects;

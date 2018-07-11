@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 
@@ -112,6 +113,13 @@ namespace SolutionGen.Generator.Model
         public override object ExpandVariable(object value, string varName, string varExpansion)
         {
             return ExpandVariablesInCollection(value, varName, varExpansion);
+        }
+
+        public override string PrintValue(object value)
+        {
+            CheckCollectionType(value);
+            var castedCollection = (TCollection) value;
+            return "[" + string.Join(", ", castedCollection.Select(obj => $"<{obj.ToString()}>")) + "]";
         }
 
         private static void CheckCollectionType(object collection)

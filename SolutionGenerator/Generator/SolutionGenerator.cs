@@ -24,7 +24,7 @@ namespace SolutionGen
         
         public static SolutionGenerator FromPath(string solutionConfigPath)
         {
-            Log.WriteLine("Generating solution from path '{0}'", solutionConfigPath);
+            Log.WriteLine("Loading solution from path '{0}'", solutionConfigPath);
             
             string configText;
             try
@@ -44,7 +44,7 @@ namespace SolutionGen
 
         public static SolutionGenerator FromText(string configText, string rootPath)
         {
-            Log.WriteLine("Generating solution from text with root path '{0}'", rootPath);
+            Log.WriteLine("Loading solution from text with root path '{0}'", rootPath);
             
             var generator = new SolutionGenerator();
             generator.ParseSolutionConfig(configText, rootPath);
@@ -68,38 +68,46 @@ namespace SolutionGen
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
-            Log.WriteLine("Generating solution for configuration group '{0}' with external define constants:\n{1}",
-                configurationGroup, string.Join("\n\t", externalDefineConstants));
-            
-            ActiveConfigurationGroup = configurationGroup;
-            foreach (Module module in Reader.Modules.Values)
-            {
-                Log.WriteLine("Generating module '{0}' with project count of {1}",
-                    module.Name, module.ProjectIdLookup.Count);
-                
-                foreach (Project.Identifier project in module.ProjectIdLookup.Values)
-                {
-                    Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
-                        project.Name, project.Guid, project.SourcePath);
-                    
-                    var projectTemplate = new DotNetProject
-                    {
-                        Generator = this,
-                        Solution = Reader.Solution,
-                        Module = module,
-                        ProjectName = project.Name,
-                        ProjectIdLookup = Reader.Modules
-                            .SelectMany(kvp => kvp.Value.ProjectIdLookup)
-                            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                        CurrentConfiguration =
-                            Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup].Configurations
-                                .First().Value
-                    };
+            Log.WriteLine("Generating solution for configuration group '{0}'{1}",
+                configurationGroup, externalDefineConstants.Length > 0 ? "with external define constants:" : "");
 
-                    string projectText = projectTemplate.TransformText();
-                    string projectPath = Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
-                    Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
-                    File.WriteAllText(projectPath, projectText);
+            Log.WriteIndentedCollection(s => s, externalDefineConstants);
+
+            using (var _ = new Log.ScopedIndent())
+            {
+                ActiveConfigurationGroup = configurationGroup;
+                foreach (Module module in Reader.Modules.Values)
+                {
+                    Log.WriteLine("Generating module '{0}' with project count of {1}",
+                        module.Name, module.ProjectIdLookup.Count);
+                    using (var __ = new Log.ScopedIndent())
+                    {
+                        foreach (Project.Identifier project in module.ProjectIdLookup.Values)
+                        {
+                            Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
+                                project.Name, project.Guid, project.SourcePath);
+
+                            var projectTemplate = new DotNetProject
+                            {
+                                Generator = this,
+                                Solution = Reader.Solution,
+                                Module = module,
+                                ProjectName = project.Name,
+                                ProjectIdLookup = Reader.Modules
+                                    .SelectMany(kvp => kvp.Value.ProjectIdLookup)
+                                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                                CurrentConfiguration =
+                                    Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup]
+                                        .Configurations
+                                        .First().Value
+                            };
+
+                            string projectText = projectTemplate.TransformText();
+                            string projectPath = Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
+                            Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
+                            File.WriteAllText(projectPath, projectText);
+                        }
+                    }
                 }
             }
 

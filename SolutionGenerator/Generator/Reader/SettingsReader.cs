@@ -7,6 +7,7 @@ using SolutionGen.Generator.Model;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
+using KeyValuePair = SolutionGen.Parser.Model.KeyValuePair;
 
 namespace SolutionGen.Generator.Reader
 {
@@ -46,6 +47,7 @@ namespace SolutionGen.Generator.Reader
         private readonly Dictionary<string, CommandDefinition> commandDefinitionLookup;
 
         private Dictionary<string, object> properties = new Dictionary<string, object>();
+        private HashSet<string> visitedProperties = new HashSet<string>();
 
         private readonly Dictionary<string, ConfigurationGroup> configurationGroups =
             new Dictionary<string, ConfigurationGroup>();
@@ -95,78 +97,102 @@ namespace SolutionGen.Generator.Reader
             {
                 Log.WriteLine("Reading settings element for static configuration: {0}", settingsObject);
             }
-            
-            if (baseSettings == null)
+
+            using (var _ = new Log.ScopedIndent())
             {
-                properties =
-                    propertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
-            }
-            else
-            {
-                properties = new Dictionary<string, object>();
-                foreach (KeyValuePair<string, PropertyDefinition> kvp in propertyDefinitionLookup)
+                if (baseSettings == null)
                 {
-                    if (baseSettings.TryGetProperty(kvp.Key, out object value))
+                    properties =
+                        propertyDefinitionLookup.ToDictionary(kvp => kvp.Key,
+                            kvp => kvp.Value.GetOrCloneDefaultValue());
+                }
+                else
+                {
+                    properties = new Dictionary<string, object>();
+                    foreach (KeyValuePair<string, PropertyDefinition> kvp in propertyDefinitionLookup)
                     {
-                        properties[kvp.Key] = kvp.Value.CloneValue(value);
+                        if (baseSettings.TryGetProperty(kvp.Key, out object value))
+                        {
+                            properties[kvp.Key] = kvp.Value.CloneValue(value);
+                        }
                     }
                 }
-            }
-            
-            foreach (ConfigElement element in settingsObject.Elements)
-            {
-                bool terminate;
-                switch (element)
+
+                foreach (ConfigElement element in settingsObject.Elements)
                 {
-                    case ConfigurationGroupElement configurationElement:
-                        terminate = ReadConfiguration(configurationElement);
-                        break;
-                    
-                    case PropertyElement propertyElement when element is PropertyElement:
-                        terminate = ReadProperty(propertyElement);
-                        break;
+                    bool terminate;
+                    switch (element)
+                    {
+                        case ConfigurationGroupElement configurationElement:
+                            terminate = ReadConfiguration(configurationElement);
+                            break;
 
-                    case SimpleCommandElement cmdElement when element is SimpleCommandElement:
-                        terminate = ReadCommand(cmdElement);
-                        break;
-                    
-                    // Skip object elements as they cannot be nested but the root template settings also use this code.
-                    case ObjectElement _ when element is ObjectElement:
-                        terminate = false;
-                        break;
-                    
-                    case CommentElement _ when element is CommentElement:
-                        terminate = false;
-                        break;
+                        case PropertyElement propertyElement when element is PropertyElement:
+                            terminate = ReadProperty(propertyElement);
+                            break;
 
-                    default:
-                        throw new UnrecognizedSettingsElementException(element);
+                        case SimpleCommandElement cmdElement when element is SimpleCommandElement:
+                            terminate = ReadCommand(cmdElement);
+                            break;
+
+                        // Skip object elements as they cannot be nested but the root template settings also use this code.
+                        case ObjectElement _ when element is ObjectElement:
+                            terminate = false;
+                            break;
+
+                        case CommentElement _ when element is CommentElement:
+                            terminate = false;
+                            break;
+
+                        default:
+                            throw new UnrecognizedSettingsElementException(element);
+                    }
+
+                    if (terminate)
+                    {
+                        break;
+                    }
                 }
 
-                if (terminate)
-                {
-                    break;
-                }
+                ExpandVariables(properties);
+
+                Log.WriteLine("Finished reading settings element:");
+                Log.WriteIndentedCollection(
+                    kvp => string.Format("{0} => {1}", 
+                        kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)),
+                    GetVisitedProperties());
+
+                return new Settings(properties, configurationGroups);
             }
-            
-            ExpandVariables(properties);
-            
-            return new Settings(properties, configurationGroups);
+        }
+
+        private IEnumerable<KeyValuePair<string, object>> GetVisitedProperties()
+        {
+            return properties.Where(kvp => visitedProperties.Contains(kvp.Key));
         }
         
         private bool ReadConfiguration(ConfigurationGroupElement element)
         {
-            if (configurationGroups.TryGetValue(element.ConfigurationGroupName, out ConfigurationGroup existingGroup))
+            Log.WriteLine("Reading configuration declaration: {0}", element);
+
+            using (var _ = new Log.ScopedIndent())
             {
-                throw new DuplicateConfigurationGroupNameException(element, existingGroup);
+                if (configurationGroups.TryGetValue(element.ConfigurationGroupName,
+                    out ConfigurationGroup existingGroup))
+                {
+                    throw new DuplicateConfigurationGroupNameException(element, existingGroup);
+                }
+
+                var group = new ConfigurationGroup(element.ConfigurationGroupName,
+                    element.Configurations.ToDictionary(kvp => kvp.Key,
+                        kvp => new Configuration(element.ConfigurationGroupName, kvp.Key, kvp.Value)));
+                configurationGroups[group.Name] = group;
+                
+                Log.WriteLine("Read configuration: {0}", group);
+
+                // Never terminate
+                return false;
             }
-
-            var group = new ConfigurationGroup(element.ConfigurationGroupName,
-                element.Configurations.ToDictionary(kvp => kvp.Key,
-                    kvp => new Configuration(element.ConfigurationGroupName, kvp.Key, kvp.Value)));
-            configurationGroups[group.Name] = group;
-
-            return false;
         }
 
         private bool ReadProperty(PropertyElement element)
@@ -181,6 +207,8 @@ namespace SolutionGen.Generator.Reader
             
             if (result.HasValue)
             {
+                visitedProperties.Add(definition.Name);
+                
                 switch (definition)
                 {
                     // TODO add abstract function for ClearCollection/ClearDictionary. No need for a switch here... just
@@ -247,6 +275,8 @@ namespace SolutionGen.Generator.Reader
                 (PropertyCollectionDefinition) propertyDefinitionLookup[Settings.PROP_PROJECT_DELCARATIONS];
 
             projectsDefinition.AddToCollection(projects, element.ArgumentStr);
+
+            visitedProperties.Add(Settings.PROP_PROJECT_DELCARATIONS);
             
             return false;
         }
