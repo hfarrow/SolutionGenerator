@@ -20,11 +20,11 @@ solution MySolution
     set root namespace: MySolution
 }
 
-module TestModule : TestTemplate
+module MyModule : MyTemplate
 {
 }
 
-module OtherTestModule : TestTemplate
+module MyOtherModule : MyTemplate
 {
     settings project
     {
@@ -33,7 +33,7 @@ module OtherTestModule : TestTemplate
 
         add project refs
         [
-            TestModule
+            MyModule
         ]
     }
 
@@ -43,12 +43,12 @@ module OtherTestModule : TestTemplate
 
         add project refs
         [
-            TestModule.Tests
+            MyModule.Tests
         ]
     }
 }
 
-template TestTemplate
+template MyTemplate
 {
     project "$(MODULE_NAME) : project"
     project "$(MODULE_NAME).Tests : project.tests"
@@ -88,7 +88,12 @@ template TestTemplate
         add define constants (debug)
         [
             DEBUG
-            TRACE
+            TRACE,
+        ]
+
+        add define constants (test)
+        [
+            TEST
         ]
 
         add define constants (release)
