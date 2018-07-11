@@ -12,6 +12,7 @@ namespace SolutionGen.Templates
         public string ProjectName { get; set; }
         public Configuration CurrentConfiguration { get; set; }
         public Dictionary<string, Project.Identifier> ProjectIdLookup { get; set; }
+        public HashSet<string> ExternalDefineConstants { get; set; }
         
         public Project Project => Module.Configurations[CurrentConfiguration].Projects[ProjectName];
 
@@ -49,7 +50,7 @@ namespace SolutionGen.Templates
             Project.Settings.GetProperty<HashSet<string>>(property);
 
         public string GetDefineConstants() =>
-            string.Join(';', GetStringHashSetProperty(Settings.PROP_DEFINE_CONSTANTS));
+            string.Join(';', GetStringHashSetProperty(Settings.PROP_DEFINE_CONSTANTS).Concat(ExternalDefineConstants));
 
         public IEnumerable<string> TargetPlatforms => Solution.TargetPlatforms.Select(RemoveWhitespace);
         

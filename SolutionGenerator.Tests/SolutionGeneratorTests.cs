@@ -7,6 +7,7 @@ using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using Xunit;
 using Module = SolutionGen.Generator.Model.Module;
+using Path = System.IO.Path;
 
 namespace SolutionGen.Tests
 {
@@ -117,17 +118,16 @@ namespace SolutionGen.Tests
             }
         }
 
-//        [Fact]
-//        public void CanGenerateSolutionWithExternalDefineConstants()
-//        {
-//            DocumentReader sol = generator.reader;
-//            generator.GenerateSolution("everything", "EXTERNAL");
-//            Module module = sol.Modules["MyModule"];
-//            Project firstProject = module.Projects.First();
-//            Project.Configuration debug = firstProject.GetConfiguration("Debug");
-//            Project.Configuration release = firstProject.GetConfiguration("Release");
-//            Assert.Contains("EXTERNAL", debug.DefineConstants);
-//            Assert.Contains("EXTERNAL", release.DefineConstants);
-//        }
+        [Fact]
+        public void CanGenerateSolutionWithExternalDefineConstants()
+        {
+            DocumentReader sol = generator.Reader;
+            const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
+            generator.GenerateSolution("everything", constantName);
+
+            string projectPath =
+                Path.Combine(sol.SolutionConfigDir, "MyModule") + ".csproj";
+            Assert.True(File.ReadAllText(projectPath).Contains(constantName));
+        }
     }
 }

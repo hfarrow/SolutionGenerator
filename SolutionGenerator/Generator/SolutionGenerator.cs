@@ -75,9 +75,9 @@ namespace SolutionGen
             Log.WriteLine("Generating solution '{0}' for configuration group '{1}'{2}",
                 Reader.Solution.Name,
                 configurationGroup,
-                externalDefineConstants.Length > 0 ? "with external define constants:" : "");
+                externalDefineConstants.Length > 0 ? " with external define constants:" : "");
 
-            Log.WriteIndentedCollection(s => s, externalDefineConstants);
+            Log.WriteIndentedCollection(s => s, externalDefineConstants, true);
 
             using (var _ = new Log.ScopedIndent())
             {
@@ -120,6 +120,7 @@ namespace SolutionGen
                                             .SelectMany(kvp => kvp.Value.ProjectIdLookup)
                                             .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                                         CurrentConfiguration = currentConfiguration,
+                                        ExternalDefineConstants = externalDefineConstants.ToHashSet(),
                                     };
 
                                     string projectText = projectTemplate.TransformText();
