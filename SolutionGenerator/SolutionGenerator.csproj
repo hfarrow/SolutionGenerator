@@ -14,14 +14,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="Generator\ModelOld\Settings.cs" />
-    <None Include="Generator\ModelOld\Settings.cs" />
     <Compile Remove="Generator\ModelOld\Template.cs" />
-    <None Include="Generator\ModelOld\Template.cs" />
     <Compile Remove="Generator\ModelOld\Solution.cs" />
-    <None Include="Generator\ModelOld\Solution.cs" />
     <Compile Remove="Generator\ModelOld\Project.cs" />
-    <None Include="Generator\ModelOld\Project.cs" />
     <Compile Remove="Generator\ModelOld\Module.cs" />
-    <None Include="Generator\ModelOld\Module.cs" />
   </ItemGroup>
 </Project>
