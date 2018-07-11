@@ -25,6 +25,7 @@ namespace SolutionGen.Generator.Model
         public const string PROP_PROJECT_DELCARATIONS = "projects";
         
         public const string CMD_SKIP = "skip";
+        public const string CMD_EXCLUDE = "exclude";
         public const string CMD_DECLARE_PROJECT = "project";
 
         private readonly IReadOnlyDictionary<string, object> properties;

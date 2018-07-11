@@ -68,7 +68,7 @@ namespace SolutionGen
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
-            Log.WriteLine("Generating solution for configuration group '{0}'{1}",
+            Log.WriteLine("Generating project files for configuration group '{0}'{1}",
                 configurationGroup, externalDefineConstants.Length > 0 ? "with external define constants:" : "");
 
             Log.WriteIndentedCollection(s => s, externalDefineConstants);
@@ -76,6 +76,11 @@ namespace SolutionGen
             using (var _ = new Log.ScopedIndent())
             {
                 ActiveConfigurationGroup = configurationGroup;
+
+                Configuration currentConfiguration = Reader.Solution.Settings
+                    .ConfigurationGroups[ActiveConfigurationGroup].Configurations
+                    .First().Value;
+                
                 foreach (Module module in Reader.Modules.Values)
                 {
                     Log.WriteLine("Generating module '{0}' with project count of {1}",
@@ -84,45 +89,56 @@ namespace SolutionGen
                     {
                         foreach (Project.Identifier project in module.ProjectIdLookup.Values)
                         {
+
+                            if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
+                            {
+                                // Project was excluded for this configuration group.
+                                continue;
+                            }
+                            
                             Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
                                 project.Name, project.Guid, project.SourcePath);
-
-                            var projectTemplate = new DotNetProject
+                            
+                            using (var ___ = new Log.ScopedIndent())
                             {
-                                Generator = this,
-                                Solution = Reader.Solution,
-                                Module = module,
-                                ProjectName = project.Name,
-                                ProjectIdLookup = Reader.Modules
-                                    .SelectMany(kvp => kvp.Value.ProjectIdLookup)
-                                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                                CurrentConfiguration =
-                                    Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup]
-                                        .Configurations
-                                        .First().Value
-                            };
+                                var projectTemplate = new DotNetProject
+                                {
+                                    Generator = this,
+                                    Solution = Reader.Solution,
+                                    Module = module,
+                                    ProjectName = project.Name,
+                                    ProjectIdLookup = Reader.Modules
+                                        .SelectMany(kvp => kvp.Value.ProjectIdLookup)
+                                        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                                    CurrentConfiguration = currentConfiguration,
+                                };
 
-                            string projectText = projectTemplate.TransformText();
-                            string projectPath = Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
-                            Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
-                            File.WriteAllText(projectPath, projectText);
+                                string projectText = projectTemplate.TransformText();
+                                string projectPath = Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
+                                Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
+                                File.WriteAllText(projectPath, projectText);
+                            }
                         }
                     }
                 }
             }
 
-            Log.WriteLine("Generating solution '{0}'", Reader.Solution.Name);
-            var solutionTemplate = new DotNetSolution
+            Log.WriteLine("Generating solution file '{0}'", Reader.Solution.Name);
+            using (var _ = new Log.ScopedIndent())
             {
-                Generator = this,
-                Solution = Reader.Solution,
-                Modules = Reader.Modules
-            };
+                var solutionTemplate = new DotNetSolution
+                {
+                    Generator = this,
+                    Solution = Reader.Solution,
+                    Modules = Reader.Modules,
+                    ActiveConfigurationGroup = Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup],
+                };
 
-            string solutionText = solutionTemplate.TransformText();
-            string solutionPath = Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name) + ".sln";
-            Log.WriteLine("Writing solution to disk at path '{0}'", solutionPath);
-            File.WriteAllText(solutionPath, solutionText);
+                string solutionText = solutionTemplate.TransformText();
+                string solutionPath = Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name) + ".sln";
+                Log.WriteLine("Writing solution to disk at path '{0}'", solutionPath);
+                File.WriteAllText(solutionPath, solutionText);
+            }
         }
     }
 }

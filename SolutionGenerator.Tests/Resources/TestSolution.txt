@@ -104,7 +104,7 @@ template TestTemplate
         set exclude files: none
 
         // TODO: implement exclude command if needed
-        // exclude (no-tests)
+        exclude (no-tests)
         skip (!test)
 
         set include files: glob "$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"

@@ -19,7 +19,7 @@ namespace SolutionGen.Generator.Reader
             this.solution = solution;
             this.templates = templates;
         }
-        
+
         public Module Read(ObjectElement moduleElement)
         {
             Log.WriteLine("Reading module element: {0}", moduleElement);
@@ -28,27 +28,26 @@ namespace SolutionGen.Generator.Reader
             {
                 string moduleName = moduleElement.Heading.Name;
                 string templateName = moduleElement.Heading.InheritedObjectName;
-                var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
                 string moduleSourcePath = Path.Combine(solution.SolutionConfigDir, moduleName);
                 idLookup = new Dictionary<string, Project.Identifier>();
 
-                if (!string.IsNullOrEmpty(templateName))
-                {
-                    if (!templates.TryGetValue(templateName, out Template baseTemplate))
-                    {
-                        throw new UndefinedTemplateException(templateName);
-                    }
-
-                    var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
-                    Template template = templateReader.Read(moduleElement);
-                    moduleConfigs = CreateModuleConfigs(template, moduleName, moduleSourcePath);
-                }
-                else
+                if (string.IsNullOrEmpty(templateName))
                 {
                     throw new NotImplementedException(
                         $"Module named '{moduleName} must inherit from a template" +
                         "but this could be supported in the future");
                 }
+
+                if (!templates.TryGetValue(templateName, out Template baseTemplate))
+                {
+                    throw new UndefinedTemplateException(templateName);
+                }
+
+                var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
+                Template template = templateReader.Read(moduleElement);
+                
+                Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
+                    CreateModuleConfigs(template, moduleName, moduleSourcePath);
 
                 return new Module(solution, moduleName, moduleConfigs, idLookup,
                     // TODO: default to the module path below but allow override in settings
@@ -87,6 +86,13 @@ namespace SolutionGen.Generator.Reader
                 using (var _ = new Log.ScopedIndent(true))
                 {
                     Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
+                    if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
+                    {
+                        Log.WriteLine("Project '{0}' is excluded from configuration '{1} - {2}'",
+                            declaration.ProjectName, config.GroupName, config.Name);
+                        continue;
+                    }
+                    
                     string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName).ToString();
                     // All configurations of a project must have the same guid.
                     if (!idLookup.TryGetValue(projectName, out Project.Identifier id))

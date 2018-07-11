@@ -69,7 +69,8 @@ namespace SolutionGen.Generator.Reader
             commandDefinitions = new List<CommandDefinition>
             {
                 new CommandDefinition<CommandReader>(Settings.CMD_SKIP, _ => true),
-                new CommandDefinition<CommandReader>(Settings.CMD_DECLARE_PROJECT, ProjectDeclarationCommand)
+                new CommandDefinition<CommandReader>(Settings.CMD_EXCLUDE, ExcludeProjectCommand),
+                new CommandDefinition<CommandReader>(Settings.CMD_DECLARE_PROJECT, ProjectDeclarationCommand),
             };
 
             commandDefinitionLookup =
@@ -266,6 +267,12 @@ namespace SolutionGen.Generator.Reader
                 definition.Reader.EvaluateAndRead(element, definition, conditionalParser);
             
             return result.Terminate;
+        }
+
+        private bool ExcludeProjectCommand(SimpleCommandElement element)
+        {
+            properties[Settings.PROP_EXCLUDE] = "true";
+            return true;
         }
 
         private bool ProjectDeclarationCommand(SimpleCommandElement element)
