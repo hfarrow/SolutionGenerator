@@ -136,11 +136,6 @@ namespace SolutionGen.Generator.ModelOld
                 }
             }
         }
-
-        public static string ExpandModuleName(string str, string moduleName)
-        {
-            return str.Replace("$(MODULE_NAME)", moduleName);
-        }
     }
 
     public sealed class DuplicateSettingsNameException : DuplicateObjectNameException

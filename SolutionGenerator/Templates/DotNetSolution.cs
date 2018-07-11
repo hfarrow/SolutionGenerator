@@ -38,19 +38,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 13 ".\Templates\DotNetSolution.tt"
-            this.Write("Project(\"{");
-            
-            #line default
-            #line hidden
-            
-            #line 13 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( SolutionGuid ));
-            
-            #line default
-            #line hidden
-            
-            #line 13 ".\Templates\DotNetSolution.tt"
-            this.Write("}\") = \"");
+            this.Write("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\") = \"");
             
             #line default
             #line hidden

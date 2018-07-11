@@ -12,7 +12,7 @@ using Xunit;
 namespace SolutionGen.Tests.Parsing
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    // Created by XUnit at runtime
+        // Created by XUnit at runtime
     public class ParseExampleTemplateFixture : IDisposable
     {
         public readonly string TemplateText;

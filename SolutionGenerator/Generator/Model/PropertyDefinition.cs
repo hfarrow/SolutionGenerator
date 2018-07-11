@@ -24,7 +24,7 @@ namespace SolutionGen.Generator.Model
 
         public abstract object GetOrCloneDefaultValue();
         public abstract object CloneValue(object value);
-        public abstract object ExpandVariables(object value, string variableName, string variableExpansion);
+        public abstract object ExpandVariable(object value, string varName, string varExpansion);
     }
     
     public class PropertyDefinition<TValue, TReader> : PropertyDefinition
@@ -57,12 +57,12 @@ namespace SolutionGen.Generator.Model
             return value;
         }
 
-        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        public override object ExpandVariable(object value, string varName, string varExpansion)
         {
             // Only strings contain variables to be expanded.
             if (value is string strValue)
             {
-                return strValue.Replace(variableName, variableExpansion);
+                return strValue.Replace(varName, varExpansion);
             }
 
             return value;

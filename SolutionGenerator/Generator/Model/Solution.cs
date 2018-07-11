@@ -7,7 +7,7 @@ namespace SolutionGen.Generator.Model
     {
         public string Name { get; }
         public readonly Guid Guid;
-        public string SolutionConfigPath { get; }
+        public string SolutionConfigDir { get; }
         public readonly Settings Settings;
 
         public IReadOnlyCollection<string> TargetPlatforms =>
@@ -15,12 +15,12 @@ namespace SolutionGen.Generator.Model
 
         public string RootNamespace => Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE);
 
-        public Solution(string name, Settings settings, string solutionConfigPath)
+        public Solution(string name, Settings settings, string solutionConfigDir)
         {
             Name = name;
             Guid = Guid.NewGuid();
             Settings = settings;
-            SolutionConfigPath = solutionConfigPath;
+            SolutionConfigDir = solutionConfigDir;
         }
     }
 }

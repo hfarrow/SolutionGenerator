@@ -5,16 +5,13 @@ namespace SolutionGen.Generator.Model
 {
     public class Template
     {
+        public readonly string Name;
         public IReadOnlyDictionary<Configuration, TemplateConfiguration> Configurations { get; }
         
-        public Template(IReadOnlyDictionary<Configuration, TemplateConfiguration> configurations)
+        public Template(string name, IReadOnlyDictionary<Configuration, TemplateConfiguration> configurations)
         {
+            Name = name;
             Configurations = configurations;
-        }
-        
-        public static string ExpandModuleName(string str, string moduleName)
-        {
-            return str.Replace("$(MODULE_NAME)", moduleName);
         }
     }
     

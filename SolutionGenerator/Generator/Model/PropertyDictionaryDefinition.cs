@@ -17,9 +17,7 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToDictionary(object dictionary, string key, object value);
         public abstract void ClearDictionary(object dictionary);
         public abstract object CloneDictionary(object dictionary);
-
-        public abstract object ExpandVariablesInDictionary(object dictionary, string variableName,
-            string variableExpansion);
+        public abstract object ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion);
     }
 
     public class PropertyDictionaryDefinition<TDictionary, TValue, TReader> : PropertyDictionaryDefinition
@@ -75,8 +73,7 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
         
-        public override object ExpandVariablesInDictionary(object dictionary, string variableName,
-            string variableExpansion)
+        public override object ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion)
         {
             CheckDictionaryType(dictionary);
             var castedDictionary = (TDictionary) dictionary;
@@ -86,7 +83,7 @@ namespace SolutionGen.Generator.Model
                 string strValue = kvp.Value as string;
                 if (strValue != null)
                 {
-                    expandedValue = (TValue)(object)strValue.Replace(variableName, variableExpansion);
+                    expandedValue = (TValue)(object)strValue.Replace(varName, varExpansion);
                 }
 
                 castedDictionary[kvp.Key] = expandedValue;
@@ -111,9 +108,9 @@ namespace SolutionGen.Generator.Model
             return CloneDictionary(value);
         }
 
-        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        public override object ExpandVariable(object value, string varName, string varExpansion)
         {
-            return ExpandVariablesInDictionary(value, variableName, variableExpansion);
+            return ExpandVariablesInDictionary(value, varName, varExpansion);
         }
 
         private static void CheckDictionaryType(object dictionary)

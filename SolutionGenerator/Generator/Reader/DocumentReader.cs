@@ -10,15 +10,15 @@ namespace SolutionGen.Generator.Reader
         private readonly ConfigDocument configDoc;
         private SolutionReader solutionReader;
         
-        public string SolutionConfigDirectory { get; }
+        public string SolutionConfigDir { get; }
         public Solution Solution { get; private set; }
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
         
-        public DocumentReader(ConfigDocument configDoc, string solutionConfigDirectory)
+        public DocumentReader(ConfigDocument configDoc, string solutionConfigDir)
         {
             this.configDoc = configDoc;
-            SolutionConfigDirectory = solutionConfigDirectory;
+            SolutionConfigDir = solutionConfigDir;
             ProcessSolutionDocument();
         }
 
@@ -33,7 +33,7 @@ namespace SolutionGen.Generator.Reader
                 {
                     if (obj.Heading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
                     {
-                        solutionReader = new SolutionReader(obj, SolutionConfigDirectory);
+                        solutionReader = new SolutionReader(obj, SolutionConfigDir);
                         Solution = solutionReader.Solution;
                     }
                     else if (obj.Heading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))

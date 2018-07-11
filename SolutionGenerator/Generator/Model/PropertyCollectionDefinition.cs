@@ -16,9 +16,7 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToCollection(object collection, object value);
         public abstract void ClearCollection(object collection);
         public abstract object CloneCollection(object collection);
-
-        public abstract object ExpandVariablesInCollection(object collection, string variableName,
-            string variableExpansion);
+        public abstract object ExpandVariablesInCollection(object collection, string varName, string varExpansion);
     }
     
     public class PropertyCollectionDefinition<TCollection, TValue, TReader> : PropertyCollectionDefinition
@@ -74,8 +72,7 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
 
-        public override object ExpandVariablesInCollection(object collection, string variableName,
-            string variableExpansion)
+        public override object ExpandVariablesInCollection(object collection, string varName, string varExpansion)
         {
             CheckCollectionType(collection);
             var castedCollection = (TCollection) collection;
@@ -84,7 +81,7 @@ namespace SolutionGen.Generator.Model
                 string strValue = value as string;
                 if (strValue != null)
                 {
-                    string expandedValueStr = strValue.Replace(variableName, variableExpansion);
+                    string expandedValueStr = strValue.Replace(varName, varExpansion);
                     if (expandedValueStr != strValue)
                     {
                         castedCollection.Remove(value);
@@ -112,9 +109,9 @@ namespace SolutionGen.Generator.Model
             return CloneCollection(value);
         }
 
-        public override object ExpandVariables(object value, string variableName, string variableExpansion)
+        public override object ExpandVariable(object value, string varName, string varExpansion)
         {
-            return ExpandVariablesInCollection(value, variableName, variableExpansion);
+            return ExpandVariablesInCollection(value, varName, varExpansion);
         }
 
         private static void CheckCollectionType(object collection)

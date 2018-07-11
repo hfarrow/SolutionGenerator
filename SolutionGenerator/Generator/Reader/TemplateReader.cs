@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Reader
 {
@@ -27,15 +28,20 @@ namespace SolutionGen.Generator.Reader
 
         public Template Read(ObjectElement templateElement)
         {
+            Log.WriteLine("Reading template element: {0}", templateElement);
+            
             Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
                 configurationGroups.Values.SelectMany(g => g.Configurations.Values)
-                    .ToDictionary(cfg => cfg, cfg => ReadForConfiguration(templateElement, cfg));
+                    .ToDictionary(cfg => cfg, cfg => CreateTemplateConfig(templateElement, cfg));
 
-            return new Template(templateConfigurations);
+            return new Template(templateElement.Heading.Name, templateConfigurations);
         }
         
-        private TemplateConfiguration ReadForConfiguration(ObjectElement templateElement, Configuration configuration)
+        private TemplateConfiguration CreateTemplateConfig(ObjectElement templateElement, Configuration configuration)
         {
+            Log.WriteLine("Creating template config '{0} - {1}' for template '{2}'",
+                configuration.GroupName, configuration.Name, templateElement.Heading.Name);
+                
             // When reading a template element there will be no base settings. However, when reading a module element
             // which is treated like a template there will will be base settings. Those base settings are the root template
             // element where project declarations are normally made.

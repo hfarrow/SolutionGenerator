@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -60,8 +60,16 @@ namespace SolutionGen.Generator.Model
 
             var glob = new Utils.Glob(includePatterns, excludePatterns);
             // TODO: cache all files under RootPath instead of using DirectoryInfo
-            IEnumerable<string> matches =
-                glob.FilterMatches(new DirectoryInfo(id.SourcePath));
+            string[] matches =
+                glob.FilterMatches(new DirectoryInfo(Solution.SolutionConfigDir)).ToArray();
+
+            Log.WriteLine(
+                "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
+                id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
+            Log.WriteLine("\tinclude patterns:\n{0}", string.Join("\n\t\t", includePatterns));
+            Log.WriteLine("\texclude patterns:\n{0}", string.Join("\n\t\t", excludePatterns));
+            Log.WriteLine("\tmatched files:\n{0}", string.Join("\n\t\t", matches));
+            Log.WriteLine("");
 
             IncludeFiles = includeFiles
                 .Concat(matches)
@@ -70,7 +78,7 @@ namespace SolutionGen.Generator.Model
             
             LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
             ProjectRefs = projectRefsValues
-                .Select(obj => Template.ExpandModuleName(obj.ToString(), ModuleName))
+                .Select(str => ExpandableVar.ExpandModuleName(str, ModuleName).ToString())
                 .ToHashSet();
         }
 
@@ -78,13 +86,16 @@ namespace SolutionGen.Generator.Model
         {
             foreach (object includeFilesValue in filesValues)
             {
-                switch (includeFilesValue)
+                object expandedIncludeFileValue =
+                    ExpandableVar.ExpandModuleName(includeFilesValue, ModuleName);
+                
+                switch (expandedIncludeFileValue)
                 {
-                    case GlobPath glob when includeFilesValue is GlobPath:
-                        globs.Add(Template.ExpandModuleName(glob.Value, ModuleName));
+                    case GlobPath glob when expandedIncludeFileValue is GlobPath:
+                        globs.Add(glob.Value);
                         break;
-                    case LiteralPath file when includeFilesValue is LiteralPath:
-                        files.Add(Template.ExpandModuleName(file.Value, ModuleName));
+                    case LiteralPath file when expandedIncludeFileValue is LiteralPath:
+                        files.Add(file.Value);
                         break;
                     default:
                         Console.WriteLine(

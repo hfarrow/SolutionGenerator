@@ -56,7 +56,7 @@ namespace SolutionGen.Generator.Reader
         private readonly IReadOnlyDictionary<string, string> variableExpansions;
 
         public SettingsReader(Configuration configuration, Settings baseSettings,
-            IReadOnlyDictionary<string, string> variableExpansions)
+            IReadOnlyDictionary<string, string> variableExpansions = null)
         {
             Configuration = configuration;
             conditionalParser = new BooleanExpressionParser();
@@ -74,12 +74,6 @@ namespace SolutionGen.Generator.Reader
                 commandDefinitions.ToDictionary(c => c.Name, c => c);
         }
 
-        public SettingsReader(Configuration configuration, Settings baseSettings)
-            : this(configuration, baseSettings, null)
-        {
-            
-        }
-
         public SettingsReader()
         {
             conditionalParser = new BooleanExpressionParser();
@@ -92,6 +86,16 @@ namespace SolutionGen.Generator.Reader
 
         public Settings Read(ObjectElement settingsObject)
         {
+            if (Configuration != null)
+            {
+                Log.WriteLine("Reading settings element for configuration '{0} - {1}: {2}",
+                    Configuration.GroupName, Configuration.Name, settingsObject);
+            }
+            else
+            {
+                Log.WriteLine("Reading settings element for static configuration: {0}", settingsObject);
+            }
+            
             if (baseSettings == null)
             {
                 properties =
@@ -247,19 +251,33 @@ namespace SolutionGen.Generator.Reader
             return false;
         }
 
-        private void ExpandVariables(Dictionary<string, object> properties)
+        private void ExpandVariables(IDictionary<string, object> expandableProperties)
         {
+            var modifiedProperties = new Dictionary<string, object>();
             if (variableExpansions != null && variableExpansions.Count > 0)
             {
-                foreach (KeyValuePair<string, object> kvp in properties)
+                foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
                     foreach (KeyValuePair<string, string> expansion in variableExpansions)
                     {
                         PropertyDefinition propertyDefinition = GetPropertyDefinition(kvp.Key);
-                        // TODO: implement IExpandableVariable for IPath types
-                        //         then remove Template.ExpandModuleName
-                        propertyDefinition.ExpandVariables(kvp.Value, expansion.Key, expansion.Value);
+                        object expanded = propertyDefinition.ExpandVariable(kvp.Value, expansion.Key, expansion.Value);
+                        
+                        // Some implementations of ExpandVariable will produce a result in place and then return it.
+                        // Other implementations will produce a new value that must be written to expandableProperties
+                        // by this function. Only write the expanded value if it is different from the original value.
+                        // Many properties will not contain any variable expansions and ExpandVariable will return the
+                        // original value.
+                        if (expanded != kvp.Value)
+                        {
+                            modifiedProperties[kvp.Key] = expanded;
+                        }
                     }
+                }
+
+                foreach (KeyValuePair<string,object> kvp in modifiedProperties)
+                {
+                    expandableProperties[kvp.Key] = kvp.Value;
                 }
             }
         }

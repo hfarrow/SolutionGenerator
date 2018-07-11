@@ -9,7 +9,9 @@ using SolutionGen.Generator.Reader;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Templates;
+using SolutionGen.Utils;
 using Sprache;
+using Path = System.IO.Path;
 
 namespace SolutionGen
 {
@@ -22,6 +24,8 @@ namespace SolutionGen
         
         public static SolutionGenerator FromPath(string solutionConfigPath)
         {
+            Log.WriteLine("Generating solution from path '{0}'", solutionConfigPath);
+            
             string configText;
             try
             {
@@ -40,13 +44,16 @@ namespace SolutionGen
 
         public static SolutionGenerator FromText(string configText, string rootPath)
         {
+            Log.WriteLine("Generating solution from text with root path '{0}'", rootPath);
+            
             var generator = new SolutionGenerator();
             generator.ParseSolutionConfig(configText, rootPath);
             return generator;
         }
         
-        private void ParseSolutionConfig(string configText, string rootPath)
+        private void ParseSolutionConfig(string configText, string rootDir)
         {
+            Log.WriteLine("Parsing main solution document");
             IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
             if (!result.WasSuccessful)
             {
@@ -54,16 +61,27 @@ namespace SolutionGen
             }
 
             ConfigDoc = result.Value;
-            Reader = new DocumentReader(ConfigDoc, rootPath);
+            Reader = new DocumentReader(ConfigDoc, rootDir);
+            
+            Log.WriteLine("Finished parsing solution named '{0}'", Reader.Solution.Name);
         }
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
+            Log.WriteLine("Generating solution for configuration group '{0}' with external define constants:\n{1}",
+                configurationGroup, string.Join("\n\t", externalDefineConstants));
+            
             ActiveConfigurationGroup = configurationGroup;
             foreach (Module module in Reader.Modules.Values)
             {
+                Log.WriteLine("Generating module '{0}' with project count of {1}",
+                    module.Name, module.ProjectIdLookup.Count);
+                
                 foreach (Project.Identifier project in module.ProjectIdLookup.Values)
                 {
+                    Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
+                        project.Name, project.Guid, project.SourcePath);
+                    
                     var projectTemplate = new DotNetProject
                     {
                         Generator = this,
@@ -79,10 +97,13 @@ namespace SolutionGen
                     };
 
                     string projectText = projectTemplate.TransformText();
-                    File.WriteAllText(Path.Combine(module.SourcePath, project.Name) + ".csproj", projectText);
+                    string projectPath = Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
+                    Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
+                    File.WriteAllText(projectPath, projectText);
                 }
             }
 
+            Log.WriteLine("Generating solution '{0}'", Reader.Solution.Name);
             var solutionTemplate = new DotNetSolution
             {
                 Generator = this,
@@ -91,8 +112,9 @@ namespace SolutionGen
             };
 
             string solutionText = solutionTemplate.TransformText();
-            File.WriteAllText(Path.Combine(Reader.SolutionConfigDirectory, Reader.Solution.Name) + ".sln",
-                solutionText);
+            string solutionPath = Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name) + ".sln";
+            Log.WriteLine("Writing solution to disk at path '{0}'", solutionPath);
+            File.WriteAllText(solutionPath, solutionText);
         }
     }
 }

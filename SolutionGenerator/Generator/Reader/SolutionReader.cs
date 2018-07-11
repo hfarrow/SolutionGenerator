@@ -1,21 +1,23 @@
 ﻿using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Reader
 {
     public class SolutionReader
     {
-        private readonly ObjectElement solutionObject;
+        private readonly ObjectElement solutionElement;
         public  Solution Solution { get; }
 
-        public SolutionReader(ObjectElement solutionObject, string solutionConfigDirectory)
+        public SolutionReader(ObjectElement solutionElement, string solutionConfigDir)
         {
-            this.solutionObject = solutionObject;
+            this.solutionElement = solutionElement;
             
+            Log.WriteLine("Reading solution element: {0}", solutionElement);
             var settingsReader = new SettingsReader();
-            Settings settings = settingsReader.Read(solutionObject);
-            Solution = new Solution(solutionObject.Heading.Name, settings, solutionConfigDirectory);
+            Settings settings = settingsReader.Read(solutionElement);
+            Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir);
         }
     }
 }

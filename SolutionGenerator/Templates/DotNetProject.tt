@@ -5,6 +5,7 @@
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="SolutionGen.Generator.Model" #>
+<#@ import namespace="Path = System.IO.Path" #>
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
@@ -26,12 +27,12 @@
     CurrentConfiguration = configuration;
     foreach (string platform in TargetPlatforms)
     {#>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '<#= configuration #>|<#= platform #>' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == '<#= configuration.Name #>|<#= platform #>' ">
         <PlatformTarget><#= GetStringProperty(Settings.PROP_CONFIGURATION_PLATFORM_TARGET) #></PlatformTarget>
         <DebugSymbols><#= GetStringProperty(Settings.PROP_DEBUG_SYMBOLS) #></DebugSymbols>
         <DebugType><#= GetStringProperty(Settings.PROP_DEBUG_TYPE) #></DebugType>
         <Optimize><#= GetStringProperty(Settings.PROP_OPTIMIZE) #></Optimize>
-        <OutputPath>bin\<#= configuration #>\</OutputPath>
+        <OutputPath>bin\<#= configuration.Name #>\</OutputPath>
         <DefineConstants><#= GetDefineConstants() #></DefineConstants>
         <ErrorReport><#= GetStringProperty(Settings.PROP_ERROR_REPORT) #></ErrorReport>
         <WarningLevel><#= GetStringProperty(Settings.PROP_WARNING_LEVEL) #></WarningLevel>
@@ -62,7 +63,7 @@ foreach (string projectName in GetCommonProjectRefs())
 <# foreach (Configuration configuration in ActiveConfigurations)
 {
     CurrentConfiguration = configuration;#>
-    <ItemGroup Condition=" '$(Configuration)' == '<#= configuration #>' ">
+    <ItemGroup Condition=" '$(Configuration)' == '<#= configuration.Name #>' ">
 <#  foreach(string file in GetConfigurationSpecificIncludes())
     {#>
         <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />

@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
+using Path = System.IO.Path;
 
 namespace SolutionGen.Generator.Reader
 {
@@ -21,10 +22,12 @@ namespace SolutionGen.Generator.Reader
         
         public Module Read(ObjectElement moduleElement)
         {
+            Log.WriteLine("Reading module element: {0}", moduleElement);
+            
             string moduleName = moduleElement.Heading.Name;
             string templateName = moduleElement.Heading.InheritedObjectName;
             var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
-            string moduleSourcePath = Path.Combine(solution.SolutionConfigPath, moduleName);
+            string moduleSourcePath = Path.Combine(solution.SolutionConfigDir, moduleName);
             idLookup = new Dictionary<string, Project.Identifier>();
             
             if (!string.IsNullOrEmpty(templateName))
@@ -53,6 +56,9 @@ namespace SolutionGen.Generator.Reader
         private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName,
             string moduleSourcePath)
         {
+            Log.WriteLine("Creating module configs for module '{0}' from template '{1}",
+                moduleName, template.Name);
+            
             var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
             foreach (KeyValuePair<Configuration,TemplateConfiguration> kvp in template.Configurations)
             {
@@ -69,8 +75,11 @@ namespace SolutionGen.Generator.Reader
             var projects = new List<Project>();
             foreach (ProjectDelcaration declaration in templateConfig.ProjectDeclarations.Values)
             {
+                Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}) with settings '{4}'",
+                    config.GroupName, config.Name, declaration.ProjectName, moduleName, declaration.SettingsName);
+                
                 Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
-                string projectName = ExpandModuleName(declaration.ProjectName, moduleName);
+                string projectName = ExpandableVar.ExpandModuleName(declaration.ProjectName, moduleName).ToString();
                 // All configurations of a project must have the same guid.
                 if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
                 {
@@ -86,11 +95,6 @@ namespace SolutionGen.Generator.Reader
             }
             
             return projects;
-        }
-
-        private string ExpandModuleName(string input, string moduleName)
-        {
-            return input.Replace("$(MODULE_NAME)", moduleName);
         }
     }
 

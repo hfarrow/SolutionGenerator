@@ -55,7 +55,7 @@ template TestTemplate
 
     settings project
     {
-        set include files: glob "**/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
+        set include files: glob "$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
         set exclude files: glob "**/Tests/**"
 
         set target framework: v4.6
@@ -107,7 +107,7 @@ template TestTemplate
         // exclude (no-tests)
         skip (!test)
 
-        set include files: glob "**/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
+        set include files: glob "$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
         set exclude files: empty
 
         add project refs
