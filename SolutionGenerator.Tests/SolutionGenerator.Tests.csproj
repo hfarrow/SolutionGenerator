@@ -15,6 +15,28 @@
     <EmbeddedResource Include="Resources\TestTemplate.txt" />
     <None Remove="Resources\TestSolution.txt" />
     <EmbeddedResource Include="Resources\TestSolution.txt" />
+    <Compile Remove="Resources\MyModule\Code\Tests\ClassTest.cs" />
+    <None Include="Resources\MyModule\Code\Tests\ClassTest.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Remove="Resources\MyModule\Code\Class.cs" />
+    <None Include="Resources\MyModule\Code\Class.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\MyModule\TextContent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Remove="Resources\MyOtherModule\Code\Tests\ClassTest.cs" />
+    <None Include="Resources\MyOtherModule\Code\Tests\ClassTest.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <Compile Remove="Resources\MyOtherModule\Code\Class.cs" />
+    <None Include="Resources\MyOtherModule\Code\Class.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\MyOtherModule\TextContent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />

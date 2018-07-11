@@ -127,7 +127,7 @@ namespace SolutionGen.Tests
 
             string projectPath =
                 Path.Combine(sol.SolutionConfigDir, "MyModule") + ".csproj";
-            Assert.True(File.ReadAllText(projectPath).Contains(constantName));
+            Assert.Contains(constantName, File.ReadAllText(projectPath));
         }
     }
 }
