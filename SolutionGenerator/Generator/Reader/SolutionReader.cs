@@ -1,4 +1,5 @@
-﻿using SolutionGen.Generator.Model;
+﻿using System.Collections.Generic;
+using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -17,7 +18,8 @@ namespace SolutionGen.Generator.Reader
             Log.WriteLine("Reading solution element: {0}", solutionElement);
             using (var _ = new Log.ScopedIndent(true))
             {
-                var settingsReader = new SettingsReader();
+                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME, solutionElement.Heading.Name);
+                var settingsReader = new SettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);
                 Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir);
             }

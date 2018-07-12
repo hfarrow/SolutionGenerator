@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -77,16 +78,15 @@ namespace SolutionGen.Generator.Model
         {
             CheckDictionaryType(dictionary);
             var castedDictionary = (TDictionary) dictionary;
+            var modifiedValues = new TDictionary();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
-                TValue expandedValue = kvp.Value;
-                string strValue = kvp.Value as string;
-                if (strValue != null)
-                {
-                    expandedValue = (TValue)(object)strValue.Replace(varName, varExpansion);
-                }
+                modifiedValues[kvp.Key] = (TValue) ExpandableVar.ExpandInCopy(kvp.Key, varName, varExpansion);
+            }
 
-                castedDictionary[kvp.Key] = expandedValue;
+            foreach (KeyValuePair<string,TValue> kvp in modifiedValues)
+            {
+                castedDictionary[kvp.Key] = kvp.Value;
             }
 
             return dictionary;

@@ -36,7 +36,7 @@ namespace SolutionGen.Generator.Reader
             // Solution Settings
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_TARGET_PLATFORMS,
                 new HashSet<string>(){"Any CPU"}),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, string.Empty),
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_MODULE_SOURCE_PATH, string.Empty),
         };
 
@@ -78,9 +78,10 @@ namespace SolutionGen.Generator.Reader
                 commandDefinitions.ToDictionary(c => c.Name, c => c);
         }
 
-        public SettingsReader()
+        public SettingsReader(IReadOnlyDictionary<string, string> variableExpansions = null)
         {
             conditionalParser = new BooleanExpressionParser();
+            this.variableExpansions = variableExpansions;
         }
 
         public static PropertyDefinition GetPropertyDefinition(string propertyName)
@@ -296,21 +297,8 @@ namespace SolutionGen.Generator.Reader
             {
                 foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
-                    foreach (KeyValuePair<string, string> expansion in variableExpansions)
-                    {
-                        PropertyDefinition propertyDefinition = GetPropertyDefinition(kvp.Key);
-                        object expanded = propertyDefinition.ExpandVariable(kvp.Value, expansion.Key, expansion.Value);
-                        
-                        // Some implementations of ExpandVariable will produce a result in place and then return it.
-                        // Other implementations will produce a new value that must be written to expandableProperties
-                        // by this function. Only write the expanded value if it is different from the original value.
-                        // Many properties will not contain any variable expansions and ExpandVariable will return the
-                        // original value.
-                        if (expanded != kvp.Value)
-                        {
-                            modifiedProperties[kvp.Key] = expanded;
-                        }
-                    }
+                    object expanded = ExpandableVar.ExpandAllForPropertyInCopy(kvp.Key, kvp.Value, variableExpansions);
+                    modifiedProperties[kvp.Key] = expanded;
                 }
 
                 foreach (KeyValuePair<string,object> kvp in modifiedProperties)

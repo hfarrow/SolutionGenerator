@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -77,18 +78,27 @@ namespace SolutionGen.Generator.Model
         {
             CheckCollectionType(collection);
             var castedCollection = (TCollection) collection;
+            
+            var removed = new TCollection();
+            var added = new TCollection();
             foreach (TValue value in castedCollection)
             {
-                string strValue = value as string;
-                if (strValue != null)
+                var expandedValue = (TValue)ExpandableVar.ExpandInCopy(value, varName, varExpansion);
+                if (!Equals(value, expandedValue))
                 {
-                    string expandedValueStr = strValue.Replace(varName, varExpansion);
-                    if (expandedValueStr != strValue)
-                    {
-                        castedCollection.Remove(value);
-                        castedCollection.Add((TValue)(object)expandedValueStr);
-                    }
+                    removed.Add(value);
+                    added.Add(expandedValue);
                 }
+            }
+
+            foreach (TValue value in removed)
+            {
+                castedCollection.Remove(value);
+            }
+
+            foreach (TValue value in added)
+            {
+                castedCollection.Add(value);
             }
 
             return collection;

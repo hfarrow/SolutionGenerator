@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -13,7 +14,9 @@ namespace SolutionGen.Generator.Model
         public IReadOnlyCollection<string> TargetPlatforms =>
             Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_TARGET_PLATFORMS);
 
-        public string RootNamespace => Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE);
+        public string RootNamespace =>
+            ExpandableVar.ExpandAllInCopy(Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE),
+                ExpandableVar.ExpandableVariables).ToString();
 
         public Solution(string name, Settings settings, string solutionConfigDir)
         {

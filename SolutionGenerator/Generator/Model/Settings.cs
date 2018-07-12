@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Reader;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -53,6 +54,19 @@ namespace SolutionGen.Generator.Model
         {
             this.properties = properties;
             ConfigurationGroups = configurationGroups;
+        }
+
+        public Settings ExpandVariablesInCopy()
+        {
+            var copy = new Dictionary<string, object>();
+            foreach (KeyValuePair<string,object> kvp in properties)
+            {
+
+                copy[kvp.Key] =
+                    ExpandableVar.ExpandAllForPropertyInCopy(kvp.Key, kvp.Value, ExpandableVar.ExpandableVariables);
+            }
+            
+            return new Settings(copy, ConfigurationGroups);
         }
     }
 }

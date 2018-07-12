@@ -17,7 +17,7 @@ solution MySolution
         Any CPU
     ]
 
-    set root namespace: MySolution
+    set root namespace: $(SOLUTION_NAME).$(PROJECT_NAME)
     set module source path: Resources
 }
 

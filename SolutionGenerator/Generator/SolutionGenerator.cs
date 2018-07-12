@@ -96,6 +96,7 @@ namespace SolutionGen
                             module.Name, module.ProjectIdLookup.Count);
                         using (var ___ = new Log.ScopedIndent())
                         {
+                            ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME, module.Name);
                             foreach (Project.Identifier project in module.ProjectIdLookup.Values)
                             {
 
@@ -110,6 +111,8 @@ namespace SolutionGen
 
                                 using (var ____ = new Log.ScopedIndent())
                                 {
+                                    ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME, project.Name);
+                                    
                                     var projectTemplate = new DotNetProject
                                     {
                                         Generator = this,

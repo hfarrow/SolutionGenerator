@@ -29,6 +29,8 @@ namespace SolutionGen.Generator.Reader
                 string moduleName = moduleElement.Heading.Name;
                 string templateName = moduleElement.Heading.InheritedObjectName;
                 
+                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, moduleName);
+                
                 string moduleSourcePath = Path.Combine(
                     solution.SolutionConfigDir,
                     solution.Settings.GetProperty<string>(Settings.PROP_MODULE_SOURCE_PATH),
@@ -53,6 +55,8 @@ namespace SolutionGen.Generator.Reader
                 
                 Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
                     CreateModuleConfigs(template, moduleName, moduleSourcePath);
+                
+                ExpandableVar.ClearExpandableVariable(ExpandableVar.VAR_MODULE_NAME);
 
                 return new Module(solution, moduleName, moduleConfigs, idLookup,
                     moduleSourcePath);
@@ -86,9 +90,9 @@ namespace SolutionGen.Generator.Reader
             {
                 Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}) with settings '{4}'",
                     config.GroupName, config.Name, declaration.ProjectName, moduleName, declaration.SettingsName);
-
+                
                 using (var _ = new Log.ScopedIndent(true))
-                {
+                {                   
                     Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
                     if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
                     {
@@ -107,7 +111,7 @@ namespace SolutionGen.Generator.Reader
 
                     // TODO: set guid from project settings object
                     var project = new Project(solution, moduleName, id, config,
-                        projectSettings);
+                        projectSettings.ExpandVariablesInCopy());
 
                     projects.Add(project);
                 }

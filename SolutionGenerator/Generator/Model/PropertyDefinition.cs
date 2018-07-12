@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
@@ -61,13 +62,7 @@ namespace SolutionGen.Generator.Model
 
         public override object ExpandVariable(object value, string varName, string varExpansion)
         {
-            // Only strings contain variables to be expanded.
-            if (value is string strValue)
-            {
-                return strValue.Replace(varName, varExpansion);
-            }
-
-            return value;
+            return ExpandableVar.ExpandInCopy(value, varName, varExpansion);
         }
 
         public override string PrintValue(object value)
