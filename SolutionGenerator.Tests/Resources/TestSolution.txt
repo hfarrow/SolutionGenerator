@@ -18,6 +18,7 @@ solution MySolution
     ]
 
     set root namespace: MySolution
+    set module source path: Resources
 }
 
 module MyModule : MyTemplate

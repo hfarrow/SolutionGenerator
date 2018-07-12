@@ -28,9 +28,12 @@ namespace SolutionGen.Generator.Reader
             {
                 string moduleName = moduleElement.Heading.Name;
                 string templateName = moduleElement.Heading.InheritedObjectName;
-                // TODO: remove "Resources/" hardcoding once solution can define module base path
-                //    The unit tests put the module files in Resources so that they get copied to bin/
-                string moduleSourcePath = Path.Combine(solution.SolutionConfigDir, "Resources/" + moduleName);
+                
+                string moduleSourcePath = Path.Combine(
+                    solution.SolutionConfigDir,
+                    solution.Settings.GetProperty<string>(Settings.PROP_MODULE_SOURCE_PATH),
+                    moduleName);
+                
                 idLookup = new Dictionary<string, Project.Identifier>();
 
                 if (string.IsNullOrEmpty(templateName))

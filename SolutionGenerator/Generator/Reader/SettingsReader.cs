@@ -36,7 +36,8 @@ namespace SolutionGen.Generator.Reader
             // Solution Settings
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_TARGET_PLATFORMS,
                 new HashSet<string>(){"Any CPU"}),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, string.Empty)
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, string.Empty),
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_MODULE_SOURCE_PATH, string.Empty),
         };
 
         private readonly List<CommandDefinition> commandDefinitions;

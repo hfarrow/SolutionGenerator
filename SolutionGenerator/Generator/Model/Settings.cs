@@ -21,6 +21,7 @@ namespace SolutionGen.Generator.Model
         public const string PROP_CONFIGURATION_PLATFORM_TARGET = "platform target";
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_ROOT_NAMESPACE = "root namespace";
+        public const string PROP_MODULE_SOURCE_PATH = "module source path";
         public const string PROP_EXCLUDE = "exclude";
         public const string PROP_PROJECT_DELCARATIONS = "projects";
         
