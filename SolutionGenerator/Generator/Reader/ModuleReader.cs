@@ -55,7 +55,6 @@ namespace SolutionGen.Generator.Reader
                     CreateModuleConfigs(template, moduleName, moduleSourcePath);
 
                 return new Module(solution, moduleName, moduleConfigs, idLookup,
-                    // TODO: default to the module path below but allow override in settings
                     moduleSourcePath);
             }
         }

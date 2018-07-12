@@ -69,10 +69,10 @@ namespace SolutionGen.Templates
         {
             if (commonIncludes == null)
             {
-                List<IReadOnlyCollection<string>> collections =
+                List<IEnumerable<string>> collections =
                     ActiveConfigurations
                         .Select(c => Module.Configurations[c].Projects[Project.Name])
-                        .Select(c => c.IncludeFiles)
+                        .Select(c => c.IncludeFiles.Select(f => f.Substring(Project.RelativeSourcePath.Length + 1)))
                         .ToList();
 
                 commonIncludes = collections
@@ -91,6 +91,7 @@ namespace SolutionGen.Templates
         public HashSet<string> GetConfigurationSpecificIncludes()
         {
             return Project.IncludeFiles
+                .Select(f => f.Substring(Project.RelativeSourcePath.Length + 1))
                 .Except(GetCommonIncludes())
                 .ToHashSet();
         }

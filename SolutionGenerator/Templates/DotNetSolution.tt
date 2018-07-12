@@ -4,11 +4,12 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="SolutionGen.Generator.Model" #>
+<#@ import namespace="Path = System.IO.Path" #>
 Microsoft Visual Studio Solution File, Format Version 12.00
 <# foreach (Project project in GetProjects())
 {
 #>
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "<#= project.Name #>", "<#= project.Name #>.csproj", "{<#= project.Guid #>}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "<#= project.Name #>", "<#= Path.Combine(project.RelativeSourcePath, project.Name) #>.csproj", "{<#= project.Guid #>}"
 EndProject
 <#
 } #>

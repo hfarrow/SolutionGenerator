@@ -29,6 +29,10 @@ namespace SolutionGen.Generator.Model
 
         public string Name => id.Name;
         public Guid Guid => id.Guid;
+        public string AbsoluteSourcePath => id.SourcePath;
+
+        public string RelativeSourcePath { get; }
+//            System.IO.Path.GetRelativePath(Solution.SolutionConfigDir, AbsoluteSourcePath);
         
         public IReadOnlyCollection<string> IncludeFiles { get; private set; }
         public IReadOnlyCollection<string> LibRefs { get; private set; }
@@ -44,6 +48,8 @@ namespace SolutionGen.Generator.Model
             this.id = id;
             Configuration = configuration;
             Settings = settings;
+
+            RelativeSourcePath = System.IO.Path.GetRelativePath(Solution.SolutionConfigDir, AbsoluteSourcePath);
             
             // Include files, exclude files, lib refs
             var includeFilesValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);

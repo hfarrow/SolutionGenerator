@@ -125,7 +125,8 @@ namespace SolutionGen
 
                                     string projectText = projectTemplate.TransformText();
                                     string projectPath =
-                                        Path.Combine(Reader.SolutionConfigDir, project.Name) + ".csproj";
+                                        Path.Combine(project.SourcePath, project.Name) + ".csproj";
+                                    
                                     Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
                                     File.WriteAllText(projectPath, projectText);
                                 }
