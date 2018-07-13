@@ -22,7 +22,7 @@ namespace SolutionGen.Parser.Model
 
         public override string ToString()
         {
-            return $"Property{{{Action.ToString().ToLower()} {FullName}: {ValueElement}}}";
+            return $"Property{{{FullName} {(Action == PropertyAction.Add ? "+=" : "=")} {ValueElement}}}";
         }
     }
 }

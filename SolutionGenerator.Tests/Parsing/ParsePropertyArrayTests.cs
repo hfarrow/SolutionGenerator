@@ -12,7 +12,7 @@ namespace SolutionGen.Tests.Parsing
         public void MultiLineArrayCanBeParsed()
         {
             const string input =
-                "add lib refs\n" +
+                "lib refs +=\n" +
                 "[\n" +
                 "    Test/Path/A\n" +
                 "    Test/Path/B\n" +
@@ -30,7 +30,7 @@ namespace SolutionGen.Tests.Parsing
         [Fact]
         public void EmptySingleLineArrayCanBeParsed()
         {
-            const string input = "add lib refs [ ]";
+            const string input = "lib refs += [ ]";
             
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
             var array = propertyElement.ValueElement as ArrayValue;
@@ -42,7 +42,7 @@ namespace SolutionGen.Tests.Parsing
         public void EmptyMultiLineArrayCanBeParsed()
         {
             const string input = 
-                "add lib refs\n" +
+                "lib refs +=\n" +
                 "[\n" +
                 "]";
             

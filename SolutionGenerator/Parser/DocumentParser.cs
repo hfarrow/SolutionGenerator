@@ -33,7 +33,7 @@ namespace SolutionGen.Parser
             ).Token().Named("object-heading");
 
         public static readonly Parser<PropertyAction> PropertyAction =
-            (from action in Parse.IgnoreCase("set").XOr(Parse.IgnoreCase("add")).Text()
+            (from action in Parse.IgnoreCase("=").XOr(Parse.IgnoreCase("+=")).Text()
                 from space in Parse.WhiteSpace.AtLeastOnce().XOr(Parse.LineTerminator)
                 select GetPropertyAction(action))
             .Token().Named("property-action");
@@ -64,9 +64,8 @@ namespace SolutionGen.Parser
 
         public static readonly Parser<PropertyElement> PropertySingleLine =
             (from conditional in ConditionalExpression.Optional()
-                from action in PropertyAction
                 from nameParts in BasicParser.Identifier.DelimitedBy(Parse.Char(' '))
-                from colon in Parse.Char(':').Token()
+                from action in PropertyAction
                 from value in Value
                 select new PropertyElement(action, nameParts, value, conditional.GetOrElse("true")))
             .Token().Named("single-line-property");
@@ -87,8 +86,8 @@ namespace SolutionGen.Parser
         // Note: Property arrays are 1 dimensional and values cannot be another array.
         public static readonly Parser<PropertyElement> PropertyArray =
             (from conditional in ConditionalExpression.Optional()
-                from action in PropertyAction
                 from nameParts in BasicParser.Identifier.DelimitedBy(Parse.Char(' ')).Token()
+                from action in PropertyAction
                 from values in Array
                 select new PropertyElement(action, nameParts, new ArrayValue(values),
                     conditional.GetOrElse("true")))
@@ -128,8 +127,8 @@ namespace SolutionGen.Parser
             .Token().Named("conditional-block");
         
         public static readonly Parser<ConfigElement> ObjectElement =
-            (from element in PropertySingleLine
-                    .Or((Parser<ConfigElement>) PropertyArray)
+            (from element in PropertyArray
+                    .Or((Parser<ConfigElement>)PropertySingleLine)
                     .Or(ConfigurationGroup)
                     .Or(ConditionalBlockElement)
                     .Or(Object)
@@ -146,12 +145,15 @@ namespace SolutionGen.Parser
 
         private static PropertyAction GetPropertyAction(string actionStr)
         {
-            if (!Enum.TryParse(actionStr, true, out PropertyAction action))
+            switch (actionStr)
             {
-                action = Model.PropertyAction.Invalid;
+                case "=":
+                    return Model.PropertyAction.Set;
+                case "+=":
+                    return Model.PropertyAction.Add;
+                default:
+                    return Model.PropertyAction.Invalid;
             }
-
-            return action;
         }
     }
 }

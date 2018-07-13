@@ -60,7 +60,7 @@ namespace SolutionGen.Tests.Parsing
                 "{\n" +
                 "    myNestedType MyNestedObject\n" +
                 "    {\n" +
-                "        set include paths: \"./\"\n" +
+                "        include paths = \"./\"\n" +
                 "    }\n" +
                 "}";
 
@@ -87,7 +87,7 @@ namespace SolutionGen.Tests.Parsing
                 "{\n" +
                 "    myNestedType MyNestedObject : InheritedObject\n" +
                 "    {\n" +
-                "        set include paths: \"./\"\n" +
+                "        include paths = \"./\"\n" +
                 "    }\n" +
                 "}";
 

@@ -12,28 +12,28 @@ solution MySolution
         Release: release
     ]
 
-    set target platforms
+    target platforms =
     [
         Any CPU
     ]
 
     settings template.defaults
     {
-        set root namespace: $(SOLUTION_NAME).$(PROJECT_NAME)
-        set module source path: Resources/$(MODULE_NAME)
-        set include files: glob ".{cs,txt,json,xml,md}"
-        set exclude files: none
-        set lib refs: none
-        set project refs: none
-        set define constants: none
-        set target framework: v4.6
-        set language version: 6
-        set debug symbols: true
-        set debug type: full
-        set optimize: false
-        set error report: prompt
-        set warning level: 4
-        set platform target: AnyCPU
+        root namespace = $(SOLUTION_NAME).$(PROJECT_NAME)
+        module source path = Resources/$(MODULE_NAME)
+        include files = glob ".{cs,txt,json,xml,md}"
+        exclude files = none
+        lib refs = none
+        project refs = none
+        define constants = none
+        target framework = v4.6
+        language version = 6
+        debug symbols = true
+        debug type = full
+        optimize = false
+        error report = prompt
+        warning level = 4
+        platform target = AnyCPU
     }
 }
 
@@ -41,12 +41,12 @@ module MyModule : MyTemplate
 {
     settings project
     {
-        set guid: 8CA3145D-B47F-4355-808A-2C08F48EB061
+        guid = 8CA3145D-B47F-4355-808A-2C08F48EB061
     }
 
     settings project.tests : project
     {
-        set guid: 3B8C3242-A267-4E63-9AE2-7099ACB9F730
+        guid = 3B8C3242-A267-4E63-9AE2-7099ACB9F730
     }
 }
 
@@ -54,9 +54,9 @@ module MyOtherModule : MyTemplate
 {
     settings project
     {
-        set guid: 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
+        guid = 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
 
-        add project refs
+        project refs +=
         [
             MyModule
         ]
@@ -64,9 +64,9 @@ module MyOtherModule : MyTemplate
 
     settings project.tests : project
     {
-        set guid: 4053B07E-0E18-4F56-9A9D-30CAE83364B5
+        guid = 4053B07E-0E18-4F56-9A9D-30CAE83364B5
 
-        add project refs
+        project refs +=
         [
             MyModule.Tests
         ]
@@ -80,20 +80,20 @@ template MyTemplate
 
     settings project
     {
-        set include files: glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
-        set exclude files
+        include files = glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
+        exclude files =
         [
             glob "**/Tests/**"
             glob "**/obj/**"
         ]
 
-        add lib refs
+        lib refs +=
         [
             Lib1.dll
             Lib2.dll
         ]
 
-        add define constants
+        define constants +=
         [
             DEFINE_A
             DEFINE_B
@@ -101,11 +101,11 @@ template MyTemplate
 
         if (debug)
         {
-            set debug symbols: true
-            set debug type: full
-            set optimize: false
+            debug symbols = true
+            debug type = full
+            optimize = false
 
-            add define constants
+            define constants +=
             [
                 DEBUG
                 TRACE
@@ -114,11 +114,11 @@ template MyTemplate
 
         if (release)
         {
-            set debug symbols: false
-            set debug type: pdbonly
-            set optimize: true
+            debug symbols = false
+            debug type = pdbonly
+            optimize = true
 
-            add define constants
+            define constants +=
             [
                 RELEASE
             ]
@@ -126,7 +126,7 @@ template MyTemplate
 
         if (test)
         {
-            add define constants
+            define constants +=
             [
                 TEST
             ]
@@ -136,16 +136,16 @@ template MyTemplate
     settings project.tests : project
     {
         // Clear the inherited files
-        set include files: none
-        set exclude files: none
+        include files = none
+        exclude files = none
 
         if (no-tests) exclude
 
         if (test)
         {
-            set include files: glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
+            include files = glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
 
-            add project refs
+            project refs +=
             [
                 $(MODULE_NAME)
             ]
