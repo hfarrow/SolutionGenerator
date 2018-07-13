@@ -31,8 +31,6 @@ namespace SolutionGen.Generator.Model
         private readonly IReadOnlyDictionary<string, object> properties;
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
 
-        public bool ContainsProperty(string name) => properties.ContainsKey(name);
-        public bool ContainsProperty<T>(string name) => properties.TryGetValue(name, out object value) && value is T;
         public T GetProperty<T>(string name) => (T) properties[name];
 
         public bool TryGetProperty<T>(string name, out T value)
