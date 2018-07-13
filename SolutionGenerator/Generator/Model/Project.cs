@@ -90,7 +90,6 @@ namespace SolutionGen.Generator.Model
             
             LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
             ProjectRefs = projectRefsValues
-                .Select(str => ExpandableVar.ExpandModuleNameInCopy(str, ModuleName).ToString())
                 .ToHashSet();
         }
 

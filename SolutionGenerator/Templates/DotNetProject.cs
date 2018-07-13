@@ -329,13 +329,13 @@ foreach (string projectName in GetCommonProjectRefs())
             #line hidden
             
             #line 56 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetRelativeProjectRefPath(projectName) ));
             
             #line default
             #line hidden
             
             #line 56 ".\Templates\DotNetProject.tt"
-            this.Write(".csproj\" >\r\n            <Project>{");
+            this.Write("\" >\r\n            <Project>{");
             
             #line default
             #line hidden
@@ -455,13 +455,13 @@ foreach (string projectName in GetCommonProjectRefs())
             #line hidden
             
             #line 74 ".\Templates\DotNetProject.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( projectName ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( GetRelativeProjectRefPath(projectName) ));
             
             #line default
             #line hidden
             
             #line 74 ".\Templates\DotNetProject.tt"
-            this.Write(".csproj\" >\r\n            <Project>{");
+            this.Write("\" >\r\n            <Project>{");
             
             #line default
             #line hidden

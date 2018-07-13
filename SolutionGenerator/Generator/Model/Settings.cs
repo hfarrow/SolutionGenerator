@@ -59,9 +59,11 @@ namespace SolutionGen.Generator.Model
         public Settings ExpandVariablesInCopy()
         {
             var copy = new Dictionary<string, object>(properties);
-            foreach (KeyValuePair<string,object> kvp in copy)
+            foreach (string propertyName in properties.Keys)
             {
-                ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, ExpandableVar.ExpandableVariables);
+                copy[propertyName] = ExpandableVar.ExpandAllForProperty(propertyName, copy[propertyName],
+                    ExpandableVar.ExpandableVariables);
+
             }
             
             return new Settings(copy, ConfigurationGroups);

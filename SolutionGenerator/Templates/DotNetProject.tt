@@ -53,7 +53,7 @@
 <#}
 foreach (string projectName in GetCommonProjectRefs())
 {#>
-        <ProjectReference Include="<#= projectName #>.csproj" >
+        <ProjectReference Include="<#= GetRelativeProjectRefPath(projectName) #>" >
             <Project>{<#=ProjectIdLookup[projectName].Guid #>}</Project>
             <Name><#= projectName #></Name>
         </ProjectReference>
@@ -71,7 +71,7 @@ foreach (string projectName in GetCommonProjectRefs())
 
     foreach(string projectName in GetConfigurationSpecificProjectRefs())
     {#>
-        <ProjectReference Include="<#= projectName #>.csproj" >
+        <ProjectReference Include="<#= GetRelativeProjectRefPath(projectName) #>" >
             <Project>{<#=ProjectIdLookup[projectName].Guid #>}</Project>
             <Name><#= projectName #></Name>
         </ProjectReference>

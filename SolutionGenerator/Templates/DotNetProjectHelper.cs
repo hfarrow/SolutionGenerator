@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
+using Path = System.IO.Path;
 
 namespace SolutionGen.Templates
 {
@@ -125,6 +126,13 @@ namespace SolutionGen.Templates
             return Project.ProjectRefs
                 .Except(GetCommonProjectRefs())
                 .ToHashSet();
+        }
+
+        public string GetRelativeProjectRefPath(string projectRefName)
+        {
+            Project.Identifier projectRef = ProjectIdLookup[projectRefName];
+            return Path.GetRelativePath(Module.SourcePath,
+                Path.Combine(projectRef.SourcePath, projectRefName + ".csproj"));
         }
     }
 }
