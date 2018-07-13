@@ -35,8 +35,9 @@ namespace SolutionGen.Templates
 
         public string DefaultPlatform =>
             RemoveWhitespace(Solution.TargetPlatforms.First());
-        
-        public string RootNamespace => Solution.RootNamespace;
+
+        public string RootNamespace =>
+            GetStringProperty(Settings.PROP_ROOT_NAMESPACE);
 
         public string TargetFrameworkVersion =>
             GetStringProperty(Settings.PROP_TARGET_FRAMEWORK);

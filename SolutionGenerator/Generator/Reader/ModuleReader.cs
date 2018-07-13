@@ -80,37 +80,46 @@ namespace SolutionGen.Generator.Reader
             var projects = new List<Project>();
             foreach (ProjectDelcaration declaration in templateConfig.ProjectDeclarations.Values)
             {
-                Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}') with settings '{4}'",
-                    config.GroupName, config.Name, declaration.ProjectName, moduleName, declaration.SettingsName);
+                string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName)
+                    .ToString();
                 
-                using (new Log.ScopedIndent(true))
-                {                   
-                    Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
-                    if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
-                    {
-                        Log.WriteLine("Project '{0}' is excluded from configuration '{1} - {2}'",
-                            declaration.ProjectName, config.GroupName, config.Name);
-                        continue;
-                    }
-
-                    projectSettings = projectSettings.ExpandVariablesInCopy();
-                    string moduleSourcePath = projectSettings.GetProperty<string>(Settings.PROP_PROJECT_SOURCE_PATH);
+                using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_PROJECT_NAME, projectName))
+                {
                     
-                    string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName).ToString();
-                    // All configurations of a project must have the same guid.
-                    if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
+                    Log.WriteLine(
+                        "Creating project config '{0} - {1}' for project '{2}' (module '{3}') with settings '{4}'",
+                        config.GroupName, config.Name, projectName, moduleName, declaration.SettingsName);
+                    
+
+                    using (new Log.ScopedIndent(true))
                     {
-                        id = new Project.Identifier(projectName, Guid.NewGuid(), moduleSourcePath);
-                        idLookup[projectName] = id;
+                        Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
+                        if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
+                        {
+                            Log.WriteLine("Project '{0}' is excluded from configuration '{1} - {2}'",
+                                projectName, config.GroupName, config.Name);
+                            continue;
+                        }
+
+                        projectSettings = projectSettings.ExpandVariablesInCopy();
+                        string moduleSourcePath =
+                            projectSettings.GetProperty<string>(Settings.PROP_PROJECT_SOURCE_PATH);
+
+                        // All configurations of a project must have the same guid.
+                        if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
+                        {
+                            id = new Project.Identifier(projectName, Guid.NewGuid(), moduleSourcePath);
+                            idLookup[projectName] = id;
+                        }
+
+                        // TODO: set guid from project settings object
+                        var project = new Project(solution, moduleName, id, config, projectSettings);
+
+                        projects.Add(project);
                     }
-
-                    // TODO: set guid from project settings object
-                    var project = new Project(solution, moduleName, id, config, projectSettings);
-
-                    projects.Add(project);
                 }
             }
-            
+
             return projects;
         }
     }
