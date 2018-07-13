@@ -87,14 +87,6 @@ template MyTemplate
             glob "**/obj/**"
         ]
 
-        set debug symbols (debug): true
-        set debug type (debug): full
-        set optimize (debug): false
-
-        set debug symbols (release): false
-        set debug type (release): pdbonly
-        set optimize (release): true
-
         add lib refs
         [
             Lib1.dll
@@ -107,21 +99,38 @@ template MyTemplate
             DEFINE_B
         ]
 
-        add define constants (debug)
-        [
-            DEBUG
-            TRACE
-        ]
+        if (debug)
+        {
+            set debug symbols: true
+            set debug type: full
+            set optimize: false
 
-        add define constants (test)
-        [
-            TEST
-        ]
+            add define constants
+            [
+                DEBUG
+                TRACE
+            ]
+        }
 
-        add define constants (release)
-        [
-            RELEASE
-        ]
+        if (release)
+        {
+            set debug symbols: false
+            set debug type: pdbonly
+            set optimize: true
+
+            add define constants
+            [
+                RELEASE
+            ]
+        }
+
+        if (test)
+        {
+            add define constants
+            [
+                TEST
+            ]
+        }
     }
 
     settings project.tests : project
@@ -130,7 +139,6 @@ template MyTemplate
         set include files: none
         set exclude files: none
 
-        // TODO: implement exclude command if needed
         exclude (no-tests)
         skip (!test)
 

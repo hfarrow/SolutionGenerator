@@ -117,16 +117,27 @@ namespace SolutionGen.Parser
                 from rbrace in Parse.Char('}').Token()
                 select new ObjectElement(heading, elements))
             .Token().Named("object");
+        
+        public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
+            (from start in Parse.String("if").Text().Token()
+                from conditional in ConditionalExpression.Text()
+                from lbrace in Parse.Char('{').Token()
+                from elements in ObjectElement.XMany()
+                from rbrace in Parse.Char('}').Token()
+                select new ConditionalBlockElement(conditional, elements))
+            .Token().Named("conditional-block");
 
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertySingleLine
                     .Or((Parser<ConfigElement>) PropertyArray)
                     .Or(ConfigurationGroup)
+                    .Or(ConditionalBlockElement)
                     .Or(Object)
                     .Or(SimpleCommand)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
                 select element)
             .Named("object-element");
+        
 
         public static readonly Parser<ConfigDocument> Document =
             (from elements in ObjectElement.XMany()

@@ -48,7 +48,7 @@ namespace SolutionGen.Generator.Reader
             public bool HasValue => false;
         }
         
-        protected static bool EvaluateConditional(string conditionalExpr, BooleanExpressionParser parser)
+        public static bool EvaluateConditional(string conditionalExpr, BooleanExpressionParser parser)
         {
             if (!parser.TryParseExpression(conditionalExpr,
                 out Sprache.IResult<Expression<Func<bool>>> result))

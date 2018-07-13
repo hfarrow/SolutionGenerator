@@ -38,8 +38,6 @@ namespace SolutionGen.Generator.Reader
                 new HashSet<string>(){"Any CPU"}),
         };
 
-        private readonly List<CommandDefinition> commandDefinitions;
-
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =
             propertyDefinitions.ToDictionary(d => d.Name, d => d);
 
@@ -67,7 +65,7 @@ namespace SolutionGen.Generator.Reader
             this.baseSettings = baseSettings;
             this.defaultSettings = defaultSettings;
 
-            commandDefinitions = new List<CommandDefinition>
+            var commandDefinitions = new List<CommandDefinition>
             {
                 new CommandDefinition<CommandReader>(Settings.CMD_SKIP, _ => true),
                 new CommandDefinition<CommandReader>(Settings.CMD_EXCLUDE, ExcludeProjectCommand),
@@ -146,7 +144,23 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
 
+                var elements = new List<ConfigElement>();
                 foreach (ConfigElement element in settingsObject.Elements)
+                {
+                    if (element is ConditionalBlockElement block)
+                    {
+                        if (ElementReader.EvaluateConditional(block.ConditionalExpression, conditionalParser))
+                        {
+                            elements.AddRange(block.Elements);
+                        }
+                    }
+                    else
+                    {
+                        elements.Add(element);
+                    }
+                }
+
+                foreach (ConfigElement element in elements)
                 {
                     bool terminate;
                     switch (element)
@@ -239,8 +253,6 @@ namespace SolutionGen.Generator.Reader
                 
                 switch (definition)
                 {
-                    // TODO add abstract function for ClearCollection/ClearDictionary. No need for a switch here... just
-                    // have the concrete definition objects do the work.
                     case PropertyCollectionDefinition collectionDefinition:
                         if (element.Action == PropertyAction.Set)
                         {
