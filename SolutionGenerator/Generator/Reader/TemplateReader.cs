@@ -13,15 +13,18 @@ namespace SolutionGen.Generator.Reader
         
         private readonly IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups;
         private readonly Template baseTemplate;
+        private readonly Settings defaultSettings;
 
-        public TemplateReader(IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
+        public TemplateReader(IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups,
+            Settings defaultSettings)
         {
             this.configurationGroups = configurationGroups;
+            this.defaultSettings = defaultSettings;
         }
 
         public TemplateReader(IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups,
-            Template baseTemplate)
-            : this(configurationGroups)
+            Template baseTemplate, Settings defaultSettings)
+            : this(configurationGroups, defaultSettings)
         {
             this.baseTemplate = baseTemplate;
         }
@@ -38,11 +41,11 @@ namespace SolutionGen.Generator.Reader
                         .ToDictionary(cfg => cfg, cfg => CreateTemplateConfig(templateElement, cfg));
 
                 Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Elements
-                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
-                    .Cast<ObjectElement>().ToDictionary(obj => obj.Heading.Name, obj => obj);
+                    .Where(e => e is ObjectElement obj && obj.ElementHeading.Type == SectionType.SETTINGS)
+                    .Cast<ObjectElement>().ToDictionary(obj => obj.ElementHeading.Name, obj => obj);
                 
                 return new Template(
-                    templateElement.Heading.Name,
+                    templateElement.ElementHeading.Name,
                     templateElement,
                     settingsSourceElements,
                     templateConfigurations);
@@ -52,7 +55,7 @@ namespace SolutionGen.Generator.Reader
         private TemplateConfiguration CreateTemplateConfig(ObjectElement templateElement, Configuration configuration)
         {
             Log.WriteLine("Creating template config '{0} - {1}' for template '{2}'",
-                configuration.GroupName, configuration.Name, templateElement.Heading.Name);
+                configuration.GroupName, configuration.Name, templateElement.ElementHeading.Name);
 
             using (new Log.ScopedIndent(true))
             {
@@ -63,7 +66,7 @@ namespace SolutionGen.Generator.Reader
                 baseTemplate?.Configurations[configuration].Settings
                     .TryGetValue(ROOT_SETTINGS_NAME, out rootBaseSettings);
 
-                var rootReader = new SettingsReader(configuration, rootBaseSettings);
+                var rootReader = new SettingsReader(configuration, rootBaseSettings, null);
                 Settings rootSettings = rootReader.Read(templateElement);
 
                 if (!rootSettings.TryGetProperty(Settings.PROP_PROJECT_DELCARATIONS, out HashSet<string> declarations))
@@ -91,10 +94,10 @@ namespace SolutionGen.Generator.Reader
 
                 foreach (ConfigElement element in templateElement.Elements)
                 {
-                    if (element is ObjectElement objElement && objElement.Heading.Type == SectionType.SETTINGS)
+                    if (element is ObjectElement objElement && objElement.ElementHeading.Type == SectionType.SETTINGS)
                     {
-                        string settingsName = objElement.Heading.Name;
-                        string baseSettingsName = objElement.Heading.InheritedObjectName;
+                        string settingsName = objElement.ElementHeading.Name;
+                        string baseSettingsName = objElement.ElementHeading.InheritedObjectName;
 
                         Settings inheritedSettings = null;
                         if (!string.IsNullOrEmpty(baseSettingsName) &&
@@ -136,7 +139,7 @@ namespace SolutionGen.Generator.Reader
                                 Log.WriteLine("Re-reading template settings of same name '{0}' for base settings (3.a)",
                                     settingsName);
                                 baseSettings =
-                                    new SettingsReader(configuration, inheritedSettings).Read(sourceElement);
+                                    new SettingsReader(configuration, inheritedSettings, defaultSettings).Read(sourceElement);
                             }
                             // b. Template does not contain settings same name so use the inheritedSettings
                             else
@@ -150,7 +153,7 @@ namespace SolutionGen.Generator.Reader
                         }
 
                         settingsLookup[settingsName] =
-                            new SettingsReader(configuration, baseSettings).Read(objElement);
+                            new SettingsReader(configuration, baseSettings, defaultSettings).Read(objElement);
                     }
                 }
 
@@ -165,7 +168,7 @@ namespace SolutionGen.Generator.Reader
     {
         public MissingProjectDeclarationsException(ObjectElement templateElement, Configuration configuration)
             : base(string.Format("Template '{0}' for configuration '{1}.{2}' must declare at least one project.",
-                    templateElement.Heading.Name, configuration.GroupName, configuration.Name))
+                    templateElement.ElementHeading.Name, configuration.GroupName, configuration.Name))
         {
             
         }

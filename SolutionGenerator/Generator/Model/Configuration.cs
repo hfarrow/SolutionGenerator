@@ -16,5 +16,10 @@ namespace SolutionGen.Generator.Model
             Name = name;
             this.conditionals = conditionals;
         }
+
+        public override string ToString()
+        {
+            return $"Configuration{{{GroupName} - {Name}}}";
+        }
     }
 }

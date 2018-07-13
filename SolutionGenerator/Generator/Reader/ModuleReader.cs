@@ -26,13 +26,8 @@ namespace SolutionGen.Generator.Reader
 
             using (new Log.ScopedIndent(true))
             {
-                string moduleName = moduleElement.Heading.Name;
-                string templateName = moduleElement.Heading.InheritedObjectName;
-                               
-                string moduleSourcePath = Path.Combine(
-                    solution.SolutionConfigDir,
-                    solution.Settings.GetProperty<string>(Settings.PROP_MODULE_SOURCE_PATH),
-                    moduleName);
+                string moduleName = moduleElement.ElementHeading.Name;
+                string templateName = moduleElement.ElementHeading.InheritedObjectName;
                 
                 idLookup = new Dictionary<string, Project.Identifier>();
 
@@ -48,22 +43,20 @@ namespace SolutionGen.Generator.Reader
                     throw new UndefinedTemplateException(templateName);
                 }
 
-                var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
+                var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate, null);
                 Template template = templateReader.Read(moduleElement);
                 
                 using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_MODULE_NAME, moduleName))
                 {
                     Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
-                        CreateModuleConfigs(template, moduleName, moduleSourcePath);
+                        CreateModuleConfigs(template, moduleName);
                     
-                    return new Module(solution, moduleName, moduleConfigs, idLookup,
-                        moduleSourcePath);
+                    return new Module(solution, moduleName, moduleConfigs, idLookup);
                 }
             }
         }
 
-        private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName,
-            string moduleSourcePath)
+        private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName)
         {
             Log.WriteLine("Creating module configs for module '{0}' from template '{1}",
                 moduleName, template.Name);
@@ -73,7 +66,7 @@ namespace SolutionGen.Generator.Reader
                 var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
                 foreach (KeyValuePair<Configuration, TemplateConfiguration> kvp in template.Configurations)
                 {
-                    List<Project> projects = CreateProjectsForConfig(moduleName, moduleSourcePath, kvp.Key, kvp.Value);
+                    List<Project> projects = CreateProjectsForConfig(moduleName, kvp.Key, kvp.Value);
                     moduleConfigs[kvp.Key] = new ModuleConfiguration(projects.ToDictionary(p => p.Name, p => p));
                 }
 
@@ -81,7 +74,7 @@ namespace SolutionGen.Generator.Reader
             }
         }
 
-        private List<Project> CreateProjectsForConfig(string moduleName, string moduleSourcePath, Configuration config,
+        private List<Project> CreateProjectsForConfig(string moduleName, Configuration config,
             TemplateConfiguration templateConfig)
         {
             var projects = new List<Project>();
@@ -99,6 +92,9 @@ namespace SolutionGen.Generator.Reader
                             declaration.ProjectName, config.GroupName, config.Name);
                         continue;
                     }
+
+                    projectSettings = projectSettings.ExpandVariablesInCopy();
+                    string moduleSourcePath = projectSettings.GetProperty<string>(Settings.PROP_PROJECT_SOURCE_PATH);
                     
                     string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName).ToString();
                     // All configurations of a project must have the same guid.
@@ -109,8 +105,7 @@ namespace SolutionGen.Generator.Reader
                     }
 
                     // TODO: set guid from project settings object
-                    var project = new Project(solution, moduleName, id, config,
-                        projectSettings.ExpandVariablesInCopy());
+                    var project = new Project(solution, moduleName, id, config, projectSettings);
 
                     projects.Add(project);
                 }

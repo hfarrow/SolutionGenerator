@@ -13,6 +13,8 @@ namespace SolutionGen.Generator.Reader
         private static readonly List<PropertyDefinition> propertyDefinitions = new List<PropertyDefinition>
         {
             // Module / Project Settings
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_FILES,
                 new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}")}),
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_EXCLUDE_FILES),
@@ -33,8 +35,6 @@ namespace SolutionGen.Generator.Reader
             // Solution Settings
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_TARGET_PLATFORMS,
                 new HashSet<string>(){"Any CPU"}),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_MODULE_SOURCE_PATH, string.Empty),
         };
 
         private readonly List<CommandDefinition> commandDefinitions;
@@ -45,17 +45,18 @@ namespace SolutionGen.Generator.Reader
         private readonly Dictionary<string, CommandDefinition> commandDefinitionLookup;
 
         private Dictionary<string, object> properties = new Dictionary<string, object>();
-        private HashSet<string> visitedProperties = new HashSet<string>();
+        private readonly HashSet<string> visitedProperties = new HashSet<string>();
 
         private readonly Dictionary<string, ConfigurationGroup> configurationGroups =
             new Dictionary<string, ConfigurationGroup>();
 
         public Configuration Configuration { get; }
+        private readonly Settings defaultSettings;
         private readonly Settings baseSettings;
         private readonly BooleanExpressionParser conditionalParser;
         private readonly IReadOnlyDictionary<string, string> variableExpansions;
 
-        public SettingsReader(Configuration configuration, Settings baseSettings,
+        public SettingsReader(Configuration configuration, Settings baseSettings, Settings defaultSettings,
             IReadOnlyDictionary<string, string> variableExpansions = null)
         {
             Configuration = configuration;
@@ -63,6 +64,7 @@ namespace SolutionGen.Generator.Reader
             conditionalParser.SetConditionalConstants(configuration.Conditionals);
             this.variableExpansions = variableExpansions;
             this.baseSettings = baseSettings;
+            this.defaultSettings = defaultSettings;
 
             commandDefinitions = new List<CommandDefinition>
             {
@@ -79,6 +81,7 @@ namespace SolutionGen.Generator.Reader
         {
             conditionalParser = new BooleanExpressionParser();
             this.variableExpansions = variableExpansions;
+            defaultSettings = GetDefaultSettings();
 
             if (variableExpansions != null)
             {
@@ -92,6 +95,22 @@ namespace SolutionGen.Generator.Reader
         public static PropertyDefinition GetPropertyDefinition(string propertyName)
         {
             return propertyDefinitionLookup[propertyName];
+        }
+
+        /// <summary>
+        /// Get the hard coded default settings defined by property definitions.
+        /// These are not the "settings template.default" that can override these defaults
+        /// from the solution object.
+        /// </summary>
+        /// <returns>Default settings.</returns>
+        public static Settings GetDefaultSettings()
+        {
+            return new Settings(GetDefaultPropertiesDictionary(), null);
+        }
+
+        public static Dictionary<string, object> GetDefaultPropertiesDictionary()
+        {
+            return propertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
         }
 
         public Settings Read(ObjectElement settingsObject)
@@ -110,9 +129,9 @@ namespace SolutionGen.Generator.Reader
             {
                 if (baseSettings == null)
                 {
-                    properties =
-                        propertyDefinitionLookup.ToDictionary(kvp => kvp.Key,
-                            kvp => kvp.Value.GetOrCloneDefaultValue());
+                    properties = defaultSettings != null
+                        ? defaultSettings.CopyProperties()
+                        : GetDefaultPropertiesDictionary();
                 }
                 else
                 {

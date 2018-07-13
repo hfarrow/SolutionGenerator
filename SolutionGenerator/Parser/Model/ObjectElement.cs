@@ -5,12 +5,12 @@ namespace SolutionGen.Parser.Model
 {
     public class ObjectElement : ConfigElement
     {
-        public ConfigObjectHeading Heading { get; }
+        public ObjectElementHeading ElementHeading { get; }
         public IEnumerable<ConfigElement> Elements { get; }
         
-        public ObjectElement(ConfigObjectHeading heading, IEnumerable<ConfigElement> elements) : base("true")
+        public ObjectElement(ObjectElementHeading elementHeading, IEnumerable<ConfigElement> elements) : base("true")
         {
-            Heading = heading;
+            ElementHeading = elementHeading;
             Elements = elements;
         }
 
@@ -37,7 +37,7 @@ namespace SolutionGen.Parser.Model
 
         public override string ToString()
         {
-            return "Object" + Heading;
+            return "Object" + ElementHeading;
         }
     }
 }

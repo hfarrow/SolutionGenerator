@@ -131,7 +131,7 @@ namespace SolutionGen.Templates
         public string GetRelativeProjectRefPath(string projectRefName)
         {
             Project.Identifier projectRef = ProjectIdLookup[projectRefName];
-            return Path.GetRelativePath(Module.SourcePath,
+            return Path.GetRelativePath(Project.AbsoluteSourcePath,
                 Path.Combine(projectRef.SourcePath, projectRefName + ".csproj"));
         }
     }

@@ -14,20 +14,20 @@ namespace SolutionGen.Tests.Parsing
         [InlineData("myType MyObject : MyOtherObject")]
         public void HeadingWithInheritedObject(string input)
         {
-            ConfigObjectHeading heading = DocumentParser.ObjectHeading.Parse(input);
-            Assert.Equal("myType", heading.Type);
-            Assert.Equal("MyObject", heading.Name);
-            Assert.Equal("MyOtherObject", heading.InheritedObjectName);
+            ObjectElementHeading elementHeading = DocumentParser.ObjectHeading.Parse(input);
+            Assert.Equal("myType", elementHeading.Type);
+            Assert.Equal("MyObject", elementHeading.Name);
+            Assert.Equal("MyOtherObject", elementHeading.InheritedObjectName);
         }
 
         [Fact]
         public void HeadingWithoutInheritedObject()
         {
             const string input = "myType MyObject";
-            ConfigObjectHeading heading = DocumentParser.ObjectHeading.Parse(input);
-            Assert.Equal("myType", heading.Type);
-            Assert.Equal("MyObject", heading.Name);
-            Assert.Null(heading.InheritedObjectName);
+            ObjectElementHeading elementHeading = DocumentParser.ObjectHeading.Parse(input);
+            Assert.Equal("myType", elementHeading.Type);
+            Assert.Equal("MyObject", elementHeading.Name);
+            Assert.Null(elementHeading.InheritedObjectName);
         }
     }
 }

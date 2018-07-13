@@ -25,7 +25,7 @@ namespace SolutionGen.Generator.Reader
                         {
                             values.Add(new GlobPath(glob.GlobStr));
                         }
-                        else
+                        else if(arrayElement.Value != null)
                         {
                             values.Add(new LiteralPath(arrayElement.Value.ToString()));
                         }

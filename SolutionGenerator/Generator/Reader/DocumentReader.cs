@@ -31,16 +31,16 @@ namespace SolutionGen.Generator.Reader
             {
                 if (element is ObjectElement obj)
                 {
-                    if (obj.Heading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
+                    if (obj.ElementHeading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
                     {
                         solutionReader = new SolutionReader(obj, SolutionConfigDir);
                         Solution = solutionReader.Solution;
                     }
-                    else if (obj.Heading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
+                    else if (obj.ElementHeading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
                     {
                         moduleElements.Add(obj);
                     }
-                    else if (obj.Heading.Type.Equals(SectionType.TEMPLATE, StringComparison.OrdinalIgnoreCase))
+                    else if (obj.ElementHeading.Type.Equals(SectionType.TEMPLATE, StringComparison.OrdinalIgnoreCase))
                     {
                         templateElements.Add(obj);
                     }
@@ -59,18 +59,19 @@ namespace SolutionGen.Generator.Reader
         private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
         {
             var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
-            
-            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups);
+
+            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups,
+                solutionReader.TemplateDefaultSettings);
             foreach (ObjectElement templateElement in templateElements)
             {
-                if (Templates.ContainsKey(templateElement.Heading.Name))
+                if (Templates.ContainsKey(templateElement.ElementHeading.Name))
                 {
                     throw new DuplicateTemplateNameException(templateElement,
-                        parsedObjectsLookup[templateElement.Heading.Name]);
+                        parsedObjectsLookup[templateElement.ElementHeading.Name]);
                 }
 
-                parsedObjectsLookup[templateElement.Heading.Name] = templateElement;
-                Templates[templateElement.Heading.Name] = reader.Read(templateElement);
+                parsedObjectsLookup[templateElement.ElementHeading.Name] = templateElement;
+                Templates[templateElement.ElementHeading.Name] = reader.Read(templateElement);
             }
         }
         
@@ -80,14 +81,14 @@ namespace SolutionGen.Generator.Reader
             var reader = new ModuleReader(Solution, Templates);
             foreach (ObjectElement moduleElement in moduleElements)
             {
-                if (Modules.ContainsKey(moduleElement.Heading.Name))
+                if (Modules.ContainsKey(moduleElement.ElementHeading.Name))
                 {
                     throw new DuplicateModuleNameException(moduleElement,
-                        parsedObjectsLookup[moduleElement.Heading.Name]);
+                        parsedObjectsLookup[moduleElement.ElementHeading.Name]);
                 }
                 
-                parsedObjectsLookup[moduleElement.Heading.Name] = moduleElement;
-                Modules[moduleElement.Heading.Name] = reader.Read(moduleElement);
+                parsedObjectsLookup[moduleElement.ElementHeading.Name] = moduleElement;
+                Modules[moduleElement.ElementHeading.Name] = reader.Read(moduleElement);
             }
         }
     }
@@ -96,7 +97,7 @@ namespace SolutionGen.Generator.Reader
     {
         public InvalidObjectType(ObjectElement obj, params string[] expectedTypes)
             : base(string.Format("'{0}' is not one of the expected types: {1}",
-                obj.Heading.Type, string.Join(", ", expectedTypes)))
+                obj.ElementHeading.Type, string.Join(", ", expectedTypes)))
         {
             
         }
@@ -108,7 +109,7 @@ namespace SolutionGen.Generator.Reader
             : base(string.Format("{0} object with name '{1}' has already been defined:\n" +
                                  "Existing object:\n{2}\n" +
                                  "Duplicate object:\n{3}",
-                objectType, newElement.Heading.Name, existingElement, newElement))
+                objectType, newElement.ElementHeading.Name, existingElement, newElement))
         {
             
         }

@@ -19,8 +19,8 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(element);
             
             var obj = (ObjectElement) element;
-            Assert.Equal("myType", obj.Heading.Type);
-            Assert.Equal("MyObject", obj.Heading.Name);
+            Assert.Equal("myType", obj.ElementHeading.Type);
+            Assert.Equal("MyObject", obj.ElementHeading.Name);
         }
 
         [Fact]
@@ -42,8 +42,8 @@ namespace SolutionGen.Tests.Parsing
                 Assert.IsType<ObjectElement>(element);
 
                 var obj = (ObjectElement) element;
-                Assert.Equal("myType", obj.Heading.Type);
-                Assert.Equal(expectedName, obj.Heading.Name);
+                Assert.Equal("myType", obj.ElementHeading.Type);
+                Assert.Equal(expectedName, obj.ElementHeading.Name);
             }
         }
         
@@ -66,9 +66,9 @@ namespace SolutionGen.Tests.Parsing
                 Assert.IsType<ObjectElement>(element);
 
                 var obj = (ObjectElement) element;
-                Assert.Equal("myType", obj.Heading.Type);
-                Assert.Equal(expectedName, obj.Heading.Name);
-                Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
+                Assert.Equal("myType", obj.ElementHeading.Type);
+                Assert.Equal(expectedName, obj.ElementHeading.Name);
+                Assert.Equal("InheritedObject", obj.ElementHeading.InheritedObjectName);
             }
         }
         
@@ -94,8 +94,8 @@ namespace SolutionGen.Tests.Parsing
                 Assert.IsType<ObjectElement>(element);
 
                 var obj = (ObjectElement) element;
-                Assert.Equal("myType", obj.Heading.Type);
-                Assert.Equal(expectedName, obj.Heading.Name);
+                Assert.Equal("myType", obj.ElementHeading.Type);
+                Assert.Equal(expectedName, obj.ElementHeading.Name);
             }
         }
         
@@ -121,9 +121,9 @@ namespace SolutionGen.Tests.Parsing
                 Assert.IsType<ObjectElement>(element);
 
                 var obj = (ObjectElement) element;
-                Assert.Equal("myType", obj.Heading.Type);
-                Assert.Equal(expectedName, obj.Heading.Name);
-                Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
+                Assert.Equal("myType", obj.ElementHeading.Type);
+                Assert.Equal(expectedName, obj.ElementHeading.Name);
+                Assert.Equal("InheritedObject", obj.ElementHeading.InheritedObjectName);
             }
         }
     }

@@ -1,12 +1,12 @@
 ﻿namespace SolutionGen.Parser.Model
 {
-    public class ConfigObjectHeading
+    public class ObjectElementHeading
     {
         public string Type { get; }
         public string Name { get; }
         public string InheritedObjectName { get; }
 
-        public ConfigObjectHeading(string type, string name, string inheritedObjectName)
+        public ObjectElementHeading(string type, string name, string inheritedObjectName)
         {
             Type = type;
             Name = name;

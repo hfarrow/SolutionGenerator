@@ -25,11 +25,11 @@ namespace SolutionGen.Parser
         /// <remarks>
         /// object-heading = identifier *WSP identifier [*WSP inherited-object]
         /// </remarks>
-        public static readonly Parser<ConfigObjectHeading> ObjectHeading =
+        public static readonly Parser<ObjectElementHeading> ObjectHeading =
             (from type in BasicParser.IdentifierToken
                 from name in BasicParser.IdentifierToken
                 from inherits in InheritedObject.Optional()
-                select new ConfigObjectHeading(type, name, inherits.GetOrDefault())
+                select new ObjectElementHeading(type, name, inherits.GetOrDefault())
             ).Token().Named("object-heading");
 
         public static readonly Parser<PropertyAction> PropertyAction =

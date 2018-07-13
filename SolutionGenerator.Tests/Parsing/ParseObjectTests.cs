@@ -25,9 +25,9 @@ namespace SolutionGen.Tests.Parsing
         {
             ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
-            Assert.Equal("myType", obj.Heading.Type);
-            Assert.Equal("MyObject", obj.Heading.Name);
-            Assert.Null(obj.Heading.InheritedObjectName);
+            Assert.Equal("myType", obj.ElementHeading.Type);
+            Assert.Equal("MyObject", obj.ElementHeading.Name);
+            Assert.Null(obj.ElementHeading.InheritedObjectName);
         }
                 
         [Theory]
@@ -47,9 +47,9 @@ namespace SolutionGen.Tests.Parsing
         {
             ObjectElement obj = DocumentParser.Object.Parse(input);
             Assert.NotNull(obj);
-            Assert.Equal("myType", obj.Heading.Type);
-            Assert.Equal("MyObject", obj.Heading.Name);
-            Assert.Equal("MyOtherType", obj.Heading.InheritedObjectName);
+            Assert.Equal("myType", obj.ElementHeading.Type);
+            Assert.Equal("MyObject", obj.ElementHeading.Name);
+            Assert.Equal("MyOtherType", obj.ElementHeading.InheritedObjectName);
         }
         
         [Fact]
@@ -73,8 +73,8 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(element);
 
             var nestedObj = (ObjectElement) element;
-            Assert.Equal("myNestedType", nestedObj.Heading.Type);
-            Assert.Equal("MyNestedObject", nestedObj.Heading.Name);
+            Assert.Equal("myNestedType", nestedObj.ElementHeading.Type);
+            Assert.Equal("MyNestedObject", nestedObj.ElementHeading.Name);
             Assert.Single(nestedObj.Elements);
             
         }
@@ -100,8 +100,8 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(element);
 
             var nestedObj = (ObjectElement) element;
-            Assert.Equal("myNestedType", nestedObj.Heading.Type);
-            Assert.Equal("MyNestedObject", nestedObj.Heading.Name);
+            Assert.Equal("myNestedType", nestedObj.ElementHeading.Type);
+            Assert.Equal("MyNestedObject", nestedObj.ElementHeading.Name);
             Assert.Single(nestedObj.Elements);
             
         }
@@ -132,9 +132,9 @@ namespace SolutionGen.Tests.Parsing
                 Assert.IsType<ObjectElement>(element);
 
                 var obj = (ObjectElement) element;
-                Assert.Equal("myNestedType", obj.Heading.Type);
-                Assert.Equal(expectedName, obj.Heading.Name);
-                Assert.Equal("InheritedObject", obj.Heading.InheritedObjectName);
+                Assert.Equal("myNestedType", obj.ElementHeading.Type);
+                Assert.Equal(expectedName, obj.ElementHeading.Name);
+                Assert.Equal("InheritedObject", obj.ElementHeading.InheritedObjectName);
             }
         }
         

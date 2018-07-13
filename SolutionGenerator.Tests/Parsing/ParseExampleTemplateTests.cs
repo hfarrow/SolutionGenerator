@@ -125,9 +125,9 @@ namespace SolutionGen.Tests.Parsing
             {
                 Assert.IsType<ObjectElement>(element);
                 var obj = (ObjectElement) element;
-                Assert.Equal(type, obj.Heading.Type);
-                Assert.Equal(name, obj.Heading.Name);
-                Assert.Equal(inherits, obj.Heading.InheritedObjectName);
+                Assert.Equal(type, obj.ElementHeading.Type);
+                Assert.Equal(name, obj.ElementHeading.Name);
+                Assert.Equal(inherits, obj.ElementHeading.InheritedObjectName);
                 if (isEmpty)
                 {
                     Assert.False(obj.Elements.Any());

@@ -14,11 +14,14 @@ namespace SolutionGen.Generator.Reader
             switch (element.ValueElement)
             {
                 case ArrayValue arrayValue:
-                    values.AddRange(arrayValue.Values.Select(arrayElement => arrayElement.Value.ToString()));
+                    values.AddRange(arrayValue.Values
+                        .Where(arrayElement => arrayElement.Value != null)
+                        .Select(arrayElement => arrayElement.Value.ToString()));
                     break;
                 
-                default:
-                    values.Add(element.ValueElement.Value.ToString());
+                // Ensure single line property was not 'none'
+                case ValueElement valueElement when valueElement.Value != null:
+                    values.Add(valueElement.Value.ToString());
                     break;
             }
             

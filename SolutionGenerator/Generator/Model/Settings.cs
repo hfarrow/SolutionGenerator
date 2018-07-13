@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using SolutionGen.Generator.Reader;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
@@ -20,7 +21,7 @@ namespace SolutionGen.Generator.Model
         public const string PROP_CONFIGURATION_PLATFORM_TARGET = "platform target";
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_ROOT_NAMESPACE = "root namespace";
-        public const string PROP_MODULE_SOURCE_PATH = "module source path";
+        public const string PROP_PROJECT_SOURCE_PATH = "module source path";
         public const string PROP_EXCLUDE = "exclude";
         public const string PROP_PROJECT_DELCARATIONS = "projects";
         
@@ -29,6 +30,9 @@ namespace SolutionGen.Generator.Model
         public const string CMD_DECLARE_PROJECT = "project";
 
         private readonly IReadOnlyDictionary<string, object> properties;
+        
+        // Why is this needed? Seems out of place. Should only store the specific Configuration that was used to produce
+        // these settings. Can be null.
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
 
         public T GetProperty<T>(string name) => (T) properties[name];
@@ -63,6 +67,17 @@ namespace SolutionGen.Generator.Model
             }
             
             return new Settings(copy, ConfigurationGroups);
+        }
+
+        public Dictionary<string, object> CopyProperties()
+        {
+            var copy = new Dictionary<string, object>();
+            foreach (KeyValuePair<string, object> kvp in properties)
+            {
+                copy[kvp.Key] = SettingsReader.GetPropertyDefinition(kvp.Key).CloneValue(kvp.Value);
+            }
+
+            return copy;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace SolutionGen.Generator.Reader
                 case ArrayValue arrayValue:
                     foreach (ValueElement value in arrayValue.Values)
                     {
-                        if (value is KeyValuePair arrayKvp)
+                        if (value is KeyValuePair arrayKvp && arrayKvp.PairValue != null)
                         {
                             pairs.Add(new Box<KeyValuePair<string, string>>(new KeyValuePair<string, string>(
                                 arrayKvp.PairKey, arrayKvp.PairValue.ToString())));
@@ -26,7 +26,7 @@ namespace SolutionGen.Generator.Reader
                     break;
                 
                 default:
-                    if (element.ValueElement is KeyValuePair kvp)
+                    if (element.ValueElement is KeyValuePair kvp && kvp.PairValue != null)
                     {
                         pairs.Add(new Box<KeyValuePair<string, string>>(
                             new KeyValuePair<string, string>(kvp.PairKey, kvp.PairValue.ToString())));

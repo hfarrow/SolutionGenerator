@@ -3,22 +3,38 @@ solution MySolution
     configuration everything
     [
         Debug: debug,test
+        Release: release
     ]
-        //Release: release
 
-    //configuration no-tests
-    //[
-    //    Debug: debug
-    //    Release: release
-    //]
+    configuration no-tests
+    [
+        Debug: debug
+        Release: release
+    ]
 
     set target platforms
     [
         Any CPU
     ]
 
-    set root namespace: $(SOLUTION_NAME).$(PROJECT_NAME)
-    set module source path: Resources
+    settings template.defaults
+    {
+        set root namespace: $(SOLUTION_NAME).$(PROJECT_NAME)
+        set module source path: Resources/$(MODULE_NAME)
+        set include files: glob ".{cs,txt,json,xml,md}"
+        set exclude files: none
+        set lib refs: none
+        set project refs: none
+        set define constants: none
+        set target framework: v4.6
+        set language version: 6
+        set debug symbols: true
+        set debug type: full
+        set optimize: false
+        set error report: prompt
+        set warning level: 4
+        set platform target: AnyCPU
+    }
 }
 
 module MyModule : MyTemplate
@@ -63,9 +79,6 @@ template MyTemplate
             glob "**/obj/**"
         ]
 
-        set target framework: v4.6
-        set language version: 6
-
         set debug symbols (debug): true
         set debug type (debug): full
         set optimize (debug): false
@@ -73,10 +86,6 @@ template MyTemplate
         set debug symbols (release): false
         set debug type (release): pdbonly
         set optimize (release): true
-
-        set error report: prompt
-        set warning level: 4
-        set platform target: AnyCPU
 
         add lib refs
         [
@@ -93,7 +102,7 @@ template MyTemplate
         add define constants (debug)
         [
             DEBUG
-            TRACE,
+            TRACE
         ]
 
         add define constants (test)
@@ -118,7 +127,6 @@ template MyTemplate
         skip (!test)
 
         set include files: glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
-        set exclude files: empty
 
         add project refs
         [
