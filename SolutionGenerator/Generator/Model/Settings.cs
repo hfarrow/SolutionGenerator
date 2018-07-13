@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using SolutionGen.Generator.Reader;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model

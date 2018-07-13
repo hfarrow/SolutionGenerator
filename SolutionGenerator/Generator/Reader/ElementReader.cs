@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
-using Sprache;
 
 namespace SolutionGen.Generator.Reader
 {

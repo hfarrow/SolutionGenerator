@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
-using KeyValuePair = SolutionGen.Parser.Model.KeyValuePair;
 
 namespace SolutionGen.Generator.Reader
 {

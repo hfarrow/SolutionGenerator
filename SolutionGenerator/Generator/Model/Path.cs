@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model

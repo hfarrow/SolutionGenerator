@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using SolutionGen.Parser.Model;
 using Sprache;
-using KeyValuePair = SolutionGen.Parser.Model.KeyValuePair;
 
 namespace SolutionGen.Parser
 {

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using SolutionGen.Generator.Model;
-using SolutionGen.Generator.Reader;
+﻿using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
 
