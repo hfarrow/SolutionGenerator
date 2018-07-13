@@ -31,10 +31,10 @@ namespace SolutionGen.Utils
         public static void PushIndentLevel() => ++indentLevel;
         public static void PopIndentLevel() => indentLevel = Math.Max(0, --indentLevel);
 
-        public static void WriteIndentedCollection<T>(Func<T, string> logger, IEnumerable<T> collection,
+        public static void WriteIndentedCollection<T>(IEnumerable<T> collection, Func<T, string> logger,
             bool emptyLineAfterPop = false)
         {
-            using (var _ = new ScopedIndent(emptyLineAfterPop))
+            using (new ScopedIndent(emptyLineAfterPop))
             {
                 int i = -1;
                 foreach (T value in collection)

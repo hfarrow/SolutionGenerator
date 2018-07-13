@@ -24,13 +24,11 @@ namespace SolutionGen.Generator.Reader
         {
             Log.WriteLine("Reading module element: {0}", moduleElement);
 
-            using (var _ = new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent(true))
             {
                 string moduleName = moduleElement.Heading.Name;
                 string templateName = moduleElement.Heading.InheritedObjectName;
-                
-                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, moduleName);
-                
+                               
                 string moduleSourcePath = Path.Combine(
                     solution.SolutionConfigDir,
                     solution.Settings.GetProperty<string>(Settings.PROP_MODULE_SOURCE_PATH),
@@ -53,13 +51,14 @@ namespace SolutionGen.Generator.Reader
                 var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate);
                 Template template = templateReader.Read(moduleElement);
                 
-                Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
-                    CreateModuleConfigs(template, moduleName, moduleSourcePath);
-                
-                ExpandableVar.ClearExpandableVariable(ExpandableVar.VAR_MODULE_NAME);
-
-                return new Module(solution, moduleName, moduleConfigs, idLookup,
-                    moduleSourcePath);
+                using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_MODULE_NAME, moduleName))
+                {
+                    Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
+                        CreateModuleConfigs(template, moduleName, moduleSourcePath);
+                    
+                    return new Module(solution, moduleName, moduleConfigs, idLookup,
+                        moduleSourcePath);
+                }
             }
         }
 
@@ -69,7 +68,7 @@ namespace SolutionGen.Generator.Reader
             Log.WriteLine("Creating module configs for module '{0}' from template '{1}",
                 moduleName, template.Name);
 
-            using (var _ = new Log.ScopedIndent())
+            using (new Log.ScopedIndent())
             {
                 var moduleConfigs = new Dictionary<Configuration, ModuleConfiguration>();
                 foreach (KeyValuePair<Configuration, TemplateConfiguration> kvp in template.Configurations)
@@ -88,10 +87,10 @@ namespace SolutionGen.Generator.Reader
             var projects = new List<Project>();
             foreach (ProjectDelcaration declaration in templateConfig.ProjectDeclarations.Values)
             {
-                Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}) with settings '{4}'",
+                Log.WriteLine("Creating project config '{0} - {1}' for project '{2}' (module '{3}') with settings '{4}'",
                     config.GroupName, config.Name, declaration.ProjectName, moduleName, declaration.SettingsName);
                 
-                using (var _ = new Log.ScopedIndent(true))
+                using (new Log.ScopedIndent(true))
                 {                   
                     Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
                     if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")

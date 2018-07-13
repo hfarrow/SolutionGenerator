@@ -3,6 +3,6 @@
     public interface IExpandable
     {
         void ExpandVariableInPlace(string varName, string varExpansion);
-        IExpandable ExpandVairableInCopy(string varName, string varExpansion);
+        bool ExpandVairableInCopy(string varName, string varExpansion, out IExpandable copy);
     }
 }

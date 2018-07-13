@@ -16,7 +16,7 @@ namespace SolutionGen.Generator.Reader
             this.solutionElement = solutionElement;
             
             Log.WriteLine("Reading solution element: {0}", solutionElement);
-            using (var _ = new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent(true))
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME, solutionElement.Heading.Name);
                 var settingsReader = new SettingsReader(ExpandableVar.ExpandableVariables);

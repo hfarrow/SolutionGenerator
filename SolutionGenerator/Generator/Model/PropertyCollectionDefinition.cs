@@ -18,7 +18,9 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToCollection(object collection, object value);
         public abstract void ClearCollection(object collection);
         public abstract object CloneCollection(object collection);
-        public abstract object ExpandVariablesInCollection(object collection, string varName, string varExpansion);
+
+        public abstract bool ExpandVariablesInCollection(object collection, string varName, string varExpansion,
+            out object newCollection);
     }
     
     public class PropertyCollectionDefinition<TCollection, TValue, TReader> : PropertyCollectionDefinition
@@ -74,34 +76,25 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
 
-        public override object ExpandVariablesInCollection(object collection, string varName, string varExpansion)
+        public override bool ExpandVariablesInCollection(object collection, string varName, string varExpansion,
+            out object newCollection)
         {
             CheckCollectionType(collection);
             var castedCollection = (TCollection) collection;
             
-            var removed = new TCollection();
-            var added = new TCollection();
+            bool didExpand = false;
+            var collectionCopy = new TCollection();
             foreach (TValue value in castedCollection)
             {
-                var expandedValue = (TValue)ExpandableVar.ExpandInCopy(value, varName, varExpansion);
-                if (!Equals(value, expandedValue))
+                if (ExpandableVar.ExpandInCopy(value, varName, varExpansion, out object copy))
                 {
-                    removed.Add(value);
-                    added.Add(expandedValue);
+                    didExpand = true;
                 }
+                collectionCopy.Add((TValue) copy);
             }
 
-            foreach (TValue value in removed)
-            {
-                castedCollection.Remove(value);
-            }
-
-            foreach (TValue value in added)
-            {
-                castedCollection.Add(value);
-            }
-
-            return collection;
+            newCollection = collectionCopy;
+            return didExpand;
         }
 
         public override object GetOrCloneDefaultValue()
@@ -120,9 +113,9 @@ namespace SolutionGen.Generator.Model
             return CloneCollection(value);
         }
 
-        public override object ExpandVariable(object value, string varName, string varExpansion)
+        public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
-            return ExpandVariablesInCollection(value, varName, varExpansion);
+            return ExpandVariablesInCollection(value, varName, varExpansion, out newValue);
         }
 
         public override string PrintValue(object value)

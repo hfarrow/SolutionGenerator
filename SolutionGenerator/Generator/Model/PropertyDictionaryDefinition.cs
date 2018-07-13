@@ -18,7 +18,8 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToDictionary(object dictionary, string key, object value);
         public abstract void ClearDictionary(object dictionary);
         public abstract object CloneDictionary(object dictionary);
-        public abstract object ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion);
+        public abstract bool ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion,
+            out object newDictionary);
     }
 
     public class PropertyDictionaryDefinition<TDictionary, TValue, TReader> : PropertyDictionaryDefinition
@@ -74,14 +75,21 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
         
-        public override object ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion)
+        public override bool ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion,
+            out object newDictionary)
         {
             CheckDictionaryType(dictionary);
             var castedDictionary = (TDictionary) dictionary;
+
+            bool didExpand = false;
             var modifiedValues = new TDictionary();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
-                modifiedValues[kvp.Key] = (TValue) ExpandableVar.ExpandInCopy(kvp.Key, varName, varExpansion);
+                if (ExpandableVar.ExpandInCopy(kvp.Key, varName, varExpansion, out object copy))
+                {
+                    didExpand = true;
+                    modifiedValues[kvp.Key] = (TValue) copy;
+                }
             }
 
             foreach (KeyValuePair<string,TValue> kvp in modifiedValues)
@@ -89,7 +97,9 @@ namespace SolutionGen.Generator.Model
                 castedDictionary[kvp.Key] = kvp.Value;
             }
 
-            return dictionary;
+            // dictionary expands in place (no new instance)
+            newDictionary = dictionary;
+            return didExpand;
         }
 
         public override object GetOrCloneDefaultValue()
@@ -115,9 +125,9 @@ namespace SolutionGen.Generator.Model
             return string.Join(", ", castedCollection.Select(kvp => $"{kvp.Key}=>{kvp.Value}"));
         }
 
-        public override object ExpandVariable(object value, string varName, string varExpansion)
+        public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
-            return ExpandVariablesInDictionary(value, varName, varExpansion);
+            return ExpandVariablesInDictionary(value, varName, varExpansion, out newValue);
         }
 
         private static void CheckDictionaryType(object dictionary)

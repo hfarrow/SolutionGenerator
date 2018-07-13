@@ -25,7 +25,7 @@ namespace SolutionGen.Generator.Model
 
         public abstract object GetOrCloneDefaultValue();
         public abstract object CloneValue(object value);
-        public abstract object ExpandVariable(object value, string varName, string varExpansion);
+        public abstract bool ExpandVariable(object value, string varName, string varExpansion, out object newValue);
 
         public abstract string PrintValue(object value);
     }
@@ -60,9 +60,16 @@ namespace SolutionGen.Generator.Model
             return value;
         }
 
-        public override object ExpandVariable(object value, string varName, string varExpansion)
+        public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
-            return ExpandableVar.ExpandInCopy(value, varName, varExpansion);
+            if (!ExpandableVar.ExpandInCopy(value, varName, varExpansion, out object copy))
+            {
+                newValue = value;
+                return false;
+            }
+
+            newValue = copy;
+            return true;
         }
 
         public override string PrintValue(object value)

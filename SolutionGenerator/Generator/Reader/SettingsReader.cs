@@ -82,6 +82,14 @@ namespace SolutionGen.Generator.Reader
         {
             conditionalParser = new BooleanExpressionParser();
             this.variableExpansions = variableExpansions;
+
+            if (variableExpansions != null)
+            {
+                Log.WriteLine("Settings reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
+                Log.WriteIndentedCollection(
+                    variableExpansions,
+                    (kvp) => string.Format("{0} => {1}", kvp.Key, kvp.Value));
+            }
         }
 
         public static PropertyDefinition GetPropertyDefinition(string propertyName)
@@ -101,7 +109,7 @@ namespace SolutionGen.Generator.Reader
                 Log.WriteLine("Reading settings element for static configuration: {0}", settingsObject);
             }
 
-            using (var _ = new Log.ScopedIndent())
+            using (new Log.ScopedIndent())
             {
                 if (baseSettings == null)
                 {
@@ -161,9 +169,9 @@ namespace SolutionGen.Generator.Reader
 
                 Log.WriteLine("Finished reading settings element:");
                 Log.WriteIndentedCollection(
-                    kvp => string.Format("{0} => {1}", 
-                        kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)),
-                    GetVisitedProperties());
+                    GetVisitedProperties(),
+                    kvp => string.Format("{0} => {1}",
+                        kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)));
 
                 return new Settings(properties, configurationGroups);
             }
@@ -178,7 +186,7 @@ namespace SolutionGen.Generator.Reader
         {
             Log.WriteLine("Reading configuration declaration: {0}", element);
 
-            using (var _ = new Log.ScopedIndent())
+            using (new Log.ScopedIndent())
             {
                 if (configurationGroups.TryGetValue(element.ConfigurationGroupName,
                     out ConfigurationGroup existingGroup))
@@ -297,7 +305,7 @@ namespace SolutionGen.Generator.Reader
             {
                 foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
-                    object expanded = ExpandableVar.ExpandAllForPropertyInCopy(kvp.Key, kvp.Value, variableExpansions);
+                    object expanded = ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions);
                     modifiedProperties[kvp.Key] = expanded;
                 }
 

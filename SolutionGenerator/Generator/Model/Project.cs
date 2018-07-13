@@ -73,14 +73,14 @@ namespace SolutionGen.Generator.Model
                 "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
             
-            using (var _ = new Log.ScopedIndent())
+            using (new Log.ScopedIndent())
             {
                 Log.WriteLine("include patterns:");
-                Log.WriteIndentedCollection(s => s, includePatterns);
+                Log.WriteIndentedCollection(includePatterns, s => s);
                 Log.WriteLine("exclude patterns:");
-                Log.WriteIndentedCollection(s => s, excludePatterns);
+                Log.WriteIndentedCollection(excludePatterns, s => s);
                 Log.WriteLine("matched files:");
-                Log.WriteIndentedCollection(s => s, matches);
+                Log.WriteIndentedCollection(matches, s => s);
             }
 
             IncludeFiles = includeFiles

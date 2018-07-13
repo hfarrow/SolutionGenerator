@@ -3,14 +3,14 @@ solution MySolution
     configuration everything
     [
         Debug: debug,test
-        Release: release
     ]
+        //Release: release
 
-    configuration no-tests
-    [
-        Debug: debug
-        Release: release
-    ]
+    //configuration no-tests
+    //[
+    //    Debug: debug
+    //    Release: release
+    //]
 
     set target platforms
     [
@@ -57,7 +57,11 @@ template MyTemplate
     settings project
     {
         set include files: glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
-        set exclude files: glob "**/Tests/**"
+        set exclude files
+        [
+            glob "**/Tests/**"
+            glob "**/obj/**"
+        ]
 
         set target framework: v4.6
         set language version: 6

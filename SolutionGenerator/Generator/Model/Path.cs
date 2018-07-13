@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
@@ -19,14 +20,21 @@ namespace SolutionGen.Generator.Model
         
         public void ExpandVariableInPlace(string varName, string varExpansion)
         {
-            Value = (string) ExpandableVar.ExpandInCopy(Value, varName, varExpansion);
+            ExpandableVar.ExpandInCopy(Value, varName, varExpansion, out object value);
+            Value = (string) value;
         }
 
-        public IExpandable ExpandVairableInCopy(string varName, string varExpansion)
+        public bool ExpandVairableInCopy(string varName, string varExpansion, out IExpandable outCopy)
         {
-            Path copy = Copy();
-            copy.Value = (string) ExpandableVar.ExpandInCopy(Value, varName, varExpansion);
-            return copy;
+            bool didCopy = false;
+            Path newCopy = Copy();
+            if (ExpandableVar.ExpandInCopy(Value, varName, varExpansion, out object value))
+            {
+                didCopy = true;
+                newCopy.Value = (string) value;
+            }
+            outCopy = newCopy;
+            return didCopy;
         }
 
         protected abstract Path Copy();
