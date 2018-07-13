@@ -82,6 +82,7 @@ namespace SolutionGen.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "define constants", "true", ValidatePropertyArrayValues(new[]{"DEFINE_A", "DEFINE_B"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "debug", ValidatePropertyArrayValues(new[]{"DEBUG", "TRACE"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "release", ValidatePropertyArrayValues(new[]{"RELEASE"})),
+                ValidateNestedConditionalBlocks(),
                 ValidateConfigObject("settings", "project.tests", "project", false),
                 ValidateSimpleCommand("exclude", "no-tests", string.Empty),
                 ValidateSimpleCommand("skip", "!test", string.Empty),
@@ -189,6 +190,27 @@ namespace SolutionGen.Tests.Parsing
                 Assert.Equal(name, cmd.CommandName);
                 Assert.Equal(conditionalExpr, cmd.ConditionalExpression);
                 Assert.Equal(argumentStr, cmd.ArgumentStr);
+            };
+        }
+
+        private static Action<ConfigElement> ValidateNestedConditionalBlocks()
+        {
+            return (element) =>
+            {
+                Assert.IsType<ConditionalBlockElement>(element);
+                var block = (ConditionalBlockElement) element;
+                Assert.Equal(1, block.Elements.Count());
+                Assert.Equal(block.ConditionalExpression, "true");
+                ConfigElement innerElement = block.Elements.First();
+                Assert.IsType<ConditionalBlockElement>(innerElement);
+                var innerBlock = (ConditionalBlockElement) innerElement;
+                Assert.Equal(1, innerBlock.Elements.Count());
+                Assert.Equal(innerBlock.ConditionalExpression, "true");
+                ConfigElement propertyElement = innerBlock.Elements.First();
+                Assert.IsType<PropertyElement>(propertyElement);
+                var property = (PropertyElement) propertyElement;
+                Assert.Equal("nested block test", property.FullName);
+                Assert.Equal("true", property.ValueElement.Value.ToString());
             };
         }
     }

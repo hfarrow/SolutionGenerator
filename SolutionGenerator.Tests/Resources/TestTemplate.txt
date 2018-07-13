@@ -34,6 +34,14 @@ template TestTemplate
         [
             RELEASE
         ]
+        
+        if (true)
+        {
+            if (true)
+            {
+                set nested block test: true
+            }
+        }
     }
 
     settings project.tests : project

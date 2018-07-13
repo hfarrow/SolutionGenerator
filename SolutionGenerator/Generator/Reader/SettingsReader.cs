@@ -144,22 +144,7 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
 
-                var elements = new List<ConfigElement>();
-                foreach (ConfigElement element in settingsObject.Elements)
-                {
-                    if (element is ConditionalBlockElement block)
-                    {
-                        if (ElementReader.EvaluateConditional(block.ConditionalExpression, conditionalParser))
-                        {
-                            elements.AddRange(block.Elements);
-                        }
-                    }
-                    else
-                    {
-                        elements.Add(element);
-                    }
-                }
-
+                IEnumerable<ConfigElement> elements = EvaluateConditionalBlocks(settingsObject.Elements);
                 foreach (ConfigElement element in elements)
                 {
                     bool terminate;
@@ -205,6 +190,27 @@ namespace SolutionGen.Generator.Reader
                         kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)));
 
                 return new Settings(properties, configurationGroups);
+            }
+        }
+
+        private IEnumerable<ConfigElement> EvaluateConditionalBlocks(IEnumerable<ConfigElement> elements)
+        {
+            foreach (ConfigElement element in elements)
+            {
+                if (element is ConditionalBlockElement block)
+                {
+                    if (ElementReader.EvaluateConditional(block.ConditionalExpression, conditionalParser))
+                    {
+                        foreach (ConfigElement blockElement in EvaluateConditionalBlocks(block.Elements))
+                        {
+                            yield return blockElement;
+                        }
+                    }
+                }
+                else
+                {
+                    yield return element;
+                }
             }
         }
 
