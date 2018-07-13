@@ -67,7 +67,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 12 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden
@@ -174,7 +174,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 33 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden
@@ -222,7 +222,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 34 ".\Templates\DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden

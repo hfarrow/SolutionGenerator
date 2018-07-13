@@ -39,14 +39,22 @@ solution MySolution
 
 module MyModule : MyTemplate
 {
+    settings project
+    {
+        set guid: 8CA3145D-B47F-4355-808A-2C08F48EB061
+    }
+
+    settings project.tests : project
+    {
+        set guid: 3B8C3242-A267-4E63-9AE2-7099ACB9F730
+    }
 }
 
 module MyOtherModule : MyTemplate
 {
     settings project
     {
-        // TODO: allow fixed guid per project
-        // set guid: 1a2b3c4d...
+        set guid: 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
 
         add project refs
         [
@@ -56,7 +64,7 @@ module MyOtherModule : MyTemplate
 
     settings project.tests : project
     {
-        // set guid: a1b2c3d4...
+        set guid: 4053B07E-0E18-4F56-9A9D-30CAE83364B5
 
         add project refs
         [

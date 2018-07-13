@@ -9,7 +9,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 <# foreach (Project project in GetProjects())
 {
 #>
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "<#= project.Name #>", "<#= Path.Combine(project.RelativeSourcePath, project.Name) #>.csproj", "{<#= project.Guid #>}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "<#= project.Name #>", "<#= Path.Combine(project.RelativeSourcePath, project.Name) #>.csproj", "{<#= project.Guid.ToString().ToUpper() #>}"
 EndProject
 <#
 } #>
@@ -30,8 +30,8 @@ Global
     {
         foreach (string platform in Solution.TargetPlatforms)
         { #>
-        {<#= project.Guid #>}.<#= configuration #>|<#= platform #>.ActiveCfg = <#= configuration #>|Any CPU
-        {<#= project.Guid #>}.<#= configuration #>|<#= platform #>.Build.0 = <#= configuration #>|Any CPU
+        {<#= project.Guid.ToString().ToUpper() #>}.<#= configuration #>|<#= platform #>.ActiveCfg = <#= configuration #>|Any CPU
+        {<#= project.Guid.ToString().ToUpper() #>}.<#= configuration #>|<#= platform #>.Build.0 = <#= configuration #>|Any CPU
 <#      }
     }
 } #>

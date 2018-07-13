@@ -6,6 +6,7 @@ namespace SolutionGen.Generator.Model
 {
     public class Settings
     {
+        public const string PROP_GUID = "guid";
         public const string PROP_INCLUDE_FILES = "include files";
         public const string PROP_EXCLUDE_FILES = "exclude files";
         public const string PROP_LIB_REFS = "lib refs";

@@ -89,10 +89,14 @@ namespace SolutionGen.Tests
             ICollection<Project> moduleProjects = GetIncludedProjects(configurationGroup, module);
             Assert.Equal("MyModule", module.Name);
             Assert.Equal(configurationGroup == "everything" ? 2 : 1, moduleProjects.Count);
-            Assert.Equal("MyModule", moduleProjects.ElementAt(0).Name);
+            Project mainProject = moduleProjects.ElementAt(0);
+            Assert.Equal("MyModule", mainProject.Name);
+            Assert.Equal("8CA3145D-B47F-4355-808A-2C08F48EB061", mainProject.Guid.ToString().ToUpper());
             if (configurationGroup == "everything")
             {
-                Assert.Equal("MyModule.Tests", moduleProjects.ElementAt(1).Name);
+                Project testsProject = moduleProjects.ElementAt(1);
+                Assert.Equal("MyModule.Tests", testsProject.Name);
+                Assert.Equal("3B8C3242-A267-4E63-9AE2-7099ACB9F730", testsProject.Guid.ToString().ToUpper());
             }
 
             Assert.Equal(1,

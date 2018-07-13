@@ -13,6 +13,7 @@ namespace SolutionGen.Generator.Reader
         private static readonly List<PropertyDefinition> propertyDefinitions = new List<PropertyDefinition>
         {
             // Module / Project Settings
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_GUID, string.Empty),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_FILES,

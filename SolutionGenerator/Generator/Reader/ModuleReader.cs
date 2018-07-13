@@ -105,10 +105,13 @@ namespace SolutionGen.Generator.Reader
                         string moduleSourcePath =
                             projectSettings.GetProperty<string>(Settings.PROP_PROJECT_SOURCE_PATH);
 
+                        string guidStr = projectSettings.GetProperty<string>(Settings.PROP_GUID);
+                        Guid guid = string.IsNullOrEmpty(guidStr) ? Guid.NewGuid() : Guid.Parse(guidStr);
+
                         // All configurations of a project must have the same guid.
                         if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
                         {
-                            id = new Project.Identifier(projectName, Guid.NewGuid(), moduleSourcePath);
+                            id = new Project.Identifier(projectName, guid, moduleSourcePath);
                             idLookup[projectName] = id;
                         }
 
