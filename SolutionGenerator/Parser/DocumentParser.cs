@@ -39,7 +39,8 @@ namespace SolutionGen.Parser
             .Token().Named("property-action");
 
         public static readonly Parser<string> ConditionalExpression =
-            (from body in BasicParser.EnclosedText('(', ')')
+            (from start in Parse.String("if").Text().Token()
+                from body in BasicParser.EnclosedText('(', ')')
                 select body.Substring(1, body.Length - 2))
             .Token().Named("conditional-expression");
 
@@ -62,9 +63,9 @@ namespace SolutionGen.Parser
             .Token().Named("pair-value");
 
         public static readonly Parser<PropertyElement> PropertySingleLine =
-            (from action in PropertyAction
+            (from conditional in ConditionalExpression.Optional()
+                from action in PropertyAction
                 from nameParts in BasicParser.Identifier.DelimitedBy(Parse.Char(' '))
-                from conditional in ConditionalExpression.Optional()
                 from colon in Parse.Char(':').Token()
                 from value in Value
                 select new PropertyElement(action, nameParts, value, conditional.GetOrElse("true")))
@@ -85,9 +86,9 @@ namespace SolutionGen.Parser
 
         // Note: Property arrays are 1 dimensional and values cannot be another array.
         public static readonly Parser<PropertyElement> PropertyArray =
-            (from action in PropertyAction
+            (from conditional in ConditionalExpression.Optional()
+                from action in PropertyAction
                 from nameParts in BasicParser.Identifier.DelimitedBy(Parse.Char(' ')).Token()
-                from conditional in ConditionalExpression.Optional()
                 from values in Array
                 select new PropertyElement(action, nameParts, new ArrayValue(values),
                     conditional.GetOrElse("true")))
@@ -101,8 +102,8 @@ namespace SolutionGen.Parser
             .Token().Named("configuration-element");
         
         public static readonly Parser<SimpleCommandElement> SimpleCommand =
-            (from cmd in BasicParser.IdentifierToken
-                from conditional in ConditionalExpression.Optional()
+            (from conditional in ConditionalExpression.Optional()
+                from cmd in BasicParser.IdentifierToken
                 from args in BasicParser.QuotedText.Optional()
                 select new SimpleCommandElement(
                     cmd,
@@ -119,14 +120,13 @@ namespace SolutionGen.Parser
             .Token().Named("object");
         
         public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
-            (from start in Parse.String("if").Text().Token()
-                from conditional in ConditionalExpression.Text()
+            (from conditional in ConditionalExpression.Text()
                 from lbrace in Parse.Char('{').Token()
                 from elements in ObjectElement.XMany()
                 from rbrace in Parse.Char('}').Token()
                 select new ConditionalBlockElement(conditional, elements))
             .Token().Named("conditional-block");
-
+        
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertySingleLine
                     .Or((Parser<ConfigElement>) PropertyArray)

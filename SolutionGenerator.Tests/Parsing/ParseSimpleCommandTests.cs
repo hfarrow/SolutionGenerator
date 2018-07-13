@@ -22,7 +22,7 @@ namespace SolutionGen.Tests.Parsing
         [Fact]
         public void CanParseSimpleCommandWithConditionalWithoutArgs()
         {
-            string input = $"{Settings.CMD_SKIP} (my-define)";
+            string input = $"if (my-define) {Settings.CMD_SKIP}";
             SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
             Assert.NotNull(cmd);
             Assert.Equal(Settings.CMD_SKIP, cmd.CommandName);
@@ -45,7 +45,7 @@ namespace SolutionGen.Tests.Parsing
         public void CanParseSimpleCommandWithConditionalWithArgs()
         {
             const string commandArgs = "ProjectName : SettingsName";
-            string input = $"{Settings.CMD_DECLARE_PROJECT} (my-define) \"{commandArgs}\"";
+            string input = $"if (my-define) {Settings.CMD_DECLARE_PROJECT} \"{commandArgs}\"";
             SimpleCommandElement cmd = DocumentParser.SimpleCommand.Parse(input);
             Assert.Equal(Settings.CMD_DECLARE_PROJECT, cmd.CommandName);
             Assert.Equal("my-define", cmd.ConditionalExpression);

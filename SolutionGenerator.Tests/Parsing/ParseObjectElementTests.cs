@@ -11,7 +11,7 @@ namespace SolutionGen.Tests.Parsing
         [Fact]
         public void CanParseSingleLineProperty()
         {
-            const string input = "set include files (false): value";
+            const string input = "if (false) set include files: value";
             ConfigElement element = DocumentParser.ObjectElement.Parse(input);
             Assert.NotNull(element);
             Assert.IsType<PropertyElement>(element);

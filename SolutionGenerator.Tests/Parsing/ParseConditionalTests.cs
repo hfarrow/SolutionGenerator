@@ -9,7 +9,7 @@ namespace SolutionGen.Tests.Parsing
         [Fact]
         public void EnclosedConditionalDoesNotIncludeParen()
         {
-            string result = DocumentParser.ConditionalExpression.Parse("(true)");
+            string result = DocumentParser.ConditionalExpression.Parse("if(true)");
             Assert.Equal("true", result);
         }
     }

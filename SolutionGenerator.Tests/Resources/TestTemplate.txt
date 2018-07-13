@@ -24,13 +24,13 @@ template TestTemplate
             DEFINE_B
         ]
 
-        add define constants (debug)
+        if (debug) add define constants
         [
             DEBUG
             TRACE
         ]
 
-        add define constants (release)
+        if (release) add define constants
         [
             RELEASE
         ]
@@ -38,8 +38,8 @@ template TestTemplate
 
     settings project.tests : project
     {
-        exclude (no-tests)
-        skip (!test)
+        if (no-tests) exclude
+        if (!test) skip
 
         set include files: glob "**/Tests/**/*.{cs,txt,json,xml,md}"
         set exclude files: empty

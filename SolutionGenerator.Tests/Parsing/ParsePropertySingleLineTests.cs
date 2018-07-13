@@ -42,21 +42,21 @@ namespace SolutionGen.Tests.Parsing
         [Fact]
         public void ParseSingleLinePropertyWithTrueConditional()
         {
-            PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (true): value");
+            PropertyElement p = DocumentParser.PropertySingleLine.Parse("if (true) set include files: value");
             Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
         
         [Fact]
         public void ParseSingleLinePropertyWithFalseConditional()
         {
-            PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (false): value");
+            PropertyElement p = DocumentParser.PropertySingleLine.Parse("if (false) set include files: value");
             Assert.False(parser.InvokeExpression(p.ConditionalExpression));
         }
         
         [Fact]
         public void ParseSingleLinePropertyWithNestedParenConditional()
         {
-            PropertyElement p = DocumentParser.PropertySingleLine.Parse("set include files (true&&(false||true)): value");
+            PropertyElement p = DocumentParser.PropertySingleLine.Parse("if (true&&(false||true)) set include files: value");
             Assert.True(parser.InvokeExpression(p.ConditionalExpression));
         }
     }

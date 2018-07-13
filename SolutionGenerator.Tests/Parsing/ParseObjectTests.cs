@@ -160,8 +160,8 @@ namespace SolutionGen.Tests.Parsing
             const string input =
                 "myType MyObject : InheritedObject\n" +
                 "{\n" +
-                "    exclude (no-tests)\n" +
-                "    skip (!test)\n" +
+                "    if (no-tests) exclude\n" +
+                "    if (!test) skip\n" +
                 "}";
 
             string[] expectedNames =

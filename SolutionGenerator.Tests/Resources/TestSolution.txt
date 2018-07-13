@@ -139,15 +139,17 @@ template MyTemplate
         set include files: none
         set exclude files: none
 
-        exclude (no-tests)
-        skip (!test)
+        if (no-tests) exclude
 
-        set include files: glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
+        if (test)
+        {
+            set include files: glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
 
-        add project refs
-        [
-            $(MODULE_NAME)
-        ]
+            add project refs
+            [
+                $(MODULE_NAME)
+            ]
+        }
     }
 }
 
