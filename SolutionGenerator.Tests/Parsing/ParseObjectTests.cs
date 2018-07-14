@@ -23,7 +23,7 @@ namespace SolutionGen.Tests.Parsing
                     "}")]
         public void CanParseEmptyObjectWithoutInheritance(string input)
         {
-            ObjectElement obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal("myType", obj.ElementHeading.Type);
             Assert.Equal("MyObject", obj.ElementHeading.Name);
@@ -45,7 +45,7 @@ namespace SolutionGen.Tests.Parsing
                     "}")]
         public void CanParseEmptyObjectWithInheritance(string input)
         {
-            ObjectElement obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal("myType", obj.ElementHeading.Type);
             Assert.Equal("MyObject", obj.ElementHeading.Name);
@@ -64,7 +64,7 @@ namespace SolutionGen.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ObjectElement obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(obj);
             Assert.Single(obj.Elements);
 
@@ -91,7 +91,7 @@ namespace SolutionGen.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ObjectElement obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(obj);
             Assert.Single(obj.Elements);
 
@@ -120,7 +120,7 @@ namespace SolutionGen.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ObjectElement root = DocumentParser.Object.Parse(input);
+            ObjectElement root = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(root);
             Assert.Equal(2, root.Elements.Count());
             
@@ -150,7 +150,7 @@ namespace SolutionGen.Tests.Parsing
                 "    }\n" +
                 "}";
 
-            ObjectElement root = DocumentParser.Object.Parse(input);
+            ObjectElement root = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(root);
         }
 
@@ -169,7 +169,7 @@ namespace SolutionGen.Tests.Parsing
                 "exclude", "skip"
             };
             
-            ObjectElement obj = DocumentParser.Object.Parse(input);
+            ObjectElement obj = DocumentParser.NamedObject.Parse(input);
             Assert.NotNull(obj);
             Assert.Equal(2, obj.Elements.Count());
             for (int i = 0; i < 2; i++)

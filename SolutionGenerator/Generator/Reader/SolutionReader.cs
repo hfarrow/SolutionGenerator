@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -25,7 +27,9 @@ namespace SolutionGen.Generator.Reader
                 
                 var settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);
-                Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir);
+
+                Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir,
+                    GetConfigurationGroups(settings));
 
                 ObjectElement settingsElement = solutionElement.Elements
                     .OfType<ObjectElement>()
@@ -56,6 +60,49 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
             }
+        }
+
+        private static Dictionary<string, ConfigurationGroup> GetConfigurationGroups(Settings settings)
+        {
+            Dictionary<string, object> property = settings.GetProperty<Dictionary<string, object>>(Settings.PROP_CONFIGURATIONS);
+            var groups = new Dictionary<string, ConfigurationGroup>();
+
+            foreach (KeyValuePair<string,object> kvp in property)
+            {
+                string groupName = kvp.Key;
+
+                if (groups.TryGetValue(kvp.Key, out ConfigurationGroup duplicate))
+                {
+                    throw new DuplicateConfigurationGroupNameException(groupName, duplicate);
+                }
+
+                Dictionary<string, HashSet<string>> groupConfigs =
+                    ((Dictionary<string, object>) kvp.Value).ToDictionary(
+                        innerKvp => innerKvp.Key,
+                        innerKvp => ((IEnumerable<object>) innerKvp.Value)
+                            .Select(o => o.ToString())
+                            .Concat(new []{groupName})
+                            .ToHashSet());
+                
+                IEnumerable<Configuration> configurations = groupConfigs.Select(configKvp =>
+                    new Configuration(groupName, configKvp.Key, configKvp.Value));
+                
+                groups[groupName] =
+                    new ConfigurationGroup(groupName, configurations.ToDictionary(cfg => cfg.Name, cfg => cfg));
+            }
+
+            return groups;
+        }
+    }
+    
+    public sealed class DuplicateConfigurationGroupNameException : Exception
+    {
+        public DuplicateConfigurationGroupNameException(string duplicateName, ConfigurationGroup existingGroup)
+            : base(string.Format("A configuration group name '{0}' has already been defined:\n" +
+                                 "Existing group:\n{1}\n" +
+                                 duplicateName, existingGroup))
+        {
+
         }
     }
 }

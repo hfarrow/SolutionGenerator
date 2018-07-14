@@ -24,10 +24,10 @@ namespace SolutionGen.Templates
                 string group = Generator.ActiveConfigurationGroup;
                 if (string.IsNullOrEmpty(group))
                 {
-                    group = Solution.Settings.ConfigurationGroups.First().Key;
+                    group = Solution.ConfigurationGroups.First().Key;
                 }
 
-                return Solution.Settings.ConfigurationGroups[group].Configurations.First().Key;
+                return Solution.ConfigurationGroups[group].Configurations.First().Key;
             }
         }
 
@@ -63,8 +63,8 @@ namespace SolutionGen.Templates
                 .ToArray());
         }
 
-        public IReadOnlyCollection<Configuration> ActiveConfigurations => Solution.Settings
-            .ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Values.ToArray();
+        public IReadOnlyCollection<Configuration> ActiveConfigurations => 
+            Solution.ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Values.ToArray();
 
         private HashSet<string> commonIncludes;
         public HashSet<string> GetCommonIncludes()

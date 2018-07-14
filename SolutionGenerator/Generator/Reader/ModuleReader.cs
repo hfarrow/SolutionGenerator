@@ -42,7 +42,7 @@ namespace SolutionGen.Generator.Reader
                     throw new UndefinedTemplateException(templateName);
                 }
 
-                var templateReader = new TemplateReader(solution.Settings.ConfigurationGroups, baseTemplate, null);
+                var templateReader = new TemplateReader(solution.ConfigurationGroups, baseTemplate, null);
                 Template template = templateReader.Read(moduleElement);
                 
                 using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_MODULE_NAME, moduleName))

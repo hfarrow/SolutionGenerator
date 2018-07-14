@@ -1,15 +1,18 @@
 solution MySolution
 {
-    configuration everything
+    configurations =
     {
-        Debug = [debug,test]
-        Release = [release]
-    }
+        everything =
+        {
+            Debug = [debug,test]
+            Release = [release]
+        }
 
-    configuration no-tests
-    {
-        Debug = [debug]
-        Release = [release]
+        no-tests =
+        {
+            Debug = [debug]
+            Release = [release]
+        }
     }
 
     target platforms =

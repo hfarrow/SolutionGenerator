@@ -9,8 +9,18 @@ namespace SolutionGen.Generator.Reader
     {
         private static readonly List<PropertyDefinition> propertyDefinitions = new List<PropertyDefinition>
         {
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_TARGET_PLATFORMS,
-                new HashSet<string>(){"Any CPU"}),
+            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(
+                Settings.PROP_TARGET_PLATFORMS, new HashSet<string>() {"Any CPU"}),
+
+            new PropertyDictionaryDefinition<object, DictionaryPropertyReader>(Settings.PROP_CONFIGURATIONS,
+                new Dictionary<string, object>
+                {
+                    ["default"] = new Dictionary<string, HashSet<string>>
+                    {
+                        ["Debug"] = new HashSet<string> {"debug"},
+                        ["Release"] = new HashSet<string> {"release"},
+                    }
+                })
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =

@@ -13,8 +13,9 @@ namespace SolutionGen.Templates
 
 //        public string SolutionGuid => Solution.Guid.ToString().ToUpper();
         
-        public IReadOnlyCollection<string> ActiveConfigurations => Solution.Settings
-            .ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Keys.ToArray();
+        public IReadOnlyCollection<string> ActiveConfigurations =>
+            Solution.ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Keys
+                .ToArray();
 
         public IEnumerable<Project> GetProjects()
         {

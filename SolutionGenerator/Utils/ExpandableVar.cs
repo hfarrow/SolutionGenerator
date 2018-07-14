@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
-using SolutionGen.Generator.Reader;
 
 namespace SolutionGen.Utils
 {

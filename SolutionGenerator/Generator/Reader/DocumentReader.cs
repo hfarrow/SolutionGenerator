@@ -60,7 +60,7 @@ namespace SolutionGen.Generator.Reader
         {
             var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
 
-            var reader = new TemplateReader(Solution.Settings.ConfigurationGroups,
+            var reader = new TemplateReader(Solution.ConfigurationGroups,
                 solutionReader.TemplateDefaultSettings);
             foreach (ObjectElement templateElement in templateElements)
             {

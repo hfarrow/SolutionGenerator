@@ -22,20 +22,19 @@ namespace SolutionGen.Generator.Model
             out object newDictionary);
     }
 
-    public class PropertyDictionaryDefinition<TDictionary, TValue, TReader> : PropertyDictionaryDefinition
+    public class PropertyDictionaryDefinition<TValue, TReader> : PropertyDictionaryDefinition
         where TReader : ElementReader<PropertyElement, PropertyDefinition>, new()
-        where TDictionary : IDictionary<string, TValue>, new()
     {
-        private TDictionary DefaultValue { get; }
+        private Dictionary<string, TValue> DefaultValue { get; }
         
-        public PropertyDictionaryDefinition(string name, TDictionary defaultValue)
+        public PropertyDictionaryDefinition(string name, Dictionary<string, TValue> defaultValue)
             : base(name, typeof(TValue), defaultValue, new TReader())
         {
             DefaultValue = defaultValue;
         }
 
         public PropertyDictionaryDefinition(string name)
-            : this(name, new TDictionary())
+            : this(name, new Dictionary<string, TValue>())
         {
         }
 
@@ -52,21 +51,21 @@ namespace SolutionGen.Generator.Model
                 throw new ArgumentException($"Provided value must be of type '{typeof(TValue).FullName}'.");
             }
 
-            var castedDictionary = (TDictionary) dictionary;
+            var castedDictionary = (Dictionary<string, TValue>) dictionary;
             castedDictionary.Add(key, (TValue) value);
         }
 
         public override void ClearDictionary(object dictionary)
         {
             CheckDictionaryType(dictionary);
-            ((TDictionary)dictionary).Clear();
+            ((Dictionary<string, TValue>)dictionary).Clear();
         }
 
         public override object CloneDictionary(object dictionary)
         {
             CheckDictionaryType(dictionary);
-            var castedDictionary = (TDictionary) dictionary;
-            var copy = new TDictionary();
+            var castedDictionary = (Dictionary<string, TValue>) dictionary;
+            var copy = new Dictionary<string, TValue>();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
                 copy[kvp.Key] = kvp.Value;
@@ -79,10 +78,10 @@ namespace SolutionGen.Generator.Model
             out object newDictionary)
         {
             CheckDictionaryType(dictionary);
-            var castedDictionary = (TDictionary) dictionary;
+            var castedDictionary = (Dictionary<string, TValue>) dictionary;
 
             bool didExpand = false;
-            var modifiedValues = new TDictionary();
+            var modifiedValues = new Dictionary<string, TValue>();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
                 if (ExpandableVar.ExpandInCopy(kvp.Key, varName, varExpansion, out object copy))
@@ -104,7 +103,7 @@ namespace SolutionGen.Generator.Model
 
         public override object GetOrCloneDefaultValue()
         {
-            var copy = new TDictionary();
+            var copy = new Dictionary<string, TValue>();
             foreach (KeyValuePair<string, TValue> kvp in DefaultValue)
             {
                 copy[kvp.Key] = kvp.Value;
@@ -121,7 +120,7 @@ namespace SolutionGen.Generator.Model
         public override string PrintValue(object value)
         {
             CheckDictionaryType(value);
-            var castedCollection = (TDictionary) value;
+            var castedCollection = (Dictionary<string, TValue>) value;
             return string.Join(", ", castedCollection.Select(kvp => $"{kvp.Key}=>{kvp.Value}"));
         }
 
@@ -132,9 +131,9 @@ namespace SolutionGen.Generator.Model
 
         private static void CheckDictionaryType(object dictionary)
         {
-            if (!(dictionary is TDictionary))
+            if (!(dictionary is Dictionary<string, TValue>))
             {
-                throw new ArgumentException($"Provided dictionary must be of type '{typeof(TDictionary).FullName}'." );
+                throw new ArgumentException($"Provided dictionary must be of type '{typeof(Dictionary<string, TValue>).FullName}'." );
             }
         }
 

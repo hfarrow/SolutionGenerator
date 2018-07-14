@@ -84,7 +84,7 @@ namespace SolutionGen
                 {
                     ActiveConfigurationGroup = configurationGroup;
 
-                    Configuration currentConfiguration = Reader.Solution.Settings
+                    Configuration currentConfiguration = Reader.Solution
                         .ConfigurationGroups[ActiveConfigurationGroup].Configurations
                         .First().Value;
 
@@ -148,7 +148,7 @@ namespace SolutionGen
                         Solution = Reader.Solution,
                         Modules = Reader.Modules,
                         ActiveConfigurationGroup =
-                            Reader.Solution.Settings.ConfigurationGroups[ActiveConfigurationGroup],
+                            Reader.Solution.ConfigurationGroups[ActiveConfigurationGroup],
                     };
 
                     string solutionText = solutionTemplate.TransformText();

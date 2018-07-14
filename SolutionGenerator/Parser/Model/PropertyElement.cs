@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SolutionGen.Parser.Model
 {
@@ -14,7 +15,7 @@ namespace SolutionGen.Parser.Model
             : base(action.ToString(), conditionalExpression)
         {
             Action = action;
-            NameParts = nameParts;
+            NameParts = nameParts.ToArray();
             ValueElement = valueElement;
 
             FullName = string.Join(' ', NameParts);

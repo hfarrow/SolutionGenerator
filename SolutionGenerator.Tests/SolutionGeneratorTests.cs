@@ -46,7 +46,7 @@ namespace SolutionGen.Tests
 
         private Configuration GetFirstActiveConfiguration(string configurationGroup)
         {
-            return generator.Reader.Solution.Settings.ConfigurationGroups[configurationGroup].Configurations.Values
+            return generator.Reader.Solution.ConfigurationGroups[configurationGroup].Configurations.Values
                 .First();
         }
 

@@ -4,7 +4,6 @@ using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using Sprache;
 using Xunit;
-using KeyValuePair = SolutionGen.Parser.Model.KeyValuePair;
 
 namespace SolutionGen.Tests.Parsing
 {
@@ -19,20 +18,6 @@ namespace SolutionGen.Tests.Parsing
             IEnumerable<ValueElement> propertyValues = values as ValueElement[] ?? values.ToArray();
             Assert.Single(propertyValues);
             Assert.Equal("myValue", propertyValues.First().Value);
-        }
-
-        [Fact]
-        public void CanParseKeyValuePair()
-        {
-            IEnumerable<KeyValuePair> pairs = DocumentParser.StronglyTypedArray(DocumentParser.PairValue)
-                .Parse("[myKey:myValue]");
-
-            IEnumerable<KeyValuePair> pairValues = pairs as KeyValuePair[] ?? pairs.ToArray();
-            Assert.Single(pairValues);
-            KeyValuePair pair = pairValues.FirstOrDefault();
-            Assert.NotNull(pair);
-            Assert.Equal("myKey", pair.PairKey);
-            Assert.Equal("myValue", pair.PairValue.Value);
         }
     }
 }

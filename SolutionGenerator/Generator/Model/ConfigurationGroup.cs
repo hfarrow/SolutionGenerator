@@ -8,7 +8,7 @@ namespace SolutionGen.Generator.Model
         public string Name { get; }
         public readonly IReadOnlyDictionary<string, Configuration> Configurations;
 
-        public ConfigurationGroup(string name, Dictionary<string, Configuration> configurations)
+        public ConfigurationGroup(string name, IReadOnlyDictionary<string, Configuration> configurations)
         {
             Name = name;
             Configurations = configurations;

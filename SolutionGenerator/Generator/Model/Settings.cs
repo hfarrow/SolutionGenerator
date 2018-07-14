@@ -6,6 +6,7 @@ namespace SolutionGen.Generator.Model
 {
     public class Settings
     {
+        // Project (Module / Template)
         public const string PROP_GUID = "guid";
         public const string PROP_INCLUDE_FILES = "include files";
         public const string PROP_EXCLUDE_FILES = "exclude files";
@@ -20,21 +21,20 @@ namespace SolutionGen.Generator.Model
         public const string PROP_ERROR_REPORT = "error report";
         public const string PROP_WARNING_LEVEL= "warning level";
         public const string PROP_CONFIGURATION_PLATFORM_TARGET = "platform target";
-        public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_ROOT_NAMESPACE = "root namespace";
         public const string PROP_PROJECT_SOURCE_PATH = "module source path";
         public const string PROP_EXCLUDE = "exclude";
         public const string PROP_PROJECT_DELCARATIONS = "projects";
-        
         public const string CMD_SKIP = "skip";
         public const string CMD_EXCLUDE = "exclude";
         public const string CMD_DECLARE_PROJECT = "project";
+        
+        // Solution
+        public const string PROP_TARGET_PLATFORMS = "target platforms";
+        public const string PROP_CONFIGURATIONS = "configurations";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         
-        // Why is this needed? Seems out of place. Should only store the specific Configuration that was used to produce
-        // these settings. Can be null.
-        public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
         private readonly Func<string, PropertyDefinition> propertyDefinitionGetter;
 
         public T GetProperty<T>(string name) => (T) properties[name];
@@ -52,11 +52,9 @@ namespace SolutionGen.Generator.Model
         }
 
         public Settings(IReadOnlyDictionary<string, object> properties,
-            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups,
             Func<string, PropertyDefinition> propertyDefinitionGetter)
         {
             this.properties = properties;
-            ConfigurationGroups = configurationGroups;
             this.propertyDefinitionGetter = propertyDefinitionGetter;
         }
 
@@ -70,7 +68,7 @@ namespace SolutionGen.Generator.Model
 
             }
             
-            return new Settings(copy, ConfigurationGroups, propertyDefinitionGetter);
+            return new Settings(copy, propertyDefinitionGetter);
         }
 
         public Dictionary<string, object> CopyProperties()

@@ -13,9 +13,6 @@ namespace SolutionGen.Generator.Reader
         protected Dictionary<string, object> Properties = new Dictionary<string, object>();
         protected readonly HashSet<string> VisitedProperties = new HashSet<string>();
 
-        private readonly Dictionary<string, ConfigurationGroup> configurationGroups =
-            new Dictionary<string, ConfigurationGroup>();
-
         public Configuration Configuration { get; }
         private readonly Settings defaultSettings;
         private readonly Settings baseSettings;
@@ -66,7 +63,7 @@ namespace SolutionGen.Generator.Reader
         /// <returns>Default settings.</returns>
         public Settings GetDefaultSettings()
         {
-            return new Settings(GetDefaultPropertiesDictionary(), null, GetPropertyDefinition);
+            return new Settings(GetDefaultPropertiesDictionary(), GetPropertyDefinition);
         }
 
         public Dictionary<string, object> GetDefaultPropertiesDictionary()
@@ -112,10 +109,8 @@ namespace SolutionGen.Generator.Reader
                     bool terminate;
                     switch (element)
                     {
-                        case ObjectElement objElement
-                            when element is ObjectElement
-                                 && objElement.ElementHeading.Type == SectionType.CONFIGURATION:
-                            terminate = ReadConfiguration(objElement);
+                        case ObjectElement _:
+                            terminate = false;
                             break;
                         
                         case PropertyElement propertyElement when element is PropertyElement:
@@ -124,14 +119,6 @@ namespace SolutionGen.Generator.Reader
 
                         case SimpleCommandElement cmdElement when element is SimpleCommandElement:
                             terminate = ReadCommand(cmdElement);
-                            break;
-                        
-                        case ObjectElement _ when element is ObjectElement:
-                            // settings objects do not have nested objects; however, SettingsReader is also used to read
-                            // other object types such a "solution" and "module" that do have nested objects but are not
-                            // read as part of the Settings.
-                            // Note: Nested settings could be supported and would produce nested dictionaries in 'properties'
-                            terminate = false;
                             break;
 
                         case CommentElement _ when element is CommentElement:
@@ -156,7 +143,7 @@ namespace SolutionGen.Generator.Reader
                     kvp => string.Format("{0} => {1}",
                         kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)));
 
-                return new Settings(Properties, configurationGroups, GetPropertyDefinition);
+                return new Settings(Properties, GetPropertyDefinition);
             }
         }
 
@@ -185,52 +172,12 @@ namespace SolutionGen.Generator.Reader
         {
             return Properties.Where(kvp => VisitedProperties.Contains(kvp.Key));
         }
-        
-        private bool ReadConfiguration(ObjectElement element)
-        {
-            Log.WriteLine("Reading configuration declaration: {0}", element);
-
-            using (new Log.ScopedIndent())
-            {
-                if (configurationGroups.TryGetValue(element.ElementHeading.Name,
-                    out ConfigurationGroup existingGroup))
-                {
-                    throw new DuplicateConfigurationGroupNameException(element, existingGroup);
-                }
-
-                ConfigurationGroup group;
-                try
-                {
-                    Dictionary<string, Configuration> configurationMap = element.Elements
-                        .Cast<PropertyElement>()
-                        .Select(p => new Configuration(element.ElementHeading.Name, p.FullName,
-                            ((ArrayValue) p.ValueElement).Values
-                            .Select(v => v.ToString())
-                            .Concat(new []{element.ElementHeading.Name})
-                            .ToHashSet()))
-                        .ToDictionary(cfg => cfg.Name, cfg => cfg);
-                    
-                    group = new ConfigurationGroup(element.ElementHeading.Name,
-                        configurationMap);
-                }
-                catch (Exception ex)
-                {
-                    throw new InvalidConfigurationObjectElement(element, ex);
-                }
-
-                configurationGroups[group.Name] = group;
-                Log.WriteLine("Read configuration: {0}", group);
-
-                // Never terminate
-                return false;
-            }
-        }
 
         private bool ReadProperty(PropertyElement element)
         {
             if (!PropertyDefinitionLookup.TryGetValue(element.FullName, out PropertyDefinition definition))
             {
-                throw new UnrecognizedPropertyException(element);
+                throw new UnrecognizedPropertyException(element.FullName, element);
             }
 
             ElementReader.IResult<IEnumerable<object>> result =
@@ -260,14 +207,15 @@ namespace SolutionGen.Generator.Reader
                         {
                             dictionaryDefinition.ClearDictionary(Properties[definition.Name]);
                         }
-
+                        
                         object dictionary = Properties[definition.Name];
-                        foreach (object value in result.Value)
-                        {
-                            var kvp = (Box<KeyValuePair<string, string>>) value;
-                            dictionaryDefinition.AddToDictionary(dictionary, kvp.Value.Key, kvp.Value.Value);
-                        }
 
+                        var newValues = (Dictionary<string, object>) result.Value.First();
+                        foreach (KeyValuePair<string,object> kvp in newValues)
+                        {
+                            dictionaryDefinition.AddToDictionary(dictionary, kvp.Key, kvp.Value);
+                        }
+                        
                         break;
                     default:
                         if (element.Action != PropertyAction.Set)
@@ -328,10 +276,10 @@ namespace SolutionGen.Generator.Reader
     
     public sealed class UnrecognizedPropertyException : Exception
     {
-        public UnrecognizedPropertyException(PropertyElement element)
+        public UnrecognizedPropertyException(string name, ConfigElement element)
             : base(string.Format(
                 "The property '{0}' is not recongized and cannot be compiled. The full property was: {1}",
-                element.FullName, element))
+                name, element))
         {
         }
     }
@@ -356,18 +304,6 @@ namespace SolutionGen.Generator.Reader
         }
     }
     
-    public sealed class DuplicateConfigurationGroupNameException : Exception
-    {
-        public DuplicateConfigurationGroupNameException(ObjectElement newGroup, ConfigurationGroup existingGroup)
-            : base(string.Format("A configuration group name '{0}' has already been defined:\n" +
-                                 "Existing group:\n{1}\n" +
-                                 "Duplicate group:\n{2}",
-                newGroup.ElementHeading.Name, existingGroup, newGroup))
-        {
-            
-        }
-    }
-
     public sealed class InvalidConfigurationObjectElement : Exception
     {
         public InvalidConfigurationObjectElement(ObjectElement element, Exception innerException)

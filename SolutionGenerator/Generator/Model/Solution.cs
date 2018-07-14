@@ -10,6 +10,7 @@ namespace SolutionGen.Generator.Model
         public readonly Guid Guid;
         public string SolutionConfigDir { get; }
         public readonly Settings Settings;
+        public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
 
         public IReadOnlyCollection<string> TargetPlatforms =>
             Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_TARGET_PLATFORMS);
@@ -18,12 +19,14 @@ namespace SolutionGen.Generator.Model
             ExpandableVar.ExpandAllInCopy(Settings.GetProperty<string>(Settings.PROP_ROOT_NAMESPACE),
                 ExpandableVar.ExpandableVariables).ToString();
 
-        public Solution(string name, Settings settings, string solutionConfigDir)
+        public Solution(string name, Settings settings, string solutionConfigDir,
+            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
         {
             Name = name;
             Guid = Guid.NewGuid();
             Settings = settings;
             SolutionConfigDir = solutionConfigDir;
+            ConfigurationGroups = configurationGroups;
         }
     }
 }

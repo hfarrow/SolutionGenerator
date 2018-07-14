@@ -43,18 +43,10 @@ namespace SolutionGen.Parser
                 select body.Substring(1, body.Length - 2))
             .Token().Named("conditional-expression");
         
-        public static readonly Parser<Model.KeyValuePair> PairValue =
-            (from key in BasicParser.IdentifierToken
-                from delimiter in Parse.Char(':')
-                from value in Value
-                select new Model.KeyValuePair(key, value))
-            .Token().Named("pair-value");
-
         public static readonly Parser<ValueElement> Value =
             (from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
                     .Or(BasicParser.GlobValue)
                     .Or(BasicParser.NoneValue)
-                    .Or(PairValue)
                     // Unquoted Text
                     .Or(Parse.AnyChar.Except(
                             Parse.String(",").Or(Parse.String("]").Or(Parse.LineTerminator)))
@@ -89,6 +81,15 @@ namespace SolutionGen.Parser
         public static readonly Parser<IEnumerable<ValueElement>> Array =
             StronglyTypedArray(Value).Named("untyped-array");
 
+        public static readonly Parser<PropertyElement> PropertyDictionary =
+            (from conditional in ConditionalExpression.Optional()
+                from nameParts in BasicParser.Identifier.DelimitedBy(Parse.Char(' ')).Token()
+                from action in PropertyAction
+                from obj in InlineObject
+                select new PropertyElement(action, nameParts, new ValueElement(obj), conditional.GetOrElse("true"))
+            )
+            .Token().Named("dictionary-property");
+            
         // Note: Property arrays are 1 dimensional and values cannot be another array.
         public static readonly Parser<PropertyElement> PropertyArray =
             (from conditional in ConditionalExpression.Optional()
@@ -109,12 +110,19 @@ namespace SolutionGen.Parser
                     conditional.GetOrElse(string.Empty).Length >= 3 ? conditional.GetOrDefault() : "true"))
             .Token().Named("command-element");
 
-        public static readonly Parser<ObjectElement> Object =
+        public static readonly Parser<ObjectElement> NamedObject =
             (from heading in ObjectHeading
                 from lbrace in Parse.Char('{').Token()
                 from elements in ObjectElement.XMany()
                 from rbrace in Parse.Char('}').Token()
                 select new ObjectElement(heading, elements))
+            .Token().Named("object-with-heading");
+        
+        public static readonly Parser<ObjectElement> InlineObject =
+            (from lbrace in Parse.Char('{').Token()
+                from elements in ObjectElement.XMany()
+                from rbrace in Parse.Char('}').Token()
+                select new ObjectElement(new ObjectElementHeading("<inline>", "", null), elements))
             .Token().Named("object");
         
         public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
@@ -126,10 +134,13 @@ namespace SolutionGen.Parser
             .Token().Named("conditional-block");
         
         public static readonly Parser<ConfigElement> ObjectElement =
-            (from element in PropertyArray
-                    .Or((Parser<ConfigElement>)PropertySingleLine)
-                    .Or(ConditionalBlockElement)
-                    .Or(Object)
+            (from element in PropertyDictionary
+                    .Or(PropertyArray)
+                    .Or(PropertySingleLine)
+                    // Not sure why this cast is needed here because it's the same as above and below
+                    .Or((Parser<ConfigElement>)ConditionalBlockElement)
+                    .Or(NamedObject)
+                    .Or(InlineObject)
                     .Or(SimpleCommand)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
                 select element)
