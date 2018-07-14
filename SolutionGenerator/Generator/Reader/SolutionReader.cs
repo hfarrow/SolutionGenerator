@@ -23,7 +23,7 @@ namespace SolutionGen.Generator.Reader
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
                 
-                var settingsReader = new SettingsReader(ExpandableVar.ExpandableVariables);
+                var settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);
                 Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir);
 
@@ -39,7 +39,7 @@ namespace SolutionGen.Generator.Reader
                         "Templates will use hard coded defaults instead.",
                         DEFAULT_TEMPLATE_SETTINGS);
                     
-                    TemplateDefaultSettings = SettingsReader.GetDefaultSettings();
+                    TemplateDefaultSettings = settingsReader.GetDefaultSettings();
                 }
                 else
                 {
@@ -50,8 +50,9 @@ namespace SolutionGen.Generator.Reader
 
                     using (new Log.ScopedIndent())
                     {
-                        TemplateDefaultSettings = new SettingsReader(ExpandableVar.ExpandableVariables)
-                            .Read(settingsElement);
+                        TemplateDefaultSettings =
+                            new ProjectSettingsReader(ExpandableVar.ExpandableVariables)
+                                .Read(settingsElement);
                     }
                 }
             }

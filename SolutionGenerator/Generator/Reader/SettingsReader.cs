@@ -8,43 +8,10 @@ using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Reader
 {
-    public class SettingsReader
+    public abstract class SettingsReader
     {
-        private static readonly List<PropertyDefinition> propertyDefinitions = new List<PropertyDefinition>
-        {
-            // Module / Project Settings
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_GUID, string.Empty),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_FILES,
-                new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}")}),
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_EXCLUDE_FILES),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_LIB_REFS),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_DEFINE_CONSTANTS),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_DELCARATIONS),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_TARGET_FRAMEWORK, "v4.6"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_LANGUAGE_VERSION, "6"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_DEBUG_SYMBOLS, "true"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_DEBUG_TYPE, "full"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_OPTIMIZE, "false"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ERROR_REPORT, "prompt"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_WARNING_LEVEL, "4"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_CONFIGURATION_PLATFORM_TARGET, "AnyCPU"),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_EXCLUDE, "false"),
-            
-            // Solution Settings
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_TARGET_PLATFORMS,
-                new HashSet<string>(){"Any CPU"}),
-        };
-
-        private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =
-            propertyDefinitions.ToDictionary(d => d.Name, d => d);
-
-        private readonly Dictionary<string, CommandDefinition> commandDefinitionLookup;
-
-        private Dictionary<string, object> properties = new Dictionary<string, object>();
-        private readonly HashSet<string> visitedProperties = new HashSet<string>();
+        protected Dictionary<string, object> Properties = new Dictionary<string, object>();
+        protected readonly HashSet<string> VisitedProperties = new HashSet<string>();
 
         private readonly Dictionary<string, ConfigurationGroup> configurationGroups =
             new Dictionary<string, ConfigurationGroup>();
@@ -55,33 +22,12 @@ namespace SolutionGen.Generator.Reader
         private readonly BooleanExpressionParser conditionalParser;
         private readonly IReadOnlyDictionary<string, string> variableExpansions;
 
-        public SettingsReader(Configuration configuration, Settings baseSettings, Settings defaultSettings,
-            IReadOnlyDictionary<string, string> variableExpansions = null)
+        protected SettingsReader(IReadOnlyDictionary<string, string> variableExpansions)
         {
-            Configuration = configuration;
-            conditionalParser = new BooleanExpressionParser();
-            conditionalParser.SetConditionalConstants(configuration.Conditionals);
             this.variableExpansions = variableExpansions;
-            this.baseSettings = baseSettings;
-            this.defaultSettings = defaultSettings;
-
-            var commandDefinitions = new List<CommandDefinition>
-            {
-                new CommandDefinition<CommandReader>(Settings.CMD_SKIP, _ => true),
-                new CommandDefinition<CommandReader>(Settings.CMD_EXCLUDE, ExcludeProjectCommand),
-                new CommandDefinition<CommandReader>(Settings.CMD_DECLARE_PROJECT, ProjectDeclarationCommand),
-            };
-
-            commandDefinitionLookup =
-                commandDefinitions.ToDictionary(c => c.Name, c => c);
-        }
-
-        public SettingsReader(IReadOnlyDictionary<string, string> variableExpansions = null)
-        {
             conditionalParser = new BooleanExpressionParser();
-            this.variableExpansions = variableExpansions;
             defaultSettings = GetDefaultSettings();
-
+            
             if (variableExpansions != null)
             {
                 Log.WriteLine("Settings reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
@@ -91,9 +37,25 @@ namespace SolutionGen.Generator.Reader
             }
         }
 
-        public static PropertyDefinition GetPropertyDefinition(string propertyName)
+        protected SettingsReader(Configuration configuration, Settings baseSettings, Settings defaultSettings,
+            IReadOnlyDictionary<string, string> variableExpansions = null)
+            : this(variableExpansions)
         {
-            return propertyDefinitionLookup[propertyName];
+            Configuration = configuration;
+            if (configuration != null)
+            {
+                conditionalParser.SetConditionalConstants(configuration.Conditionals);
+            }
+            this.baseSettings = baseSettings;
+            this.defaultSettings = defaultSettings;
+        }
+        
+        protected abstract Dictionary<string, PropertyDefinition> PropertyDefinitionLookup { get; }
+        protected abstract Dictionary<string, CommandDefinition> CommandDefinitionLookup { get; }
+
+        public PropertyDefinition GetPropertyDefinition(string propertyName)
+        {
+            return PropertyDefinitionLookup[propertyName];
         }
 
         /// <summary>
@@ -102,14 +64,14 @@ namespace SolutionGen.Generator.Reader
         /// from the solution object.
         /// </summary>
         /// <returns>Default settings.</returns>
-        public static Settings GetDefaultSettings()
+        public Settings GetDefaultSettings()
         {
-            return new Settings(GetDefaultPropertiesDictionary(), null);
+            return new Settings(GetDefaultPropertiesDictionary(), null, GetPropertyDefinition);
         }
 
-        public static Dictionary<string, object> GetDefaultPropertiesDictionary()
+        public Dictionary<string, object> GetDefaultPropertiesDictionary()
         {
-            return propertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
+            return PropertyDefinitionLookup.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetOrCloneDefaultValue());
         }
 
         public Settings Read(ObjectElement settingsObject)
@@ -128,18 +90,18 @@ namespace SolutionGen.Generator.Reader
             {
                 if (baseSettings == null)
                 {
-                    properties = defaultSettings != null
+                    Properties = defaultSettings != null
                         ? defaultSettings.CopyProperties()
                         : GetDefaultPropertiesDictionary();
                 }
                 else
                 {
-                    properties = new Dictionary<string, object>();
-                    foreach (KeyValuePair<string, PropertyDefinition> kvp in propertyDefinitionLookup)
+                    Properties = new Dictionary<string, object>();
+                    foreach (KeyValuePair<string, PropertyDefinition> kvp in PropertyDefinitionLookup)
                     {
                         if (baseSettings.TryGetProperty(kvp.Key, out object value))
                         {
-                            properties[kvp.Key] = kvp.Value.CloneValue(value);
+                            Properties[kvp.Key] = kvp.Value.CloneValue(value);
                         }
                     }
                 }
@@ -186,7 +148,7 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
 
-                ExpandVariables(properties);
+                ExpandVariables(Properties);
 
                 Log.WriteLine("Finished reading settings element:");
                 Log.WriteIndentedCollection(
@@ -194,7 +156,7 @@ namespace SolutionGen.Generator.Reader
                     kvp => string.Format("{0} => {1}",
                         kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)));
 
-                return new Settings(properties, configurationGroups);
+                return new Settings(Properties, configurationGroups, GetPropertyDefinition);
             }
         }
 
@@ -221,7 +183,7 @@ namespace SolutionGen.Generator.Reader
 
         private IEnumerable<KeyValuePair<string, object>> GetVisitedProperties()
         {
-            return properties.Where(kvp => visitedProperties.Contains(kvp.Key));
+            return Properties.Where(kvp => VisitedProperties.Contains(kvp.Key));
         }
         
         private bool ReadConfiguration(ObjectElement element)
@@ -266,7 +228,7 @@ namespace SolutionGen.Generator.Reader
 
         private bool ReadProperty(PropertyElement element)
         {
-            if (!propertyDefinitionLookup.TryGetValue(element.FullName, out PropertyDefinition definition))
+            if (!PropertyDefinitionLookup.TryGetValue(element.FullName, out PropertyDefinition definition))
             {
                 throw new UnrecognizedPropertyException(element);
             }
@@ -276,17 +238,17 @@ namespace SolutionGen.Generator.Reader
             
             if (result.HasValue)
             {
-                visitedProperties.Add(definition.Name);
+                VisitedProperties.Add(definition.Name);
                 
                 switch (definition)
                 {
                     case PropertyCollectionDefinition collectionDefinition:
                         if (element.Action == PropertyAction.Set)
                         {
-                            collectionDefinition.ClearCollection(properties[definition.Name]);
+                            collectionDefinition.ClearCollection(Properties[definition.Name]);
                         }
 
-                        object collection = properties[definition.Name];
+                        object collection = Properties[definition.Name];
                         foreach (object propertyValue in result.Value)
                         {
                             collectionDefinition.AddToCollection(collection, propertyValue);
@@ -296,10 +258,10 @@ namespace SolutionGen.Generator.Reader
                     case PropertyDictionaryDefinition dictionaryDefinition:
                         if (element.Action == PropertyAction.Set)
                         {
-                            dictionaryDefinition.ClearDictionary(properties[definition.Name]);
+                            dictionaryDefinition.ClearDictionary(Properties[definition.Name]);
                         }
 
-                        object dictionary = properties[definition.Name];
+                        object dictionary = Properties[definition.Name];
                         foreach (object value in result.Value)
                         {
                             var kvp = (Box<KeyValuePair<string, string>>) value;
@@ -314,7 +276,7 @@ namespace SolutionGen.Generator.Reader
                                 "Properties that are not a collection may only set values");
                         }
 
-                        properties[definition.Name] = result.Value.First();
+                        Properties[definition.Name] = result.Value.First();
                         break;
                 }
             }
@@ -324,7 +286,7 @@ namespace SolutionGen.Generator.Reader
 
         private bool ReadCommand(SimpleCommandElement element)
         {
-            if (!commandDefinitionLookup.TryGetValue(element.CommandName, out CommandDefinition definition))
+            if (!CommandDefinitionLookup.TryGetValue(element.CommandName, out CommandDefinition definition))
             {
                 throw new UnrecognizedCommandException(element);
             }
@@ -335,25 +297,6 @@ namespace SolutionGen.Generator.Reader
             return result.Terminate;
         }
 
-        private bool ExcludeProjectCommand(SimpleCommandElement element)
-        {
-            properties[Settings.PROP_EXCLUDE] = "true";
-            return true;
-        }
-
-        private bool ProjectDeclarationCommand(SimpleCommandElement element)
-        {
-            object projects = properties[Settings.PROP_PROJECT_DELCARATIONS];
-            var projectsDefinition =
-                (PropertyCollectionDefinition) propertyDefinitionLookup[Settings.PROP_PROJECT_DELCARATIONS];
-
-            projectsDefinition.AddToCollection(projects, element.ArgumentStr);
-
-            visitedProperties.Add(Settings.PROP_PROJECT_DELCARATIONS);
-            
-            return false;
-        }
-
         private void ExpandVariables(IDictionary<string, object> expandableProperties)
         {
             var modifiedProperties = new Dictionary<string, object>();
@@ -361,7 +304,9 @@ namespace SolutionGen.Generator.Reader
             {
                 foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
-                    object expanded = ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions);
+                    object expanded = ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions,
+                        GetPropertyDefinition);
+                    
                     modifiedProperties[kvp.Key] = expanded;
                 }
 
@@ -427,7 +372,7 @@ namespace SolutionGen.Generator.Reader
     {
         public InvalidConfigurationObjectElement(ObjectElement element, Exception innerException)
             : base($"Configuration group '{element}' contains contains invalid elements." +
-                   $"It must contain only properties that are arrays such as 'Debug = [debug,test]'",
+                   "It must contain only properties that are arrays such as \'Debug = [debug,test]\'",
                 innerException)
         {
             

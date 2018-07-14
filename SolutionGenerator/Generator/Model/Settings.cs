@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using SolutionGen.Generator.Reader;
+﻿using System;
+using System.Collections.Generic;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
@@ -35,6 +35,7 @@ namespace SolutionGen.Generator.Model
         // Why is this needed? Seems out of place. Should only store the specific Configuration that was used to produce
         // these settings. Can be null.
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
+        private readonly Func<string, PropertyDefinition> propertyDefinitionGetter;
 
         public T GetProperty<T>(string name) => (T) properties[name];
 
@@ -51,10 +52,12 @@ namespace SolutionGen.Generator.Model
         }
 
         public Settings(IReadOnlyDictionary<string, object> properties,
-            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
+            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups,
+            Func<string, PropertyDefinition> propertyDefinitionGetter)
         {
             this.properties = properties;
             ConfigurationGroups = configurationGroups;
+            this.propertyDefinitionGetter = propertyDefinitionGetter;
         }
 
         public Settings ExpandVariablesInCopy()
@@ -63,11 +66,11 @@ namespace SolutionGen.Generator.Model
             foreach (string propertyName in properties.Keys)
             {
                 copy[propertyName] = ExpandableVar.ExpandAllForProperty(propertyName, copy[propertyName],
-                    ExpandableVar.ExpandableVariables);
+                    ExpandableVar.ExpandableVariables, propertyDefinitionGetter);
 
             }
             
-            return new Settings(copy, ConfigurationGroups);
+            return new Settings(copy, ConfigurationGroups, propertyDefinitionGetter);
         }
 
         public Dictionary<string, object> CopyProperties()
@@ -75,7 +78,7 @@ namespace SolutionGen.Generator.Model
             var copy = new Dictionary<string, object>();
             foreach (KeyValuePair<string, object> kvp in properties)
             {
-                copy[kvp.Key] = SettingsReader.GetPropertyDefinition(kvp.Key).CloneValue(kvp.Value);
+                copy[kvp.Key] = propertyDefinitionGetter(kvp.Key).CloneValue(kvp.Value);
             }
 
             return copy;

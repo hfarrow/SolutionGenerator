@@ -66,7 +66,7 @@ namespace SolutionGen.Generator.Reader
                 baseTemplate?.Configurations[configuration].Settings
                     .TryGetValue(ROOT_SETTINGS_NAME, out rootBaseSettings);
 
-                var rootReader = new SettingsReader(configuration, rootBaseSettings, null);
+                var rootReader = new ProjectSettingsReader(configuration, rootBaseSettings, null);
                 Settings rootSettings = rootReader.Read(templateElement);
 
                 if (!rootSettings.TryGetProperty(Settings.PROP_PROJECT_DELCARATIONS, out HashSet<string> declarations))
@@ -139,7 +139,7 @@ namespace SolutionGen.Generator.Reader
                                 Log.WriteLine("Re-reading template settings of same name '{0}' for base settings (3.a)",
                                     settingsName);
                                 baseSettings =
-                                    new SettingsReader(configuration, inheritedSettings, defaultSettings).Read(sourceElement);
+                                    new ProjectSettingsReader(configuration, inheritedSettings, defaultSettings).Read(sourceElement);
                             }
                             // b. Template does not contain settings same name so use the inheritedSettings
                             else
@@ -153,7 +153,7 @@ namespace SolutionGen.Generator.Reader
                         }
 
                         settingsLookup[settingsName] =
-                            new SettingsReader(configuration, baseSettings, defaultSettings).Read(objElement);
+                            new ProjectSettingsReader(configuration, baseSettings, defaultSettings).Read(objElement);
                     }
                 }
 

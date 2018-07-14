@@ -124,9 +124,10 @@ namespace SolutionGen.Utils
         }
 
         public static object ExpandAllForProperty(string propertyName, object obj,
-            IReadOnlyDictionary<string, string> varExpansions)
+            IReadOnlyDictionary<string, string> varExpansions,
+            Func<string, PropertyDefinition> propertyDefinitionGetter)
         {
-            PropertyDefinition definition = SettingsReader.GetPropertyDefinition(propertyName);
+            PropertyDefinition definition = propertyDefinitionGetter(propertyName);
 
             bool didExpand = false;
             obj = varExpansions.Aggregate(obj,
@@ -142,11 +143,6 @@ namespace SolutionGen.Utils
             }
             
             return obj;
-        }
-
-        public static void ExpandModuleNameInPlace(object obj, string moduleName)
-        {
-            ExpandInPlace(obj, VAR_MODULE_NAME, moduleName);
         }
         
         public static object ExpandModuleNameInCopy(object obj, string moduleName)

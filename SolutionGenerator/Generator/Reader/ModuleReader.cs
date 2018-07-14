@@ -4,7 +4,6 @@ using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
-using Path = System.IO.Path;
 
 namespace SolutionGen.Generator.Reader
 {
@@ -115,7 +114,6 @@ namespace SolutionGen.Generator.Reader
                             idLookup[projectName] = id;
                         }
 
-                        // TODO: set guid from project settings object
                         var project = new Project(solution, moduleName, id, config, projectSettings);
 
                         projects.Add(project);
