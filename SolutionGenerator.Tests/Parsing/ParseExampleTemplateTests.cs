@@ -199,13 +199,13 @@ namespace SolutionGen.Tests.Parsing
             {
                 Assert.IsType<ConditionalBlockElement>(element);
                 var block = (ConditionalBlockElement) element;
-                Assert.Equal(1, block.Elements.Count());
-                Assert.Equal(block.ConditionalExpression, "true");
+                Assert.Single(block.Elements);
+                Assert.Equal("true", block.ConditionalExpression);
                 ConfigElement innerElement = block.Elements.First();
                 Assert.IsType<ConditionalBlockElement>(innerElement);
                 var innerBlock = (ConditionalBlockElement) innerElement;
-                Assert.Equal(1, innerBlock.Elements.Count());
-                Assert.Equal(innerBlock.ConditionalExpression, "true");
+                Assert.Single(innerBlock.Elements);
+                Assert.Equal("true", innerBlock.ConditionalExpression);
                 ConfigElement propertyElement = innerBlock.Elements.First();
                 Assert.IsType<PropertyElement>(propertyElement);
                 var property = (PropertyElement) propertyElement;

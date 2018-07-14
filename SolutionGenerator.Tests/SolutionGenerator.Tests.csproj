@@ -5,7 +5,7 @@
     <RootNamespace>SolutionGenerator.Tests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
@@ -40,5 +40,11 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="SolutionGenerator.Tests.xunit.runner.json" />
+    <Content Include="SolutionGenerator.Tests.xunit.runner.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 </Project>

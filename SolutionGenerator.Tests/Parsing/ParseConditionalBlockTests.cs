@@ -49,7 +49,7 @@ namespace SolutionGen.Tests.Parsing
 
             ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
             
-            Assert.Equal(1, block.Elements.Count());
+            Assert.Single(block.Elements);
             ConfigElement element = block.Elements.ElementAt(0);
             Assert.IsType<ObjectElement>(element);
             var obj = (ObjectElement) element;
@@ -70,7 +70,7 @@ namespace SolutionGen.Tests.Parsing
 
             ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
             
-            Assert.Equal(1, block.Elements.Count());
+            Assert.Single(block.Elements);
             ConfigElement element = block.Elements.ElementAt(0);
             Assert.IsType<ConditionalBlockElement>(element);
         }

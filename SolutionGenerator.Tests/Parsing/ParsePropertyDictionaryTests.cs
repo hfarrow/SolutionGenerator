@@ -44,7 +44,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.Equal("<inline>", obj.ElementHeading.Type);
             Assert.Empty(obj.ElementHeading.Name);
             Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Equal(1, obj.Elements.Count());
+            Assert.Single(obj.Elements);
 
             var innerProperty = obj.Elements.First() as PropertyElement;
             Assert.NotNull(innerProperty);
@@ -79,7 +79,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.Equal("<inline>", obj.ElementHeading.Type);
             Assert.Empty(obj.ElementHeading.Name);
             Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Equal(1, obj.Elements.Count());
+            Assert.Single(obj.Elements);
 
             var innerProperty = obj.Elements.First() as PropertyElement;
             Assert.NotNull(innerProperty);
@@ -109,7 +109,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.Equal("<inline>", obj.ElementHeading.Type);
             Assert.Empty(obj.ElementHeading.Name);
             Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Equal(1, obj.Elements.Count());
+            Assert.Single(obj.Elements);
             
             var innerProperty = obj.Elements.First() as PropertyElement;
             Assert.NotNull(innerProperty);
@@ -122,7 +122,7 @@ namespace SolutionGen.Tests.Parsing
             Assert.Equal("<inline>", innerObj.ElementHeading.Type);
             Assert.Empty(innerObj.ElementHeading.Name);
             Assert.Null(innerObj.ElementHeading.InheritedObjectName);
-            Assert.Equal(1, innerObj.Elements.Count());
+            Assert.Single(innerObj.Elements);
 
             var innerInnerProperty = innerObj.Elements.First() as PropertyElement;
             Assert.NotNull(innerInnerProperty);
