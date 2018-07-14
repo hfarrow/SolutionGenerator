@@ -23,9 +23,9 @@ namespace SolutionGen.Tests.Parsing
             const string input =
                 "lib refs +=\n" +
                 "[\n" +
-                "    Test/Path/A\n" +
-                "    Test/Path/B\n" +
-                "    Test/Path/C\n" +
+                "    Test/Path/A,\n" +
+                "    Test/Path/B,\n" +
+                "    Test/Path/C,\n" +
                 "]";
 
             ConfigElement element = DocumentParser.ObjectElement.Parse(input);

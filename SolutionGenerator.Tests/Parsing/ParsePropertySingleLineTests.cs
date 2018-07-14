@@ -7,7 +7,7 @@ namespace SolutionGen.Tests.Parsing
 {
     public class ParsePropertySingleLineTests
     {
-        private BooleanExpressionParser parser = new BooleanExpressionParser();
+        private readonly BooleanExpressionParser parser = new BooleanExpressionParser();
         
         [Theory]
         [InlineData("templates = glob \"**/*.txt\"\n")]

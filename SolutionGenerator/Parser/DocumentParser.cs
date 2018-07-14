@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using SolutionGen.Parser.Model;
 using Sprache;
 
@@ -43,24 +42,26 @@ namespace SolutionGen.Parser
                 from body in BasicParser.EnclosedText('(', ')')
                 select body.Substring(1, body.Length - 2))
             .Token().Named("conditional-expression");
-
-        public static readonly Parser<ValueElement> Value =
-            (from arrayEnd in Parse.Char(']').Not()
-                from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
-                    .Or(BasicParser.GlobValue)
-                    .Or(BasicParser.NoneValue)
-                    .Or(PairValue)
-                    .Or(Parse.AnyChar.Except(Parse.String("]").Or(Parse.LineTerminator)).AtLeastOnce().Text()
-                        .Select(txt => new ValueElement(txt)))
-                select value)
-            .Token().Named("value-element");
-
+        
         public static readonly Parser<Model.KeyValuePair> PairValue =
             (from key in BasicParser.IdentifierToken
                 from delimiter in Parse.Char(':')
                 from value in Value
                 select new Model.KeyValuePair(key, value))
             .Token().Named("pair-value");
+
+        public static readonly Parser<ValueElement> Value =
+            (from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
+                    .Or(BasicParser.GlobValue)
+                    .Or(BasicParser.NoneValue)
+                    .Or(PairValue)
+                    // Unquoted Text
+                    .Or(Parse.AnyChar.Except(
+                            Parse.String(",").Or(Parse.String("]").Or(Parse.LineTerminator)))
+                        .AtLeastOnce().Text().Select(txt => new ValueElement(txt)))
+                select value)
+            .Token().Named("value-element");
+
 
         public static readonly Parser<PropertyElement> PropertySingleLine =
             (from conditional in ConditionalExpression.Optional()
@@ -69,14 +70,19 @@ namespace SolutionGen.Parser
                 from value in Value
                 select new PropertyElement(action, nameParts, value, conditional.GetOrElse("true")))
             .Token().Named("single-line-property");
+
+        public static readonly Parser<string> ArrayEnd =
+            from comma in Parse.Char(',').Token().Optional()
+            from bracket in Parse.Char(']')
+            select string.Empty;
         
         public static Parser<IEnumerable<T>> StronglyTypedArray<T>(Parser<T> valueParser)
             where T : ValueElement
         {
             return (from lbraket in Parse.Char('[')
-                    from values in valueParser.Token().XMany().Token()
-                    from rbracket in Parse.Char(']')
-                    select values)
+                    from values in valueParser.DelimitedBy(Parse.Char(',').Token()).Optional().Token()
+                    from rbracket in ArrayEnd
+                    select values.GetOrElse(new T[0]))
                 .Token().Named("typed-array");
         }
 
@@ -92,13 +98,6 @@ namespace SolutionGen.Parser
                 select new PropertyElement(action, nameParts, new ArrayValue(values),
                     conditional.GetOrElse("true")))
             .Token().Named("array-property");
-
-        public static readonly Parser<ConfigurationGroupElement> ConfigurationGroup =
-            (from cmd in Parse.String("configuration").Token()
-                from configName in BasicParser.IdentifierToken.Token()
-                from values in StronglyTypedArray(PairValue)
-                select new ConfigurationGroupElement(configName, values))
-            .Token().Named("configuration-element");
         
         public static readonly Parser<SimpleCommandElement> SimpleCommand =
             (from conditional in ConditionalExpression.Optional()
@@ -129,7 +128,6 @@ namespace SolutionGen.Parser
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertyArray
                     .Or((Parser<ConfigElement>)PropertySingleLine)
-                    .Or(ConfigurationGroup)
                     .Or(ConditionalBlockElement)
                     .Or(Object)
                     .Or(SimpleCommand)

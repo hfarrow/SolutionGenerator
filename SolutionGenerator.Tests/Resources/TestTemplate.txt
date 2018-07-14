@@ -14,25 +14,25 @@ template TestTemplate
 
         lib refs +=
         [
-            Lib1.dll
-            Lib2.dll
+            Lib1.dll,
+            Lib2.dll,
         ]
 
         define constants +=
         [
-            DEFINE_A
-            DEFINE_B
+            DEFINE_A,
+            DEFINE_B,
         ]
 
         if (debug) define constants +=
         [
-            DEBUG
-            TRACE
+            DEBUG,
+            TRACE,
         ]
 
         if (release) define constants +=
         [
-            RELEASE
+            RELEASE,
         ]
         
         if (true)
@@ -54,7 +54,7 @@ template TestTemplate
 
         project refs +=
         [
-            $(MODULE_NAME)
+            $(MODULE_NAME),
         ]
     }
 }

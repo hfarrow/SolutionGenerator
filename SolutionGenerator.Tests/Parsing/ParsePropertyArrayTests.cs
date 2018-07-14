@@ -9,13 +9,27 @@ namespace SolutionGen.Tests.Parsing
     public class ParsePropertyArrayTests
     {
         [Fact]
+        public void SingleLineArrayCanBeParsed()
+        {
+            const string input =
+                "lib refs += [Test/Path/A, Test/Path/B, Test/Path/C]";
+
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Equal(3, array.Values.Count());
+            Assert.Equal("Test/Path/A", array.Values.ElementAt(0).Value);
+            Assert.Equal("Test/Path/C", array.Values.ElementAt(2).Value);
+        }
+        
+        [Fact]
         public void MultiLineArrayCanBeParsed()
         {
             const string input =
                 "lib refs +=\n" +
                 "[\n" +
-                "    Test/Path/A\n" +
-                "    Test/Path/B\n" +
+                "    Test/Path/A,\n" +
+                "    Test/Path/B,\n" +
                 "    Test/Path/C\n" +
                 "]";
 
@@ -28,10 +42,40 @@ namespace SolutionGen.Tests.Parsing
         }
 
         [Fact]
+        public void TrailingCommaAfterLastElementSingleLineCanBeParsed()
+        {
+            const string input =
+                "lib refs += [Test/Path/A, Test/Path/B,]";
+            
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Equal(2, array.Values.Count());
+            Assert.Equal("Test/Path/A", array.Values.First().Value);
+        }
+        
+        [Fact]
+        public void TrailingCommaAfterLastElementMultiLineCanBeParsed()
+        {
+            const string input =
+                "lib refs +=\n" +
+                "[\n" +
+                "    Test/Path/A,\n" +
+                "    Test/Path/B,\n" +
+                "]";
+            
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Equal(2, array.Values.Count());
+            Assert.Equal("Test/Path/A", array.Values.First().Value);
+        }
+
+        [Fact]
         public void EmptySingleLineArrayCanBeParsed()
         {
             const string input = "lib refs += [ ]";
-            
+
             PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
             var array = propertyElement.ValueElement as ArrayValue;
             Assert.NotNull(array);

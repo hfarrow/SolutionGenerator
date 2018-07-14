@@ -1,20 +1,20 @@
 solution MySolution
 {
     configuration everything
-    [
-        Debug: debug,test
-        Release: release
-    ]
+    {
+        Debug = [debug,test]
+        Release = [release]
+    }
 
     configuration no-tests
-    [
-        Debug: debug
-        Release: release
-    ]
+    {
+        Debug = [debug]
+        Release = [release]
+    }
 
     target platforms =
     [
-        Any CPU
+        Any CPU,
     ]
 
     settings template.defaults
@@ -58,7 +58,7 @@ module MyOtherModule : MyTemplate
 
         project refs +=
         [
-            MyModule
+            MyModule,
         ]
     }
 
@@ -68,7 +68,7 @@ module MyOtherModule : MyTemplate
 
         project refs +=
         [
-            MyModule.Tests
+            MyModule.Tests,
         ]
     }
 }
@@ -83,20 +83,20 @@ template MyTemplate
         include files = glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
         exclude files =
         [
-            glob "**/Tests/**"
-            glob "**/obj/**"
+            glob "**/Tests/**",
+            glob "**/obj/**",
         ]
 
         lib refs +=
         [
-            Lib1.dll
-            Lib2.dll
+            Lib1.dll,
+            Lib2.dll,
         ]
 
         define constants +=
         [
-            DEFINE_A
-            DEFINE_B
+            DEFINE_A,
+            DEFINE_B,
         ]
 
         if (debug)
@@ -107,8 +107,8 @@ template MyTemplate
 
             define constants +=
             [
-                DEBUG
-                TRACE
+                DEBUG,
+                TRACE,
             ]
         }
 
@@ -120,7 +120,7 @@ template MyTemplate
 
             define constants +=
             [
-                RELEASE
+                RELEASE,
             ]
         }
 
@@ -128,7 +128,7 @@ template MyTemplate
         {
             define constants +=
             [
-                TEST
+                TEST,
             ]
         }
     }
@@ -147,7 +147,7 @@ template MyTemplate
 
             project refs +=
             [
-                $(MODULE_NAME)
+                $(MODULE_NAME),
             ]
         }
     }

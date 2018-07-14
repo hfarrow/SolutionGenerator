@@ -150,10 +150,12 @@ namespace SolutionGen.Generator.Reader
                     bool terminate;
                     switch (element)
                     {
-                        case ConfigurationGroupElement configurationElement:
-                            terminate = ReadConfiguration(configurationElement);
+                        case ObjectElement objElement
+                            when element is ObjectElement
+                                 && objElement.ElementHeading.Type == SectionType.CONFIGURATION:
+                            terminate = ReadConfiguration(objElement);
                             break;
-
+                        
                         case PropertyElement propertyElement when element is PropertyElement:
                             terminate = ReadProperty(propertyElement);
                             break;
@@ -161,9 +163,12 @@ namespace SolutionGen.Generator.Reader
                         case SimpleCommandElement cmdElement when element is SimpleCommandElement:
                             terminate = ReadCommand(cmdElement);
                             break;
-
-                        // Skip object elements as they cannot be nested but the root template settings also use this code.
+                        
                         case ObjectElement _ when element is ObjectElement:
+                            // settings objects do not have nested objects; however, SettingsReader is also used to read
+                            // other object types such a "solution" and "module" that do have nested objects but are not
+                            // read as part of the Settings.
+                            // Note: Nested settings could be supported and would produce nested dictionaries in 'properties'
                             terminate = false;
                             break;
 
@@ -219,23 +224,39 @@ namespace SolutionGen.Generator.Reader
             return properties.Where(kvp => visitedProperties.Contains(kvp.Key));
         }
         
-        private bool ReadConfiguration(ConfigurationGroupElement element)
+        private bool ReadConfiguration(ObjectElement element)
         {
             Log.WriteLine("Reading configuration declaration: {0}", element);
 
             using (new Log.ScopedIndent())
             {
-                if (configurationGroups.TryGetValue(element.ConfigurationGroupName,
+                if (configurationGroups.TryGetValue(element.ElementHeading.Name,
                     out ConfigurationGroup existingGroup))
                 {
                     throw new DuplicateConfigurationGroupNameException(element, existingGroup);
                 }
 
-                var group = new ConfigurationGroup(element.ConfigurationGroupName,
-                    element.Configurations.ToDictionary(kvp => kvp.Key,
-                        kvp => new Configuration(element.ConfigurationGroupName, kvp.Key, kvp.Value)));
+                ConfigurationGroup group;
+                try
+                {
+                    Dictionary<string, Configuration> configurationMap = element.Elements
+                        .Cast<PropertyElement>()
+                        .Select(p => new Configuration(element.ElementHeading.Name, p.FullName,
+                            ((ArrayValue) p.ValueElement).Values
+                            .Select(v => v.ToString())
+                            .Concat(new []{element.ElementHeading.Name})
+                            .ToHashSet()))
+                        .ToDictionary(cfg => cfg.Name, cfg => cfg);
+                    
+                    group = new ConfigurationGroup(element.ElementHeading.Name,
+                        configurationMap);
+                }
+                catch (Exception ex)
+                {
+                    throw new InvalidConfigurationObjectElement(element, ex);
+                }
+
                 configurationGroups[group.Name] = group;
-                
                 Log.WriteLine("Read configuration: {0}", group);
 
                 // Never terminate
@@ -392,13 +413,25 @@ namespace SolutionGen.Generator.Reader
     
     public sealed class DuplicateConfigurationGroupNameException : Exception
     {
-        public DuplicateConfigurationGroupNameException(ConfigurationGroupElement newGroup, ConfigurationGroup existingGroup)
+        public DuplicateConfigurationGroupNameException(ObjectElement newGroup, ConfigurationGroup existingGroup)
             : base(string.Format("A configuration group name '{0}' has already been defined:\n" +
                                  "Existing group:\n{1}\n" +
                                  "Duplicate group:\n{2}",
-                newGroup.ConfigurationGroupName, existingGroup, newGroup))
+                newGroup.ElementHeading.Name, existingGroup, newGroup))
         {
             
         }
+    }
+
+    public sealed class InvalidConfigurationObjectElement : Exception
+    {
+        public InvalidConfigurationObjectElement(ObjectElement element, Exception innerException)
+            : base($"Configuration group '{element}' contains contains invalid elements." +
+                   $"It must contain only properties that are arrays such as 'Debug = [debug,test]'",
+                innerException)
+        {
+            
+        }
+        
     }
 }
