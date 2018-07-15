@@ -1,0 +1,79 @@
+template MyTemplate
+{
+    project "$(MODULE_NAME) : project"
+    project "$(MODULE_NAME).Tests : project.tests"
+
+    settings project
+    {
+        include files = glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
+        exclude files =
+        [
+            glob "**/Tests/**",
+            glob "**/obj/**",
+        ]
+
+        lib refs +=
+        [
+            Lib1.dll,
+            Lib2.dll,
+        ]
+
+        define constants +=
+        [
+            DEFINE_A,
+            DEFINE_B,
+        ]
+
+        if (debug)
+        {
+            debug symbols = true
+            debug type = full
+            optimize = false
+
+            define constants +=
+            [
+                DEBUG,
+                TRACE,
+            ]
+        }
+
+        if (release)
+        {
+            debug symbols = false
+            debug type = pdbonly
+            optimize = true
+
+            define constants +=
+            [
+                RELEASE,
+            ]
+        }
+
+        if (test)
+        {
+            define constants +=
+            [
+                TEST,
+            ]
+        }
+    }
+
+    settings project.tests : project
+    {
+        // Clear the inherited files
+        include files = none
+        exclude files = none
+
+        if (no-tests) exclude
+
+        if (test)
+        {
+            include files = glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
+
+            project refs +=
+            [
+                $(MODULE_NAME),
+            ]
+        }
+    }
+}

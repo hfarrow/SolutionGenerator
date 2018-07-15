@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SolutionGen.Generator.Model;
 using GLOB = Glob.Glob;
 
 namespace SolutionGen.Utils

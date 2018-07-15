@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 
@@ -15,26 +16,37 @@ namespace SolutionGen.Generator.Reader
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
         
+        public ObjectElement SolutionElement { get; private set; }
+
+        public IReadOnlyList<ObjectElement> TemplateElements => templateElements;
+        public IReadOnlyList<ObjectElement> ModuleElements => moduleElements;
+        private readonly List<ObjectElement> templateElements = new List<ObjectElement>();
+        private readonly List<ObjectElement> moduleElements = new List<ObjectElement>();
+        
         public DocumentReader(ConfigDocument configDoc, string solutionConfigDir)
         {
             this.configDoc = configDoc;
             SolutionConfigDir = solutionConfigDir;
-            ProcessSolutionDocument();
         }
 
-        private void ProcessSolutionDocument()
+        public void ReadAsMainDocument()
         {
-            var moduleElements = new List<ObjectElement>();
-            var templateElements = new List<ObjectElement>();
-            
+            ParseElements();           
+            solutionReader = new SolutionReader(SolutionElement, SolutionConfigDir);
+            Solution = solutionReader.Solution;
+            ReadTemplates(TemplateElements.Concat(solutionReader.IncludedTemplates));
+            ReadModules(ModuleElements.Concat(solutionReader.IncludedModules));
+        }
+        
+        public void ParseElements()
+        {
             foreach (ConfigElement element in configDoc.RootElements)
             {
                 if (element is ObjectElement obj)
                 {
                     if (obj.ElementHeading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
                     {
-                        solutionReader = new SolutionReader(obj, SolutionConfigDir);
-                        Solution = solutionReader.Solution;
+                        SolutionElement = obj;
                     }
                     else if (obj.ElementHeading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
                     {
@@ -51,12 +63,9 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
             }
-            
-            ProcessTemplates(templateElements);
-            ProcessModules(moduleElements);
         }
 
-        private void ProcessTemplates(IEnumerable<ObjectElement> templateElements)
+        private void ReadTemplates(IEnumerable<ObjectElement> templateElements)
         {
             var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
 
@@ -75,7 +84,7 @@ namespace SolutionGen.Generator.Reader
             }
         }
         
-        private void ProcessModules(IEnumerable<ObjectElement> moduleElements)
+        private void ReadModules(IEnumerable<ObjectElement> moduleElements)
         {
             var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
             var reader = new ModuleReader(Solution, Templates);

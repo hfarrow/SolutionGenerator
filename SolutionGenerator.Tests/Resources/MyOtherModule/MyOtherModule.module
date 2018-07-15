@@ -1,0 +1,22 @@
+module MyOtherModule : MyTemplate
+{
+    settings project
+    {
+        guid = 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
+
+        project refs +=
+        [
+            MyModule,
+        ]
+    }
+
+    settings project.tests : project
+    {
+        guid = 4053B07E-0E18-4F56-9A9D-30CAE83364B5
+
+        project refs +=
+        [
+            MyModule.Tests,
+        ]
+    }
+}

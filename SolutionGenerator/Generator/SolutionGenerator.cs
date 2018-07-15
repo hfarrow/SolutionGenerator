@@ -62,6 +62,7 @@ namespace SolutionGen
 
                 ConfigDoc = result.Value;
                 Reader = new DocumentReader(ConfigDoc, rootDir);
+                Reader.ReadAsMainDocument();
 
                 Log.WriteLine("Finished parsing solution named '{0}'", Reader.Solution.Name);
             }

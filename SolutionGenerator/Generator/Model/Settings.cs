@@ -32,6 +32,8 @@ namespace SolutionGen.Generator.Model
         // Solution
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_CONFIGURATIONS = "configurations";
+        public const string PROP_INCLUDE_TEMPLATES = "include templates";
+        public const string PROP_INCLUDE_MODULES = "include modules";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         

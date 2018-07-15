@@ -38,121 +38,14 @@ solution MySolution
         warning level = 4
         platform target = AnyCPU
     }
+
+    include templates =
+    [
+        glob "Resources/Templates/**/*.template"
+    ]
+
+    include modules =
+    [
+        glob "Resources/**/*.module"
+    ]
 }
-
-module MyModule : MyTemplate
-{
-    settings project
-    {
-        guid = 8CA3145D-B47F-4355-808A-2C08F48EB061
-    }
-
-    settings project.tests : project
-    {
-        guid = 3B8C3242-A267-4E63-9AE2-7099ACB9F730
-    }
-}
-
-module MyOtherModule : MyTemplate
-{
-    settings project
-    {
-        guid = 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
-
-        project refs +=
-        [
-            MyModule,
-        ]
-    }
-
-    settings project.tests : project
-    {
-        guid = 4053B07E-0E18-4F56-9A9D-30CAE83364B5
-
-        project refs +=
-        [
-            MyModule.Tests,
-        ]
-    }
-}
-
-template MyTemplate
-{
-    project "$(MODULE_NAME) : project"
-    project "$(MODULE_NAME).Tests : project.tests"
-
-    settings project
-    {
-        include files = glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
-        exclude files =
-        [
-            glob "**/Tests/**",
-            glob "**/obj/**",
-        ]
-
-        lib refs +=
-        [
-            Lib1.dll,
-            Lib2.dll,
-        ]
-
-        define constants +=
-        [
-            DEFINE_A,
-            DEFINE_B,
-        ]
-
-        if (debug)
-        {
-            debug symbols = true
-            debug type = full
-            optimize = false
-
-            define constants +=
-            [
-                DEBUG,
-                TRACE,
-            ]
-        }
-
-        if (release)
-        {
-            debug symbols = false
-            debug type = pdbonly
-            optimize = true
-
-            define constants +=
-            [
-                RELEASE,
-            ]
-        }
-
-        if (test)
-        {
-            define constants +=
-            [
-                TEST,
-            ]
-        }
-    }
-
-    settings project.tests : project
-    {
-        // Clear the inherited files
-        include files = none
-        exclude files = none
-
-        if (no-tests) exclude
-
-        if (test)
-        {
-            include files = glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
-
-            project refs +=
-            [
-                $(MODULE_NAME),
-            ]
-        }
-    }
-}
-

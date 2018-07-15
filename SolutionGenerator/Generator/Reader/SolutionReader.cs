@@ -1,24 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
+using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
+using Sprache;
 
 namespace SolutionGen.Generator.Reader
 {
     public class SolutionReader
     {
         private const string DEFAULT_TEMPLATE_SETTINGS = "template.defaults";
-        
-        private readonly ObjectElement solutionElement;
+
         public Solution Solution { get; }
         public Settings TemplateDefaultSettings { get; }
+        public List<ObjectElement> IncludedTemplates { get; }
+        public List<ObjectElement> IncludedModules { get; }
 
         public SolutionReader(ObjectElement solutionElement, string solutionConfigDir)
         {
-            this.solutionElement = solutionElement;
-            
             Log.WriteLine("Reading solution element: {0}", solutionElement);
             using (new Log.ScopedIndent(true))
             {
@@ -59,12 +62,15 @@ namespace SolutionGen.Generator.Reader
                                 .Read(settingsElement);
                     }
                 }
+
+                IncludedTemplates = GetIncludedTemplates();
+                IncludedModules = GetIncludedModules();
             }
         }
 
         private static Dictionary<string, ConfigurationGroup> GetConfigurationGroups(Settings settings)
         {
-            Dictionary<string, object> property = settings.GetProperty<Dictionary<string, object>>(Settings.PROP_CONFIGURATIONS);
+            var property = settings.GetProperty<Dictionary<string, object>>(Settings.PROP_CONFIGURATIONS);
             var groups = new Dictionary<string, ConfigurationGroup>();
 
             foreach (KeyValuePair<string,object> kvp in property)
@@ -92,6 +98,57 @@ namespace SolutionGen.Generator.Reader
             }
 
             return groups;
+        }
+
+        private List<ObjectElement> GetIncludedTemplates()
+        {
+            Log.WriteLine("Loading included templates");
+            return GetIncludedElements(Settings.PROP_INCLUDE_TEMPLATES, r => r.TemplateElements);
+        }
+        
+        private List<ObjectElement> GetIncludedModules()
+        {
+            Log.WriteLine("Loading included modules");
+            return GetIncludedElements(Settings.PROP_INCLUDE_MODULES, r => r.ModuleElements);
+        }
+
+        private List<ObjectElement> GetIncludedElements(string pathsPropertyName,
+            Func<DocumentReader, IEnumerable<ObjectElement>> elementSelector)
+        {
+            using (new Log.ScopedIndent(true))
+            {
+                IEnumerable<ObjectElement> modules = new List<ObjectElement>();
+                var includes = Solution.Settings.GetProperty<HashSet<IPath>>(pathsPropertyName);
+                HashSet<string> includePaths = FileUtil.GetFiles(Solution.SolutionConfigDir, includes, null);
+
+                foreach (string includePath in includePaths)
+                {
+                    DocumentReader reader = ParseInclude(includePath);
+                    reader.ParseElements();
+                    modules = modules.Concat(elementSelector(reader));
+                }
+
+                return modules.ToList();
+            }
+        }
+
+        private DocumentReader ParseInclude(string filePath)
+        {
+            Log.WriteLine("Parsing included document at path '{0}'", filePath);
+            using (new Log.ScopedIndent())
+            {
+                string configText = File.ReadAllText(filePath);
+                IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
+                if (!result.WasSuccessful)
+                {
+                    throw new DataException($"Included document could not be parsed: {result}");
+                }
+
+                ConfigDocument configDoc = result.Value;
+                var reader = new DocumentReader(configDoc, Solution.SolutionConfigDir);
+                Log.WriteLine("Finished parsing included document at path '{0}'", filePath);
+                return reader;
+            }
         }
     }
     

@@ -54,64 +54,16 @@ namespace SolutionGen.Generator.Model
             var excludeFilesValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_EXCLUDE_FILES);
             var libRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
-            var includePatterns = new HashSet<string>();
-            var excludePatterns = new HashSet<string>();
-            var includeFiles = new HashSet<string>();
-            var excludeFiles = new HashSet<string>();
-            
-            ProcessFileValues(includeFilesValues, includeFiles, includePatterns);
-            ProcessFileValues(excludeFilesValues, excludeFiles, excludePatterns);
-
-            var glob = new Utils.Glob(includePatterns, excludePatterns);
-            // TODO: cache all files under RootPath instead of using DirectoryInfo
-            string[] matches =
-                glob.FilterMatches(new DirectoryInfo(Solution.SolutionConfigDir)).ToArray();
 
             Log.WriteLine(
                 "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
             
-            using (new Log.ScopedIndent())
-            {
-                Log.WriteLine("include patterns:");
-                Log.WriteIndentedCollection(includePatterns, s => s);
-                Log.WriteLine("exclude patterns:");
-                Log.WriteIndentedCollection(excludePatterns, s => s);
-                Log.WriteLine("matched files:");
-                Log.WriteIndentedCollection(matches, s => s);
-            }
-
-            IncludeFiles = includeFiles
-                .Concat(matches)
-                .Except(excludeFiles)
-                .ToHashSet();
+            IncludeFiles = FileUtil.GetFiles(Solution.SolutionConfigDir, includeFilesValues, excludeFilesValues);
             
             LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
             ProjectRefs = projectRefsValues
                 .ToHashSet();
-        }
-
-        private void ProcessFileValues(IEnumerable<object> filesValues, ISet<string> files, ISet<string> globs)
-        {
-            foreach (object includeFilesValue in filesValues)
-            {
-                object includeFilesValueCopy = ExpandableVar.ExpandModuleNameInCopy(includeFilesValue, ModuleName);
-                
-                switch (includeFilesValueCopy)
-                {
-                    case GlobPath glob when includeFilesValueCopy is GlobPath:
-                        globs.Add(glob.Value);
-                        break;
-                    case LiteralPath file when includeFilesValueCopy is LiteralPath:
-                        files.Add(file.Value);
-                        break;
-                    default:
-                        Log.WriteLineWarning(
-                            "Unrecognized include files value type will be skipped: " +
-                            includeFilesValue.GetType().FullName);
-                        break;
-                }
-            }
         }
     }
 }

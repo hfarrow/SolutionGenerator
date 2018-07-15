@@ -20,7 +20,10 @@ namespace SolutionGen.Generator.Reader
                         ["Debug"] = new HashSet<string> {"debug"},
                         ["Release"] = new HashSet<string> {"release"},
                     }
-                })
+                }),
+            
+            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_TEMPLATES),
+            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_MODULES),
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =
