@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using SolutionGen.Parser.Model;
 using Sprache;
 
@@ -81,12 +82,14 @@ namespace SolutionGen.Parser
         /// <summary>
         /// Parse text enclosed within double quotations. Does not allow for escaped quotes within the text.
         /// <remarks>
-        /// quoted-text = """ *CHAR """
+        /// quoted-text = """ *(CHAR / "\") """
         /// </remarks>
         /// </summary>
         public static readonly Parser<string> QuotedText =
             (from open in Parse.Char('"')
-                from content in Parse.CharExcept('"').XMany().Text()
+                from content in
+                    Parse.String("\\\"").Return('"').Or(Parse.CharExcept('"'))
+                        .Many().Text()
                 from close in Parse.Char('"')
                 select content)
             .Token().Named("quoted-text");
