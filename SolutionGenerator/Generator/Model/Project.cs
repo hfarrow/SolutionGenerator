@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using SolutionGen.Utils;
 
@@ -32,9 +31,9 @@ namespace SolutionGen.Generator.Model
         public string AbsoluteSourcePath => id.SourcePath;
         public string RelativeSourcePath { get; }
         
-        public IReadOnlyCollection<string> IncludeFiles { get; private set; }
-        public IReadOnlyCollection<string> LibRefs { get; private set; }
-        public IReadOnlyCollection<string> ProjectRefs { get; private set; }
+        public IReadOnlyCollection<string> IncludeFiles { get; }
+        public IReadOnlyCollection<string> LibRefs { get; }
+        public IReadOnlyCollection<string> ProjectRefs { get; }
 
         private readonly Identifier id;
 
@@ -50,16 +49,17 @@ namespace SolutionGen.Generator.Model
             RelativeSourcePath = System.IO.Path.GetRelativePath(Solution.SolutionConfigDir, AbsoluteSourcePath);
             
             // Include files, exclude files, lib refs
-            var includeFilesValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);
-            var excludeFilesValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_EXCLUDE_FILES);
+            var includeFilesProperty = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);
             var libRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
 
             Log.WriteLine(
                 "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
-            
-            IncludeFiles = FileUtil.GetFiles(Solution.SolutionConfigDir, includeFilesValues, excludeFilesValues);
+
+            IncludeFiles = FileUtil.GetFiles(Solution.SolutionConfigDir,
+                includeFilesProperty.Where(p => !p.Negated),
+                includeFilesProperty.Where(p => p.Negated));
             
             LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
             ProjectRefs = projectRefsValues

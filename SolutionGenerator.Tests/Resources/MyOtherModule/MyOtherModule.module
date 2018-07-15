@@ -3,6 +3,8 @@ module MyOtherModule : MyTemplate
     settings project
     {
         guid = 80F607D5-82CA-40E2-98F1-CE8B7B38AA22
+        
+        include files += Resources/$(MODULE_NAME)/LiteralInclude/LiteralInclude.cs
 
         project refs +=
         [

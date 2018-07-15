@@ -12,15 +12,24 @@ namespace SolutionGen.Generator.Reader
         {
             // Module / Project Settings
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_GUID, string.Empty),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
+            
+            new PropertyDefinition<string, StringPropertyReader>(
+                Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
+            
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_FILES,
-                new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}")}),
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_EXCLUDE_FILES),
+            
+            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(
+                Settings.PROP_INCLUDE_FILES, new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}", false)}),
+            
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_LIB_REFS),
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_DEFINE_CONSTANTS),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_DELCARATIONS),
+            
+            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(
+                Settings.PROP_DEFINE_CONSTANTS),
+            
+            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(
+                Settings.PROP_PROJECT_DELCARATIONS),
+            
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_TARGET_FRAMEWORK, "v4.6"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_LANGUAGE_VERSION, "6"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_DEBUG_SYMBOLS, "true"),

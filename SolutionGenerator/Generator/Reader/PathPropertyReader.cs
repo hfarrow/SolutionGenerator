@@ -15,25 +15,44 @@ namespace SolutionGen.Generator.Reader
             switch (element.ValueElement)
             {
                 case GlobValue glob:
-                    values.Add(new GlobPath(glob.GlobStr));
+                    values.Add(new GlobPath(glob.GlobStr, glob.Negated));
+                    break;
+                
+                case RegexValue regex:
+                    values.Add(new RegexPath(regex.RegexStr, regex.Regex, regex.Negated));
                     break;
                 
                 case ArrayValue arrayValue:
                     foreach (ValueElement arrayElement in arrayValue.Values)
                     {
-                        if (arrayElement is GlobValue glob)
+                        switch (arrayElement)
                         {
-                            values.Add(new GlobPath(glob.GlobStr));
-                        }
-                        else if(arrayElement.Value != null)
-                        {
-                            values.Add(new LiteralPath(arrayElement.Value.ToString()));
+                            case GlobValue glob:
+                                values.Add(new GlobPath(glob.GlobStr, glob.Negated));
+                                break;
+                            case RegexValue regex:
+                                values.Add(new RegexPath(regex.RegexStr, regex.Regex, regex.Negated));
+                                break;
+                            case ValueElement strElement when strElement.Value is string str:
+                                values.Add(MakeLiteralPath(str));
+                                break;
                         }
                     }
+                    break;
+                
+                case ValueElement strElement when strElement.Value is string str:
+                    values.Add(MakeLiteralPath(str));
                     break;
             }
             
             return new Result<IEnumerable<IPath>>(false, values);
+        }
+
+        private static LiteralPath MakeLiteralPath(string str)
+        {
+            bool negated = str.Trim().StartsWith('!');
+            str = negated ? str.Substring(1) : str;
+            return new LiteralPath(str, negated);
         }
     }
 }

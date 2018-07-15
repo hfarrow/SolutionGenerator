@@ -101,11 +101,31 @@ namespace SolutionGen.Parser
         /// glob = "glob" *WSP quoted-text
         /// </remarks>
         public static readonly Parser<GlobValue> GlobValue =
-            (from keyword in Parse.String("glob").Token()
+            (from negated in Parse.Char('!').Optional().Token()
+                from keyword in Parse.String("glob").Token()
                 from value in QuotedText
-                select new GlobValue(value))
+                select new GlobValue(value, negated.IsDefined))
+            .Token().Named("glob");
+        
+        /// <summary>
+        /// Parses a regular expression pattern returning only the pattern string
+        /// </summary>
+        /// <remarks>
+        /// glob = "glob" *WSP quoted-text
+        /// </remarks>
+        public static readonly Parser<RegexValue> RegexValue =
+            (from negated in Parse.Char('!').Optional().Token()
+                from keyword in Parse.String("regex").Token()
+                from value in QuotedText
+                select new RegexValue(value, negated.IsDefined))
             .Token().Named("glob");
 
+        /// <summary>
+        /// Parse the none keyword which generally repreasents nothing or an empty collection.
+        /// </summary>
+        /// <remarks>
+        /// none = "none"
+        /// </remarks>
         public static readonly Parser<ValueElement> NoneValue =
             (from none in Parse.String("none")
                 select new ValueElement(null))

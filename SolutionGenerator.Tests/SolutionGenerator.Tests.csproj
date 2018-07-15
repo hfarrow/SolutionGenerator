@@ -46,6 +46,11 @@
     <None Update="Resources\MyOtherModule\MyOtherModule.module">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Compile Remove="Resources\MyOtherModule\Code\LiteralInclude.cs" />
+    <Compile Remove="Resources\MyOtherModule\LiteralInclude\LiteralInclude.cs" />
+    <None Include="Resources\MyOtherModule\LiteralInclude\LiteralInclude.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />

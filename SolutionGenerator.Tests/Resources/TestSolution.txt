@@ -25,7 +25,6 @@ solution MySolution
         root namespace = $(SOLUTION_NAME).$(PROJECT_NAME)
         module source path = Resources/$(MODULE_NAME)
         include files = glob ".{cs,txt,json,xml,md}"
-        exclude files = none
         lib refs = none
         project refs = none
         define constants = none
@@ -38,14 +37,7 @@ solution MySolution
         warning level = 4
         platform target = AnyCPU
     }
-
-    include templates =
-    [
-        glob "Resources/Templates/**/*.template"
-    ]
-
-    include modules =
-    [
-        glob "Resources/**/*.module"
-    ]
+    
+    include templates = glob "Resources/Templates/**/*.template"
+    include modules = glob "Resources/**/*.module"
 }

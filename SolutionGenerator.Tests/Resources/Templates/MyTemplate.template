@@ -5,11 +5,12 @@ template MyTemplate
 
     settings project
     {
-        include files = glob "Resources/$(MODULE_NAME)/**/*.{cs,txt,json,xml,md}"
-        exclude files =
+        include files =
         [
-            glob "**/Tests/**",
-            glob "**/obj/**",
+            glob "Resources/$(MODULE_NAME)/Code/**/*.{cs,txt,json,xml,md}",
+            glob "Resources/$(MODULE_NAME)/**/*.{txt,json,xml,md,module}",
+            !glob "**/Tests/**",
+            !glob "**/obj/**",
         ]
 
         lib refs +=
@@ -62,13 +63,16 @@ template MyTemplate
     {
         // Clear the inherited files
         include files = none
-        exclude files = none
 
         if (no-tests) exclude
 
         if (test)
         {
-            include files = glob "Resources/$(MODULE_NAME)/**/Tests/**/*.{cs,txt,json,xml,md}"
+            include files =
+            [
+                glob "Resources/$(MODULE_NAME)/Code/**/Tests/**/*.{cs,txt,json,xml,md}",
+                !glob "**/obj/**",
+            ]
 
             project refs +=
             [

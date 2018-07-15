@@ -30,6 +30,11 @@ namespace SolutionGen.Utils
             // TODO: cache all files under RootPath instead of using DirectoryInfo
             string[] matches =
                 glob.FilterMatches(new DirectoryInfo(rootDir)).ToArray();
+            
+            HashSet<string> finalMatches = matches
+                .Concat(includeFiles)
+                .Except(excludeFiles)
+                .ToHashSet();
            
             using (new Log.ScopedIndent())
             {
@@ -37,22 +42,21 @@ namespace SolutionGen.Utils
                 Log.WriteIndentedCollection(includePatterns, s => s);
                 Log.WriteLine("exclude patterns:");
                 Log.WriteIndentedCollection(excludePatterns, s => s);
+                Log.WriteLine("include literals:");
+                Log.WriteIndentedCollection(includeFiles, s => s);
+                Log.WriteLine("exclude literals:");
+                Log.WriteIndentedCollection(excludeFiles, s => s);
                 Log.WriteLine("matched files:");
-                Log.WriteIndentedCollection(matches, s => s);
+                Log.WriteIndentedCollection(finalMatches, s => s);
             }
 
-            return includeFiles
-                .Concat(matches)
-                .Except(excludeFiles)
-                .ToHashSet();
+            return finalMatches;
         }
         
         public static void ProcessFileValues(IEnumerable<object> filesValues, ISet<string> files, ISet<string> globs)
         {
             foreach (object includeFilesValue in filesValues)
             {
-//                object includeFilesValueCopy = ExpandableVar.ExpandModuleNameInCopy(includeFilesValue, ModuleName);
-                
                 switch (includeFilesValue)
                 {
                     case GlobPath glob when includeFilesValue is GlobPath:
