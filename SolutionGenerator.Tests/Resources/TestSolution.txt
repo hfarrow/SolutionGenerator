@@ -40,4 +40,32 @@ solution MySolution
     
     include templates = glob "Resources/Templates/**/*.template"
     include modules = glob "Resources/**/*.module"
+    
+    // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
+    // See comments above 'build projects' property for more details.
+    //generate projects =
+    //[
+    //    MyModule,
+    //    MyModule.Test,
+    //    MyOtherModule,
+    //    MyOtherModule.Tests,
+    //]
+    
+    // Only the projects listed here will be added to the generated C# solution. If a project is not in this list but is
+    // in the 'generate projects' list, it will be pre-built during the generation phase and added as an assembly
+    // reference to the projects in this list that depend on it.
+    //
+    // If projects not included in this list depend on projects that are included in this list then the dependent
+    // project are automatically added to this list. This behaviour can be disabled by setting
+    // 'auto build dependants = false'. The default of 'true' is important if you are changing APIs in lower level
+    // projects that are referenced by projects not in this list.
+    //
+    // This allows you to narrow down the solution to just that projects that are being directly worked on and results
+    // in faster build times for the solution.
+    //
+    // leave 'generate projects' and 'build projects' empty to include all projects into the generated C# solution.
+    //build projects =
+    //[
+    //    regex "MyOtherModule"
+    //]
 }
