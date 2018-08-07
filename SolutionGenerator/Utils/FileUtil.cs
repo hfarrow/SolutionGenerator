@@ -11,37 +11,59 @@ namespace SolutionGen.Utils
             IEnumerable<IPath> includePaths, IEnumerable<IPath> excludePaths)
         {
             Log.WriteLine("Getting files at '{0}' using provided include and exclude paths.", rootDir);
-            var includePatterns = new HashSet<string>();
-            var excludePatterns = new HashSet<string>();
-            var includeFiles = new HashSet<string>();
-            var excludeFiles = new HashSet<string>();
 
+            HashSet<string> includeFiles = null;
+            HashSet<string> includeGlobs = null;
+            HashSet<RegexPath> includeRegexes = null;
+            HashSet<string> excludeFiles = null;
+            HashSet<string> excludeGlobs = null;
+                
             if (includePaths != null)
             {
-                ProcessFileValues(includePaths, includeFiles, includePatterns);
+                 (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
             }
 
             if (excludePaths != null)
             {
-                ProcessFileValues(excludePaths, excludeFiles, excludePatterns);
+                (excludeFiles, excludeGlobs, _) = ProcessFileValues(excludePaths);
             }
 
-            var glob = new Glob(includePatterns, excludePatterns);
+            var glob = new Glob(includeGlobs, excludeGlobs);
             // TODO: cache all files under RootPath instead of using DirectoryInfo
-            string[] matches =
-                glob.FilterMatches(new DirectoryInfo(rootDir)).ToArray();
+            var dir = new DirectoryInfo(rootDir);
+            string[] globMatches =
+                glob.FilterMatches(dir).ToArray();
             
-            HashSet<string> finalMatches = matches
-                .Concat(includeFiles)
-                .Except(excludeFiles)
-                .ToHashSet();
+            IEnumerable<string> tempMatches = globMatches;
+            if (includeFiles != null)
+            {
+                tempMatches = tempMatches.Concat(includeFiles);
+            }
+            if (excludeFiles != null)
+            {
+                tempMatches = tempMatches.Except(excludeFiles);
+            }
+
+            string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
+                .Select(f => f.FullName.Substring(dir.FullName.Length + 1))
+                .ToArray();
+            
+            if (includeRegexes != null)
+            {
+                // TODO: test regex search paths
+                tempMatches = tempMatches.Concat(allFiles.Where(f => includeRegexes.Any(r => r.Regex.IsMatch(f))));
+            }
+            
+            HashSet<string> finalMatches = tempMatches.ToHashSet();
            
             using (new Log.ScopedIndent())
             {
-                Log.WriteLine("include patterns:");
-                Log.WriteIndentedCollection(includePatterns, s => s);
-                Log.WriteLine("exclude patterns:");
-                Log.WriteIndentedCollection(excludePatterns, s => s);
+                Log.WriteLine("include globs:");
+                Log.WriteIndentedCollection(includeGlobs, s => s);
+                Log.WriteLine("exclude globs:");
+                Log.WriteIndentedCollection(excludeGlobs, s => s);
+                Log.WriteLine("include regexes:");
+                Log.WriteIndentedCollection(includeRegexes, r => r.Value);
                 Log.WriteLine("include literals:");
                 Log.WriteIndentedCollection(includeFiles, s => s);
                 Log.WriteLine("exclude literals:");
@@ -50,11 +72,14 @@ namespace SolutionGen.Utils
                 Log.WriteIndentedCollection(finalMatches, s => s);
             }
 
-            return finalMatches;
+            return finalMatches.ToHashSet();
         }
         
-        public static void ProcessFileValues(IEnumerable<object> filesValues, ISet<string> files, ISet<string> globs)
+        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPath> regexes) ProcessFileValues(IEnumerable<object> filesValues)
         {
+            var files = new HashSet<string>();
+            var globs = new HashSet<string>();
+            var regexes = new HashSet<RegexPath>();
             foreach (object includeFilesValue in filesValues)
             {
                 switch (includeFilesValue)
@@ -65,6 +90,10 @@ namespace SolutionGen.Utils
                     case LiteralPath file when includeFilesValue is LiteralPath:
                         files.Add(file.Value);
                         break;
+                    case RegexPath regex when includeFilesValue is RegexPath:
+                        regexes.Add(regex);
+
+                        break;
                     default:
                         Log.WriteLineWarning(
                             "Unrecognized include files value type will be skipped: " +
@@ -72,6 +101,8 @@ namespace SolutionGen.Utils
                         break;
                 }
             }
+
+            return (files, globs, regexes);
         }
     }
 }

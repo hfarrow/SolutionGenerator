@@ -50,7 +50,7 @@ namespace SolutionGen.Generator.Model
             
             // Include files, exclude files, lib refs
             var includeFilesProperty = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);
-            var libRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_LIB_REFS);
+            var libRefsValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
 
             Log.WriteLine(
@@ -61,7 +61,9 @@ namespace SolutionGen.Generator.Model
                 includeFilesProperty.Where(p => !p.Negated),
                 includeFilesProperty.Where(p => p.Negated));
             
-            LibRefs = libRefsValues.Select(obj => obj.ToString()).ToHashSet();
+            // TODO: use each path in PROP_LIB_SEARCH_PATHS as base path for finding matching libraries.
+            //  FileUtil.GetFiles(searchPath, libRefs.Where(p => !p.Negated), libRefs.Where(p => p.Negated)
+            LibRefs = libRefsValues.Select(p => "NOT IMPLEMENTED").ToHashSet();
             ProjectRefs = projectRefsValues
                 .ToHashSet();
         }

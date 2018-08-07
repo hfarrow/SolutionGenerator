@@ -21,7 +21,11 @@ namespace SolutionGen.Generator.Reader
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(
                 Settings.PROP_INCLUDE_FILES, new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}", false)}),
             
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_LIB_REFS),
+            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(
+                Settings.PROP_LIB_SEARCH_PATHS, new HashSet<IPath>{ new LiteralPath("./", false)}),
+            
+            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_LIB_REFS),
+            
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
             
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(

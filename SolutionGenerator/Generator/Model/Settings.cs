@@ -9,6 +9,7 @@ namespace SolutionGen.Generator.Model
         // Project (Module / Template)
         public const string PROP_GUID = "guid";
         public const string PROP_INCLUDE_FILES = "include files";
+        public const string PROP_LIB_SEARCH_PATHS = "lib search paths";
         public const string PROP_LIB_REFS = "lib refs";
         public const string PROP_PROJECT_REFS = "project refs";
         public const string PROP_DEFINE_CONSTANTS = "define constants";

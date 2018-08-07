@@ -14,7 +14,7 @@ namespace SolutionGen.Tests.Parsing
             const string input = "regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
             Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.True(value.Regex.IsMatch("match.txt"));
+            Assert.Matches(value.Regex, "match.txt");
         }
         
         [Fact]
@@ -23,7 +23,7 @@ namespace SolutionGen.Tests.Parsing
             const string input = "regex \".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
             Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.True(value.Regex.IsMatch("match.txt"));
+            Assert.Matches(value.Regex, "match.txt");
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace SolutionGen.Tests.Parsing
             const string input = "!regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
             Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.False(value.Regex.IsMatch("match.txt"));
+            Assert.DoesNotMatch(value.Regex, "match.txt");
         }
         
         [Fact]
@@ -41,7 +41,7 @@ namespace SolutionGen.Tests.Parsing
             const string input = "! regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
             Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.False(value.Regex.IsMatch("match.txt"));
+            Assert.DoesNotMatch(value.Regex, "match.txt");
         }
     }
 }
