@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolutionGen.Generator.Model;
 using GLOB = Glob.Glob;
 
 namespace SolutionGen.Utils
@@ -16,6 +16,11 @@ namespace SolutionGen.Utils
         
         public Glob(IReadOnlyCollection<string> includePatterns, IReadOnlyCollection<string> excludePatterns)
         {
+            if (excludePatterns == null)
+            {
+                excludePatterns = new List<string>();
+            }
+            
             IncludePatterns = includePatterns;
             ExcludePatterns = excludePatterns;
 

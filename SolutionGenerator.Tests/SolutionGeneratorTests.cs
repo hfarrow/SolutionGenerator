@@ -130,7 +130,7 @@ namespace SolutionGen.Tests
             generator.GenerateSolution("everything", constantName);
 
             string projectPath =
-                Path.Combine(sol.SolutionConfigDir, "MyModule") + ".csproj";
+                Path.Combine(sol.SolutionConfigDir, "Resources", "MyModule", "MyModule") + ".csproj";
             Assert.Contains(constantName, File.ReadAllText(projectPath));
         }
     }

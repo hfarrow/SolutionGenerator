@@ -12,38 +12,30 @@ namespace SolutionGen.Utils
         {
             Log.WriteLine("Getting files at '{0}' using provided include and exclude paths.", rootDir);
 
-            HashSet<string> includeFiles = null;
-            HashSet<string> includeGlobs = null;
-            HashSet<RegexPath> includeRegexes = null;
-            HashSet<string> excludeFiles = null;
-            HashSet<string> excludeGlobs = null;
+            HashSet<string> includeFiles;
+            HashSet<string> includeGlobs;
+            HashSet<RegexPath> includeRegexes;
+            HashSet<string> excludeFiles;
+            HashSet<string> excludeGlobs;
+            HashSet<RegexPath> excludeRegexes;
                 
-            if (includePaths != null)
-            {
-                 (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
-            }
+            (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
+            (excludeFiles, excludeGlobs, excludeRegexes) = ProcessFileValues(excludePaths);
 
-            if (excludePaths != null)
-            {
-                (excludeFiles, excludeGlobs, _) = ProcessFileValues(excludePaths);
-            }
-
-            var glob = new Glob(includeGlobs, excludeGlobs);
-            // TODO: cache all files under RootPath instead of using DirectoryInfo
             var dir = new DirectoryInfo(rootDir);
-            string[] globMatches =
-                glob.FilterMatches(dir).ToArray();
             
-            IEnumerable<string> tempMatches = globMatches;
+            #region includes
+            var includeGlob = new Glob(includeGlobs, null);
+            
+            // TODO: cache all files under RootPath instead of using DirectoryInfo
+            string[] includeGlobMatches = includeGlob.FilterMatches(dir).ToArray();
+            
+            IEnumerable<string> tempMatches = includeGlobMatches;
             if (includeFiles != null)
             {
                 tempMatches = tempMatches.Concat(includeFiles);
             }
-            if (excludeFiles != null)
-            {
-                tempMatches = tempMatches.Except(excludeFiles);
-            }
-
+            
             string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
                 .Select(f => f.FullName.Substring(dir.FullName.Length + 1))
                 .ToArray();
@@ -53,6 +45,24 @@ namespace SolutionGen.Utils
                 // TODO: test regex search paths
                 tempMatches = tempMatches.Concat(allFiles.Where(f => includeRegexes.Any(r => r.Regex.IsMatch(f))));
             }
+            #endregion
+            
+            #region excludes
+            var excludeGlob = new Glob(excludeGlobs, null);
+            string[] excludeGlobMatches = excludeGlob.FilterMatches(dir).ToArray();
+
+            tempMatches = tempMatches.Except(excludeGlobMatches);
+
+            if (excludeFiles != null)
+            {
+                tempMatches = tempMatches.Except(excludeFiles);
+            }
+
+            if (excludeRegexes != null)
+            {
+                tempMatches = tempMatches.Except(allFiles.Where(f => excludeRegexes.Any(r => r.Regex.IsMatch(f))));
+            }
+            #endregion
             
             HashSet<string> finalMatches = tempMatches.ToHashSet();
            
@@ -80,25 +90,29 @@ namespace SolutionGen.Utils
             var files = new HashSet<string>();
             var globs = new HashSet<string>();
             var regexes = new HashSet<RegexPath>();
-            foreach (object includeFilesValue in filesValues)
+            
+            if (filesValues != null)
             {
-                switch (includeFilesValue)
+                foreach (object includeFilesValue in filesValues)
                 {
-                    case GlobPath glob when includeFilesValue is GlobPath:
-                        globs.Add(glob.Value);
-                        break;
-                    case LiteralPath file when includeFilesValue is LiteralPath:
-                        files.Add(file.Value);
-                        break;
-                    case RegexPath regex when includeFilesValue is RegexPath:
-                        regexes.Add(regex);
+                    switch (includeFilesValue)
+                    {
+                        case GlobPath glob when includeFilesValue is GlobPath:
+                            globs.Add(glob.Value);
+                            break;
+                        case LiteralPath file when includeFilesValue is LiteralPath:
+                            files.Add(file.Value);
+                            break;
+                        case RegexPath regex when includeFilesValue is RegexPath:
+                            regexes.Add(regex);
 
-                        break;
-                    default:
-                        Log.WriteLineWarning(
-                            "Unrecognized include files value type will be skipped: " +
-                            includeFilesValue.GetType().FullName);
-                        break;
+                            break;
+                        default:
+                            Log.WriteLineWarning(
+                                "Unrecognized include files value type will be skipped: " +
+                                includeFilesValue.GetType().FullName);
+                            break;
+                    }
                 }
             }
 

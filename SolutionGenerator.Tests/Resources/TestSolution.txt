@@ -42,9 +42,9 @@ solution MySolution
     include modules = glob "Resources/**/*.module"
     
     //lib search paths =
-    [
-        glob "../Assets/
-    ]
+    //[
+    //    glob "../Assets/
+    //]
     
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
     // See comments above 'build projects' property for more details.
