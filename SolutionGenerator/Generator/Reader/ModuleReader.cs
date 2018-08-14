@@ -92,6 +92,13 @@ namespace SolutionGen.Generator.Reader
 
                     using (new Log.ScopedIndent(true))
                     {
+                        if (solution.GeneratedProjects.Count > 0 && !solution.GeneratedProjects.Contains(projectName))
+                        {
+                            Log.WriteLine("Project '{0}' is excluded by solution '{1}' property white list",
+                                projectName, Settings.PROP_GENERATE_PROJECTS);
+                            continue;
+                        }
+                        
                         Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
                         if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
                         {
@@ -116,6 +123,17 @@ namespace SolutionGen.Generator.Reader
 
                         var project = new Project(solution, moduleName, id, config, projectSettings);
 
+                        if (solution.GeneratedProjects.Count > 0)
+                        {
+                            string[] invalidProjectRefs = project.ProjectRefs.Except(solution.GeneratedProjects).ToArray();
+                            if (invalidProjectRefs.Length > 0)
+                            {
+                                throw new InvalidProjectReferenceException(project,
+                                    "Referenced project is not in the 'generate project' whitelist property." +
+                                    $" Invalid references are [{string.Join(", ", invalidProjectRefs)}]");
+                            }
+                        }
+
                         projects.Add(project);
                     }
                 }
@@ -131,6 +149,21 @@ namespace SolutionGen.Generator.Reader
             : base($"A template with name '{templateName}' was not defined by the solution.")
         {
             
+        }
+    }
+
+    public sealed class InvalidProjectReferenceException : Exception
+    {
+        public InvalidProjectReferenceException(Project project, string reason)
+            : base(string.Format(
+                "Project '{0}' in module {1}' for configuration '{2} - {3}' contains an invalid project reference. Reason: {4}",
+                project.Name,
+                project.ModuleName,
+                project.Configuration.GroupName,
+                project.Configuration.Name,
+                reason))
+        {
+
         }
     }
 }

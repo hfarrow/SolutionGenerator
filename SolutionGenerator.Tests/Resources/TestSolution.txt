@@ -46,14 +46,14 @@ solution MySolution
     include modules = glob "Resources/**/*.module"
        
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
-    // See comments above 'build projects' property for more details.
-    //generate projects =
-    //[
-    //    MyModule,
-    //    MyModule.Test,
-    //    MyOtherModule,
-    //    MyOtherModule.Tests,
-    //]
+    // See comments related to 'build projects' property below for more details.
+    generate projects =
+    [
+        MyModule,
+        MyModule.Tests,
+        MyOtherModule,
+        MyOtherModule.Tests,
+    ]
     
     // Only the projects listed here will be added to the generated C# solution. If a project is not in this list but is
     // in the 'generate projects' list, it will be pre-built during the generation phase and added as an assembly

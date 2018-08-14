@@ -24,6 +24,7 @@ namespace SolutionGen.Generator.Reader
             
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_TEMPLATES),
             new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_INCLUDE_MODULES),
+            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_GENERATE_PROJECTS),
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =

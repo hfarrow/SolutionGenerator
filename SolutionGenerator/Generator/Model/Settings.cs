@@ -34,6 +34,7 @@ namespace SolutionGen.Generator.Model
         public const string PROP_CONFIGURATIONS = "configurations";
         public const string PROP_INCLUDE_TEMPLATES = "include templates";
         public const string PROP_INCLUDE_MODULES = "include modules";
+        public const string PROP_GENERATE_PROJECTS = "generate projects";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         

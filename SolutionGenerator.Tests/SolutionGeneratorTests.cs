@@ -81,6 +81,11 @@ namespace SolutionGen.Tests
             Assert.Equal(2, sol.Modules.Count);
             Assert.NotNull(sol.Solution);
             
+            Assert.Contains("MyModule", sol.Solution.GeneratedProjects);
+            Assert.Contains("MyOtherModule", sol.Solution.GeneratedProjects);
+            Assert.Contains("MyModule.Tests", sol.Solution.GeneratedProjects);
+            Assert.Contains("MyOtherModule.Tests", sol.Solution.GeneratedProjects);
+            
             Assert.True(sol.Modules.ContainsKey("MyModule"));
             Assert.True(sol.Modules.ContainsKey("MyOtherModule"));
             Assert.True(sol.Templates.ContainsKey("MyTemplate"));

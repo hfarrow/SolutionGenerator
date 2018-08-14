@@ -76,7 +76,10 @@ namespace SolutionGen
                 configurationGroup,
                 externalDefineConstants.Length > 0 ? " with external define constants:" : "");
 
-            Log.WriteIndentedCollection(externalDefineConstants, s => s, true);
+            if (externalDefineConstants.Length > 0)
+            {
+                Log.WriteIndentedCollection(externalDefineConstants, s => s, true);
+            }
 
             using (new Log.ScopedIndent())
             {
@@ -84,8 +87,9 @@ namespace SolutionGen
                 using (new Log.ScopedIndent(true))
                 {
                     ActiveConfigurationGroup = configurationGroup;
+                    Solution solution = Reader.Solution;
 
-                    Configuration currentConfiguration = Reader.Solution
+                    Configuration currentConfiguration = solution
                         .ConfigurationGroups[ActiveConfigurationGroup].Configurations
                         .First().Value;
 
@@ -103,6 +107,11 @@ namespace SolutionGen
                                     if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
                                     {
                                         // Project was excluded for this configuration group.
+                                        Log.WriteLine(
+                                            "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
+                                            project.Name,
+                                            currentConfiguration.GroupName,
+                                            currentConfiguration.Name);
                                         continue;
                                     }
 
