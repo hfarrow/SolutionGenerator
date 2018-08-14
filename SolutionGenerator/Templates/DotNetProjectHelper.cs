@@ -135,5 +135,41 @@ namespace SolutionGen.Templates
             return Path.GetRelativePath(Project.AbsoluteSourcePath,
                 Path.Combine(projectRef.SourcePath, projectRefName + ".csproj"));
         }
+        
+        private HashSet<string> commonLibRefs;
+        public HashSet<string> GetCommonLibRefs()
+        {
+            if (commonLibRefs == null)
+            {
+                List<IReadOnlyCollection<string>> collections =
+                    ActiveConfigurations
+                        .Select(c => Module.Configurations[c].Projects[Project.Name])
+                        .Select(c => c.LibRefs)
+                        .ToList();
+
+                commonLibRefs = collections
+                    .Skip(1)
+                    .Aggregate(new HashSet<string>(collections.First()),
+                        (h, e) =>
+                        {
+                            h.IntersectWith(e);
+                            return h;
+                        });
+            }
+
+            return commonLibRefs;
+        }
+
+        public HashSet<string> GetConfigurationSpecificLibRefs()
+        {
+            return Project.LibRefs
+                .Except(GetCommonLibRefs())
+                .ToHashSet();
+        }
+        
+        public string GetRelativeLibRefPath(string libPath)
+        {
+            return Path.GetRelativePath(Project.AbsoluteSourcePath, libPath);
+        }
     }
 }

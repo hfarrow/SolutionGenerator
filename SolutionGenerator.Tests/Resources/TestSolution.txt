@@ -20,11 +20,13 @@ solution MySolution
         Any CPU,
     ]
 
+    // Override the hardcoded defaults applied to each project
     settings template.defaults
     {
         root namespace = $(SOLUTION_NAME).$(PROJECT_NAME)
         module source path = Resources/$(MODULE_NAME)
         include files = glob ".{cs,txt,json,xml,md}"
+        lib search paths = ./
         lib refs = none
         project refs = none
         define constants = none
@@ -38,14 +40,11 @@ solution MySolution
         platform target = AnyCPU
     }
     
+    // External template and module config files to include during generation.
+    // While such configs can be included directly in this documement, using external includes is the best practice.
     include templates = glob "Resources/Templates/**/*.template"
     include modules = glob "Resources/**/*.module"
-    
-    //lib search paths =
-    //[
-    //    glob "../Assets/
-    //]
-    
+       
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
     // See comments above 'build projects' property for more details.
     //generate projects =

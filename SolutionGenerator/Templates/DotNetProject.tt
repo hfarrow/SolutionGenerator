@@ -58,6 +58,12 @@ foreach (string projectName in GetCommonProjectRefs())
             <Name><#= projectName #></Name>
         </ProjectReference>
 <#}#>
+<# foreach (string lib in GetCommonLibRefs())
+{#>
+        <Reference Include="<#= Path.GetFileNameWithoutExtension(lib) #>" >
+            <HintPath><#= GetRelativeLibRefPath(lib) #></HintPath>
+        </Reference>
+<#}#>
     </ItemGroup>
 
 <# foreach (Configuration configuration in ActiveConfigurations)
@@ -75,6 +81,13 @@ foreach (string projectName in GetCommonProjectRefs())
             <Project>{<#=ProjectIdLookup[projectName].Guid #>}</Project>
             <Name><#= projectName #></Name>
         </ProjectReference>
+<#  }
+
+    foreach (string lib in GetConfigurationSpecificLibRefs())
+    {#>
+        <Reference Include="<#= Path.GetFileNameWithoutExtension(lib) #>" >
+            <HintPath><#= GetRelativeLibRefPath(lib) #></HintPath>
+        </Reference>
 <#  }#>
     </ItemGroup>
 <#}#>

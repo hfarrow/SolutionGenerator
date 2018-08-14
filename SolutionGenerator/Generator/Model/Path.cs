@@ -94,7 +94,7 @@ namespace SolutionGen.Generator.Model
 
         protected override Path Copy()
         {
-            return new GlobPath(Value, Negated);
+            return new RegexPath(Value, Regex, Negated);
         }
         
         public override string ToString()

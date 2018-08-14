@@ -22,13 +22,13 @@ namespace SolutionGen.Templates {
         public virtual string TransformText() {
             this.GenerationEnvironment = null;
             
-            #line 8 ".\Templates\DotNetSolution.tt"
-            this.Write("Microsoft Visual Studio Solution File, Format Version 12.00\r\n");
+            #line 8 "./Templates/DotNetSolution.tt"
+            this.Write("Microsoft Visual Studio Solution File, Format Version 12.00\n");
             
             #line default
             #line hidden
             
-            #line 9 ".\Templates\DotNetSolution.tt"
+            #line 9 "./Templates/DotNetSolution.tt"
  foreach (Project project in GetProjects())
 {
 
@@ -36,62 +36,62 @@ namespace SolutionGen.Templates {
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write("Project(\"{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\") = \"");
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( project.Name ));
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write("\", \"");
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( Path.Combine(project.RelativeSourcePath, project.Name) ));
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write(".csproj\", \"{");
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
+            #line 12 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden
             
-            #line 12 ".\Templates\DotNetSolution.tt"
-            this.Write("}\"\r\nEndProject\r\n");
+            #line 12 "./Templates/DotNetSolution.tt"
+            this.Write("}\"\nEndProject\n");
             
             #line default
             #line hidden
             
-            #line 14 ".\Templates\DotNetSolution.tt"
+            #line 14 "./Templates/DotNetSolution.tt"
 
 } 
             
             #line default
             #line hidden
             
-            #line 16 ".\Templates\DotNetSolution.tt"
-            this.Write("Global\r\n    GlobalSection(SolutionConfigurationPlatforms) = preSolution\r\n");
+            #line 16 "./Templates/DotNetSolution.tt"
+            this.Write("Global\n    GlobalSection(SolutionConfigurationPlatforms) = preSolution\n");
             
             #line default
             #line hidden
             
-            #line 18 ".\Templates\DotNetSolution.tt"
+            #line 18 "./Templates/DotNetSolution.tt"
  foreach (string configuration in ActiveConfigurations)
 {
     foreach (string platform in Solution.TargetPlatforms)
@@ -100,63 +100,63 @@ namespace SolutionGen.Templates {
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write("        ");
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write("|");
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( platform ));
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write(" = ");
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
+            #line 22 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 22 ".\Templates\DotNetSolution.tt"
-            this.Write("|Any CPU\r\n");
+            #line 22 "./Templates/DotNetSolution.tt"
+            this.Write("|Any CPU\n");
             
             #line default
             #line hidden
             
-            #line 23 ".\Templates\DotNetSolution.tt"
+            #line 23 "./Templates/DotNetSolution.tt"
   }
 } 
             
             #line default
             #line hidden
             
-            #line 25 ".\Templates\DotNetSolution.tt"
-            this.Write("    EndGlobalSection\r\n    GlobalSection(ProjectConfigurationPlatforms) = postSolu" +
-                    "tion\r\n");
+            #line 25 "./Templates/DotNetSolution.tt"
+            this.Write("    EndGlobalSection\n    GlobalSection(ProjectConfigurationPlatforms) = postSolut" +
+                    "ion\n");
             
             #line default
             #line hidden
             
-            #line 27 ".\Templates\DotNetSolution.tt"
+            #line 27 "./Templates/DotNetSolution.tt"
  foreach (Project project in GetProjects())
 {
     foreach (string configuration in ActiveConfigurations)
@@ -167,109 +167,109 @@ namespace SolutionGen.Templates {
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write("        {");
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write("}.");
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write("|");
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( platform ));
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write(".ActiveCfg = ");
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
+            #line 33 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 33 ".\Templates\DotNetSolution.tt"
-            this.Write("|Any CPU\r\n        {");
+            #line 33 "./Templates/DotNetSolution.tt"
+            this.Write("|Any CPU\n        {");
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( project.Guid.ToString().ToUpper() ));
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write("}.");
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write("|");
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( platform ));
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write(".Build.0 = ");
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
+            #line 34 "./Templates/DotNetSolution.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture( configuration ));
             
             #line default
             #line hidden
             
-            #line 34 ".\Templates\DotNetSolution.tt"
-            this.Write("|Any CPU\r\n");
+            #line 34 "./Templates/DotNetSolution.tt"
+            this.Write("|Any CPU\n");
             
             #line default
             #line hidden
             
-            #line 35 ".\Templates\DotNetSolution.tt"
+            #line 35 "./Templates/DotNetSolution.tt"
       }
     }
 } 
@@ -277,8 +277,8 @@ namespace SolutionGen.Templates {
             #line default
             #line hidden
             
-            #line 38 ".\Templates\DotNetSolution.tt"
-            this.Write("    EndGlobalSection\r\nEndGlobal\r\n");
+            #line 38 "./Templates/DotNetSolution.tt"
+            this.Write("    EndGlobalSection\nEndGlobal\n");
             
             #line default
             #line hidden

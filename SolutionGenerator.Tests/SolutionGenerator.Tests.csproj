@@ -51,6 +51,9 @@
     <None Include="Resources\MyOtherModule\LiteralInclude\LiteralInclude.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\Libs\Sprache.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />

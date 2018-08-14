@@ -12,11 +12,15 @@ template MyTemplate
             !glob "**/Tests/**",
             !glob "**/obj/**",
         ]
+        
+        lib search paths =
+        [
+            Resources/Libs,
+        ]
 
         lib refs +=
         [
-            Lib1.dll,
-            Lib2.dll,
+            Sprache.dll,
         ]
 
         define constants +=

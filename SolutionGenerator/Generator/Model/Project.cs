@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
@@ -50,20 +51,37 @@ namespace SolutionGen.Generator.Model
             
             // Include files, exclude files, lib refs
             var includeFilesProperty = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);
+            var libSearchPaths = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_LIB_SEARCH_PATHS);
             var libRefsValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
 
             Log.WriteLine(
-                "Matching glob pattern to files for project '{0}' as configuration '{1} - {2}' at source path '{3}'",
-                id.Name, configuration.GroupName, configuration.Name, id.SourcePath);
+                "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",
+                id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
 
             IncludeFiles = FileUtil.GetFiles(Solution.SolutionConfigDir,
                 includeFilesProperty.Where(p => !p.Negated),
                 includeFilesProperty.Where(p => p.Negated));
+
+            IPath[] invalidPathTypes = libSearchPaths.Where(p => !(p is LiteralPath)).ToArray();
+            if (invalidPathTypes.Length > 0)
+            {
+                Log.WriteLineWarning("Invalid lib search paths:");
+                Log.WriteIndentedCollection(invalidPathTypes, p => p.ToString());
+            }
+
+            IEnumerable<string> directories = libSearchPaths
+                .OfType<LiteralPath>()
+                .Select(p => p.Value);
+
+            Log.WriteLine(
+                "Matching path patterns to libs refs for project '{0}' as configuration '{1} - {2}' at base directory '{3}",
+                id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
             
-            // TODO: use each path in PROP_LIB_SEARCH_PATHS as base path for finding matching libraries.
-            //  FileUtil.GetFiles(searchPath, libRefs.Where(p => !p.Negated), libRefs.Where(p => p.Negated)
-            LibRefs = libRefsValues.Select(p => "NOT IMPLEMENTED").ToHashSet();
+            LibRefs = FileUtil.GetFilesInSearchPath(directories,
+                libRefsValues.Where(p => !p.Negated),
+                libRefsValues.Where(p => p.Negated));
+            
             ProjectRefs = projectRefsValues
                 .ToHashSet();
         }

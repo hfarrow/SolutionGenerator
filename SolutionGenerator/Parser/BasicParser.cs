@@ -118,7 +118,7 @@ namespace SolutionGen.Parser
                 from keyword in Parse.String("regex").Token()
                 from value in QuotedText
                 select new RegexValue(value, negated.IsDefined))
-            .Token().Named("glob");
+            .Token().Named("regex");
 
         /// <summary>
         /// Parse the none keyword which generally repreasents nothing or an empty collection.
