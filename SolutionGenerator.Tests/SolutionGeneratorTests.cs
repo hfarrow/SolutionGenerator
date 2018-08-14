@@ -120,6 +120,9 @@ namespace SolutionGen.Tests
                 Assert.Contains("TEST", debugDefines);
                 Assert.DoesNotContain("TEST", releaseDefines);
             }
+            
+            Assert.Contains("Sprache.dll", firstDebugProject.LibRefs.First());
+            Assert.Contains("Sprache.dll", firstReleaseProject.LibRefs.First());
         }
 
         [Fact]

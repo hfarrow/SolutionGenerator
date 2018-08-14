@@ -9,7 +9,7 @@ namespace SolutionGen.Utils
 {
     public static class FileUtil
     {
-        public static HashSet<string> GetFilesInSearchPath(IEnumerable<string> searchableDirectories,
+        public static HashSet<string> GetFilesInSearchPaths(IEnumerable<string> searchableDirectories,
             IEnumerable<IPath> includePaths, IEnumerable<IPath> excludePaths)
         {
             IEnumerable<string> results = searchableDirectories
@@ -143,7 +143,8 @@ namespace SolutionGen.Utils
             return finalMatches.ToHashSet();
         }
         
-        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPath> regexes) ProcessFileValues(IEnumerable<object> filesValues)
+        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPath> regexes)
+            ProcessFileValues(IEnumerable<IPath> filesValues)
         {
             var files = new HashSet<string>();
             var globs = new HashSet<string>();
@@ -151,7 +152,7 @@ namespace SolutionGen.Utils
             
             if (filesValues != null)
             {
-                foreach (object includeFilesValue in filesValues)
+                foreach (IPath includeFilesValue in filesValues)
                 {
                     switch (includeFilesValue)
                     {

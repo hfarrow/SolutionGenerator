@@ -78,7 +78,7 @@ namespace SolutionGen.Generator.Model
                 "Matching path patterns to libs refs for project '{0}' as configuration '{1} - {2}' at base directory '{3}",
                 id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
             
-            LibRefs = FileUtil.GetFilesInSearchPath(directories,
+            LibRefs = FileUtil.GetFilesInSearchPaths(directories,
                 libRefsValues.Where(p => !p.Negated),
                 libRefsValues.Where(p => p.Negated));
             
