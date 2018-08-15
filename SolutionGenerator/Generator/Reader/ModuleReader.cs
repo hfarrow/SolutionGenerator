@@ -92,7 +92,7 @@ namespace SolutionGen.Generator.Reader
 
                     using (new Log.ScopedIndent(true))
                     {
-                        if (solution.GeneratedProjects.Count > 0 && !solution.GeneratedProjects.Contains(projectName))
+                        if (solution.GeneratedProjectsPatterns.Count > 0 && !solution.CanGenerateProject(projectName))
                         {
                             Log.WriteLine("Project '{0}' is excluded by solution '{1}' property white list",
                                 projectName, Settings.PROP_GENERATE_PROJECTS);
@@ -123,9 +123,12 @@ namespace SolutionGen.Generator.Reader
 
                         var project = new Project(solution, moduleName, id, config, projectSettings);
 
-                        if (solution.GeneratedProjects.Count > 0)
+                        if (solution.GeneratedProjectsPatterns.Count > 0)
                         {
-                            string[] invalidProjectRefs = project.ProjectRefs.Except(solution.GeneratedProjects).ToArray();
+                            string[] invalidProjectRefs = project.ProjectRefs
+                                .Where(r => !solution.CanGenerateProject(r))
+                                .ToArray();
+                            
                             if (invalidProjectRefs.Length > 0)
                             {
                                 throw new InvalidProjectReferenceException(project,

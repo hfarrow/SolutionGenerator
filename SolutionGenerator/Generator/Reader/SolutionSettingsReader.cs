@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
+using SolutionGen.Utils;
 using SolutionGen.Parser.Model;
 
 namespace SolutionGen.Generator.Reader
@@ -24,7 +25,7 @@ namespace SolutionGen.Generator.Reader
             
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_TEMPLATES),
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_MODULES),
-            new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_GENERATE_PROJECTS),
+            new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_GENERATE_PROJECTS),
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =

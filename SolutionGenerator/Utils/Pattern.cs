@@ -1,24 +1,36 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
-using SolutionGen.Utils;
+using SolutionGen.Generator.Model;
+using GLOB = Glob.Glob;
 
-namespace SolutionGen.Generator.Model
+namespace SolutionGen.Utils
 {
     public interface IPattern : IExpandable
     {
         string Value { get; }
         bool Negated { get; }
+
+        IEnumerable<string> FilterMatches(IEnumerable<string> candidates);
+        bool IsMatch(string candidate);
     }
 
     public abstract class Pattern : IPattern
     {
         public string Value { get; private set; }
         public bool Negated { get; }
-
+        public abstract bool IsMatch(string candidate);
+        
         protected Pattern(string value, bool negated)
         {
             Value = value;
             Negated = negated;
+        }
+
+        public IEnumerable<string> FilterMatches(IEnumerable<string> candidates)
+        {
+            return candidates.Where(c => Negated ^ IsMatch(c));
         }
 
         public void ExpandVariableInPlace(string varName, string varExpansion)
@@ -51,6 +63,11 @@ namespace SolutionGen.Generator.Model
         {
         }
 
+        public override bool IsMatch(string candidate)
+        {
+            return Value == candidate;
+        }
+
         protected override Pattern Copy()
         {
             return new LiteralPattern(Value, Negated);
@@ -65,9 +82,17 @@ namespace SolutionGen.Generator.Model
     [Serializable]
     public class GlobPattern : Pattern
     {
+        public GLOB Glob { get; }
+        
         public GlobPattern(string value, bool negated)
             : base(value, negated)
         {
+            Glob = new GLOB(value);
+        }
+
+        public override bool IsMatch(string candidate)
+        {
+            return Glob.IsMatch(candidate);
         }
 
         protected override Pattern Copy()
@@ -86,15 +111,20 @@ namespace SolutionGen.Generator.Model
     {
         public Regex Regex { get; }
         
-        public RegexPattern(string regexStr, Regex regex, bool negated)
-            : base(regexStr, negated)
+        public RegexPattern(string regexPattern, bool negated)
+            : base(regexPattern, negated)
         {
-            Regex = regex;
+            Regex = new Regex(regexPattern);
+        }
+
+        public override bool IsMatch(string candidate)
+        {
+            return Regex.IsMatch(candidate);
         }
 
         protected override Pattern Copy()
         {
-            return new RegexPattern(Value, Regex, Negated);
+            return new RegexPattern(Value, Negated);
         }
         
         public override string ToString()

@@ -4,20 +4,20 @@ namespace SolutionGen.Parser.Model
 {
     public class RegexValue : ValueElement
     {
-        public string RegexStr { get; }
+        public string RegexPattern { get; }
         public Regex Regex { get; }
         public bool Negated { get; }
         
         public RegexValue(string value, bool negated) : base(value)
         {
-            RegexStr = value;
-            Regex = new Regex(negated ? $"^(?!{RegexStr})$" : RegexStr);
+            RegexPattern = value;
+            Regex = new Regex(RegexPattern);
             Negated = negated;
         }
         
         public override string ToString()
         {
-            return $"{(Negated ? "!" : "")}regex {RegexStr}";
+            return $"{(Negated ? "!" : "")}regex {RegexPattern}";
         }
     }
 }

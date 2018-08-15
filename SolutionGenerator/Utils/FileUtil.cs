@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SolutionGen.Generator.Model;
 using Path = System.IO.Path;
+using GLOB = Glob.Glob;
 
 namespace SolutionGen.Utils
 {
@@ -29,10 +28,10 @@ namespace SolutionGen.Utils
             Log.WriteLine("Getting files at '{0}' using provided include and exclude paths.", rootDir);
 
             HashSet<string> includeFiles;
-            HashSet<string> includeGlobs;
+            HashSet<GLOB> includeGlobs;
             HashSet<RegexPattern> includeRegexes;
             HashSet<string> excludeFiles;
-            HashSet<string> excludeGlobs;
+            HashSet<GLOB> excludeGlobs;
             HashSet<RegexPattern> excludeRegexes;
                 
             (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
@@ -49,7 +48,7 @@ namespace SolutionGen.Utils
                 .ToArray();
             
             #region includes
-            var includeGlob = new Glob(includeGlobs, null);
+            var includeGlob = new CompositeGlob(includeGlobs, null);
             
             // TODO: cache all files under RootPath instead of using DirectoryInfo
             string[] includeGlobMatches = includeGlob.FilterMatches(dir).ToArray();
@@ -86,13 +85,12 @@ namespace SolutionGen.Utils
             
             if (includeRegexes != null)
             {
-                // TODO: test regex search paths
-                tempMatches = tempMatches.Concat(allFiles.Where(f => includeRegexes.Any(r => r.Regex.IsMatch(f))));
+                tempMatches = tempMatches.Concat(includeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
             }
             #endregion
             
             #region excludes
-            var excludeGlob = new Glob(excludeGlobs, null);
+            var excludeGlob = new CompositeGlob(excludeGlobs, null);
             string[] excludeGlobMatches = excludeGlob.FilterMatches(dir).ToArray();
 
             tempMatches = tempMatches.Except(excludeGlobMatches);
@@ -116,7 +114,7 @@ namespace SolutionGen.Utils
 
             if (excludeRegexes != null)
             {
-                tempMatches = tempMatches.Except(allFiles.Where(f => excludeRegexes.Any(r => r.Regex.IsMatch(f))));
+                tempMatches = tempMatches.Except(excludeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
             }
             #endregion
             
@@ -125,13 +123,13 @@ namespace SolutionGen.Utils
             using (new Log.ScopedIndent())
             {
                 Log.WriteLine("include globs:");
-                Log.WriteIndentedCollection(includeGlobs, s => s);
+                Log.WriteIndentedCollection(includeGlobs, s => s.Pattern);
                 Log.WriteLine("include regexes:");
                 Log.WriteIndentedCollection(includeRegexes, r => r.Value);
                 Log.WriteLine("include literals:");
                 Log.WriteIndentedCollection(includeFiles, s => s);
                 Log.WriteLine("exclude globs:");
-                Log.WriteIndentedCollection(excludeGlobs, s => s);
+                Log.WriteIndentedCollection(excludeGlobs, s => s.Pattern);
                 Log.WriteLine("exclude regexes:");
                 Log.WriteIndentedCollection(excludeRegexes, r => r.Value);
                 Log.WriteLine("exclude literals:");
@@ -143,11 +141,11 @@ namespace SolutionGen.Utils
             return finalMatches.ToHashSet();
         }
         
-        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPattern> regexes)
+        public static (HashSet<string> files, HashSet<GLOB> globs, HashSet<RegexPattern> regexes)
             ProcessFileValues(IEnumerable<IPattern> filesValues)
         {
             var files = new HashSet<string>();
-            var globs = new HashSet<string>();
+            var globs = new HashSet<GLOB>();
             var regexes = new HashSet<RegexPattern>();
             
             if (filesValues != null)
@@ -157,7 +155,7 @@ namespace SolutionGen.Utils
                     switch (includeFilesValue)
                     {
                         case GlobPattern glob when includeFilesValue is GlobPattern:
-                            globs.Add(glob.Value);
+                            globs.Add(glob.Glob);
                             break;
                         case LiteralPattern file when includeFilesValue is LiteralPattern:
                             files.Add(file.Value);

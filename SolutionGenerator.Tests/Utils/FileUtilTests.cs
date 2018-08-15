@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
-using SolutionGen.Generator.Model;
 using SolutionGen.Utils;
 using Xunit;
 using Path = System.IO.Path;
+using GLOB = Glob.Glob;
 
 namespace SolutionGen.Tests.Utils
 {
@@ -13,11 +12,11 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void CanProcessAllPathTypes()
         {
-            (HashSet<string> files, HashSet<string> globs, HashSet<RegexPattern> regexes) result =
+            (HashSet<string> files, HashSet<GLOB> globs, HashSet<RegexPattern> regexes) result =
                 FileUtil.ProcessFileValues(new IPattern[]
                 {
                     new GlobPattern("**/*", false),
-                    new RegexPattern(".*", new Regex(".*"), false),
+                    new RegexPattern(".*", false),
                     new LiteralPattern("./", false)
                 });
 
@@ -41,7 +40,7 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPattern[] {new RegexPattern(@"\.module$", new Regex(@"\.module"), false)}, null);
+                    new IPattern[] {new RegexPattern(@"\.module$", false)}, null);
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
@@ -64,8 +63,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPattern[] {new RegexPattern(".*", new Regex(".*"), false)},
-                    new IPattern[] {new RegexPattern(@"\.module", new Regex(@"\.module"),  false)});
+                    new IPattern[] {new RegexPattern(".*", false)},
+                    new IPattern[] {new RegexPattern(@"\.module",  false)});
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.NotEqual(".module", Path.GetExtension(p)));
@@ -77,8 +76,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPattern[] {new RegexPattern(".*", new Regex(".*"), false)},
-                    new IPattern[] {new RegexPattern(".*", new Regex(".*"),  false)});
+                    new IPattern[] {new RegexPattern(".*", false)},
+                    new IPattern[] {new RegexPattern(".*",  false)});
             
             Assert.Empty(result);
         }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using SolutionGen.Generator.Model;
+using SolutionGen.Utils;
 using SolutionGen.Parser.Model;
 
 namespace SolutionGen.Generator.Reader
@@ -19,7 +20,7 @@ namespace SolutionGen.Generator.Reader
                     break;
                 
                 case RegexValue regex:
-                    values.Add(new RegexPattern(regex.RegexStr, regex.Regex, regex.Negated));
+                    values.Add(new RegexPattern(regex.RegexPattern, regex.Negated));
                     break;
                 
                 case ArrayValue arrayValue:
@@ -31,7 +32,7 @@ namespace SolutionGen.Generator.Reader
                                 values.Add(new GlobPattern(glob.GlobStr, glob.Negated));
                                 break;
                             case RegexValue regex:
-                                values.Add(new RegexPattern(regex.RegexStr, regex.Regex, regex.Negated));
+                                values.Add(new RegexPattern(regex.RegexPattern, regex.Negated));
                                 break;
                             case ValueElement strElement when strElement.Value is string str:
                                 values.Add(MakeLiteralPattern(str));

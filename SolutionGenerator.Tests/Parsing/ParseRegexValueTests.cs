@@ -13,7 +13,7 @@ namespace SolutionGen.Tests.Parsing
         {
             const string input = "regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
-            Assert.Equal(".*\\.txt", value.RegexStr);
+            Assert.Equal(".*\\.txt", value.RegexPattern);
             Assert.Matches(value.Regex, "match.txt");
         }
         
@@ -22,7 +22,7 @@ namespace SolutionGen.Tests.Parsing
         {
             const string input = "regex \".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
-            Assert.Equal(".*\\.txt", value.RegexStr);
+            Assert.Equal(".*\\.txt", value.RegexPattern);
             Assert.Matches(value.Regex, "match.txt");
         }
 
@@ -31,8 +31,10 @@ namespace SolutionGen.Tests.Parsing
         {
             const string input = "!regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
-            Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.DoesNotMatch(value.Regex, "match.txt");
+            Assert.Equal(".*\\.txt", value.RegexPattern);
+            
+            // The actual regex is not negated. It is up to the user of RegexValue to check the Negated flag
+            Assert.Matches(value.Regex, "match.txt");
         }
         
         [Fact]
@@ -40,8 +42,10 @@ namespace SolutionGen.Tests.Parsing
         {
             const string input = "! regex\".*\\.txt\"";
             RegexValue value = BasicParser.RegexValue.Parse(input);
-            Assert.Equal(".*\\.txt", value.RegexStr);
-            Assert.DoesNotMatch(value.Regex, "match.txt");
+            Assert.Equal(".*\\.txt", value.RegexPattern);
+            
+            // The actual regex is not negated. It is up to the user of RegexValue to check the Negated flag
+            Assert.Matches(value.Regex, "match.txt");
         }
     }
 }

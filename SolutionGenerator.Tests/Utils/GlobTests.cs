@@ -39,7 +39,7 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void GlobUtilCanMatchSingle()
         {
-            var glob = new SolutionGen.Utils.Glob(new[] {"*.cs"}, new[] {"*.txt"});
+            var glob = new SolutionGen.Utils.CompositeGlob(new[] {"*.cs"}, new[] {"*.txt"});
             Assert.True(glob.IsMatch("/Path/To/File.cs"));
             Assert.False(glob.IsMatch("/Path/To/File.txt"));
         }
@@ -47,7 +47,7 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void GlobUtilCanMatchMultiple()
         {
-            var glob = new SolutionGen.Utils.Glob(new[] {"*.cs"}, new[] {"*.txt", "**/ExcludedDir/**"});
+            var glob = new SolutionGen.Utils.CompositeGlob(new[] {"*.cs"}, new[] {"*.txt", "**/ExcludedDir/**"});
             string[] matches = glob.FilterMatches(new[]
             {
                 "/Path/To/File1.cs",
@@ -64,7 +64,7 @@ namespace SolutionGen.Tests.Utils
         public void GlobDirectoryInfoReturnsRelativePaths()
         {
             var dir = new DirectoryInfo(Directory.GetCurrentDirectory());
-            string[] results = new SolutionGen.Utils.Glob(new[] {"*"}, new string[0]).FilterMatches(dir).ToArray();
+            string[] results = new SolutionGen.Utils.CompositeGlob(new[] {"*"}, new string[0]).FilterMatches(dir).ToArray();
             Assert.Contains(results, s => s[0] != '/' && s[0] != '\\');
             Assert.True(results.All(r => new FileInfo(Path.Combine(dir.FullName, r)).Exists));
         }
