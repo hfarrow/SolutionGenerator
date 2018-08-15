@@ -10,7 +10,7 @@ namespace SolutionGen.Utils
     public static class FileUtil
     {
         public static HashSet<string> GetFilesInSearchPaths(IEnumerable<string> searchableDirectories,
-            IEnumerable<IPath> includePaths, IEnumerable<IPath> excludePaths)
+            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths)
         {
             IEnumerable<string> results = searchableDirectories
                 .Where(Directory.Exists)
@@ -24,16 +24,16 @@ namespace SolutionGen.Utils
         }
         
         public static HashSet<string> GetFiles(string rootDir,
-            IEnumerable<IPath> includePaths, IEnumerable<IPath> excludePaths)
+            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths)
         {
             Log.WriteLine("Getting files at '{0}' using provided include and exclude paths.", rootDir);
 
             HashSet<string> includeFiles;
             HashSet<string> includeGlobs;
-            HashSet<RegexPath> includeRegexes;
+            HashSet<RegexPattern> includeRegexes;
             HashSet<string> excludeFiles;
             HashSet<string> excludeGlobs;
-            HashSet<RegexPath> excludeRegexes;
+            HashSet<RegexPattern> excludeRegexes;
                 
             (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
             (excludeFiles, excludeGlobs, excludeRegexes) = ProcessFileValues(excludePaths);
@@ -143,26 +143,26 @@ namespace SolutionGen.Utils
             return finalMatches.ToHashSet();
         }
         
-        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPath> regexes)
-            ProcessFileValues(IEnumerable<IPath> filesValues)
+        public static (HashSet<string> files, HashSet<string> globs, HashSet<RegexPattern> regexes)
+            ProcessFileValues(IEnumerable<IPattern> filesValues)
         {
             var files = new HashSet<string>();
             var globs = new HashSet<string>();
-            var regexes = new HashSet<RegexPath>();
+            var regexes = new HashSet<RegexPattern>();
             
             if (filesValues != null)
             {
-                foreach (IPath includeFilesValue in filesValues)
+                foreach (IPattern includeFilesValue in filesValues)
                 {
                     switch (includeFilesValue)
                     {
-                        case GlobPath glob when includeFilesValue is GlobPath:
+                        case GlobPattern glob when includeFilesValue is GlobPattern:
                             globs.Add(glob.Value);
                             break;
-                        case LiteralPath file when includeFilesValue is LiteralPath:
+                        case LiteralPattern file when includeFilesValue is LiteralPattern:
                             files.Add(file.Value);
                             break;
-                        case RegexPath regex when includeFilesValue is RegexPath:
+                        case RegexPattern regex when includeFilesValue is RegexPattern:
                             regexes.Add(regex);
 
                             break;

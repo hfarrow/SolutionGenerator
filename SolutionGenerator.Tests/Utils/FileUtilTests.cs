@@ -13,12 +13,12 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void CanProcessAllPathTypes()
         {
-            (HashSet<string> files, HashSet<string> globs, HashSet<RegexPath> regexes) result =
-                FileUtil.ProcessFileValues(new IPath[]
+            (HashSet<string> files, HashSet<string> globs, HashSet<RegexPattern> regexes) result =
+                FileUtil.ProcessFileValues(new IPattern[]
                 {
-                    new GlobPath("**/*", false),
-                    new RegexPath(".*", new Regex(".*"), false),
-                    new LiteralPath("./", false)
+                    new GlobPattern("**/*", false),
+                    new RegexPattern(".*", new Regex(".*"), false),
+                    new LiteralPattern("./", false)
                 });
 
             Assert.Single(result.files);
@@ -30,7 +30,7 @@ namespace SolutionGen.Tests.Utils
         public void GlobCanGetAllFilesWithExtensionRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources", new IPath[] {new GlobPath("**/*.module", false)}, null);
+                FileUtil.GetFiles("Resources", new IPattern[] {new GlobPattern("**/*.module", false)}, null);
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
@@ -41,7 +41,7 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPath[] {new RegexPath(@"\.module$", new Regex(@"\.module"), false)}, null);
+                    new IPattern[] {new RegexPattern(@"\.module$", new Regex(@"\.module"), false)}, null);
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
@@ -52,8 +52,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPath[] {new GlobPath("**/*", false)},
-                    new IPath[] {new GlobPath("**/*.module", true)});
+                    new IPattern[] {new GlobPattern("**/*", false)},
+                    new IPattern[] {new GlobPattern("**/*.module", true)});
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.NotEqual(".module", Path.GetExtension(p)));
@@ -64,8 +64,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPath[] {new RegexPath(".*", new Regex(".*"), false)},
-                    new IPath[] {new RegexPath(@"\.module", new Regex(@"\.module"),  false)});
+                    new IPattern[] {new RegexPattern(".*", new Regex(".*"), false)},
+                    new IPattern[] {new RegexPattern(@"\.module", new Regex(@"\.module"),  false)});
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.NotEqual(".module", Path.GetExtension(p)));
@@ -77,8 +77,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPath[] {new RegexPath(".*", new Regex(".*"), false)},
-                    new IPath[] {new RegexPath(".*", new Regex(".*"),  false)});
+                    new IPattern[] {new RegexPattern(".*", new Regex(".*"), false)},
+                    new IPattern[] {new RegexPattern(".*", new Regex(".*"),  false)});
             
             Assert.Empty(result);
         }
@@ -87,7 +87,7 @@ namespace SolutionGen.Tests.Utils
         public void LiteralMatchesFirstFileWhenAmbiguous()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources", new IPath[] {new LiteralPath("Class.cs", false)}, null);
+                FileUtil.GetFiles("Resources", new IPattern[] {new LiteralPattern("Class.cs", false)}, null);
 
             Assert.Single(result);
             Assert.Equal("MyModule/Code/Class.cs", result.First());
@@ -98,8 +98,8 @@ namespace SolutionGen.Tests.Utils
         {
             HashSet<string> result =
                 FileUtil.GetFiles("Resources",
-                    new IPath[] {new GlobPath("**/Class.cs", false)},
-                    new IPath[] {new LiteralPath("Class.cs", false)});
+                    new IPattern[] {new GlobPattern("**/Class.cs", false)},
+                    new IPattern[] {new LiteralPattern("Class.cs", false)});
             
             Assert.Empty(result);
         }
@@ -114,7 +114,7 @@ namespace SolutionGen.Tests.Utils
             };
 
             HashSet<string> result =
-                FileUtil.GetFilesInSearchPaths(searchPaths, new IPath[] {new GlobPath("**/Class.cs", false)}, null);
+                FileUtil.GetFilesInSearchPaths(searchPaths, new IPattern[] {new GlobPattern("**/Class.cs", false)}, null);
             
             Assert.Equal(2, result.Count);
         }

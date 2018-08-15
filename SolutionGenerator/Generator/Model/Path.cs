@@ -4,18 +4,18 @@ using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Model
 {
-    public interface IPath : IExpandable
+    public interface IPattern : IExpandable
     {
         string Value { get; }
         bool Negated { get; }
     }
 
-    public abstract class Path : IPath
+    public abstract class Pattern : IPattern
     {
         public string Value { get; private set; }
         public bool Negated { get; }
 
-        protected Path(string value, bool negated)
+        protected Pattern(string value, bool negated)
         {
             Value = value;
             Negated = negated;
@@ -30,7 +30,7 @@ namespace SolutionGen.Generator.Model
         public bool ExpandVairableInCopy(string varName, string varExpansion, out IExpandable outCopy)
         {
             bool didCopy = false;
-            Path newCopy = Copy();
+            Pattern newCopy = Copy();
             if (ExpandableVar.ExpandInCopy(Value, varName, varExpansion, out object value))
             {
                 didCopy = true;
@@ -40,20 +40,20 @@ namespace SolutionGen.Generator.Model
             return didCopy;
         }
 
-        protected abstract Path Copy();
+        protected abstract Pattern Copy();
     }
 
     [Serializable]
-    public class LiteralPath : Path
+    public class LiteralPattern : Pattern
     {
-        public LiteralPath(string value, bool negated)
+        public LiteralPattern(string value, bool negated)
             : base(value, negated)
         {
         }
 
-        protected override Path Copy()
+        protected override Pattern Copy()
         {
-            return new LiteralPath(Value, Negated);
+            return new LiteralPattern(Value, Negated);
         }
 
         public override string ToString()
@@ -63,16 +63,16 @@ namespace SolutionGen.Generator.Model
     }
 
     [Serializable]
-    public class GlobPath : Path
+    public class GlobPattern : Pattern
     {
-        public GlobPath(string value, bool negated)
+        public GlobPattern(string value, bool negated)
             : base(value, negated)
         {
         }
 
-        protected override Path Copy()
+        protected override Pattern Copy()
         {
-            return new GlobPath(Value, Negated);
+            return new GlobPattern(Value, Negated);
         }
         
         public override string ToString()
@@ -82,19 +82,19 @@ namespace SolutionGen.Generator.Model
     }
     
     [Serializable]
-    public class RegexPath : Path
+    public class RegexPattern : Pattern
     {
         public Regex Regex { get; }
         
-        public RegexPath(string regexStr, Regex regex, bool negated)
+        public RegexPattern(string regexStr, Regex regex, bool negated)
             : base(regexStr, negated)
         {
             Regex = regex;
         }
 
-        protected override Path Copy()
+        protected override Pattern Copy()
         {
-            return new RegexPath(Value, Regex, Negated);
+            return new RegexPattern(Value, Regex, Negated);
         }
         
         public override string ToString()

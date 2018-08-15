@@ -46,7 +46,7 @@ solution MySolution
     include modules = glob "Resources/**/*.module"
        
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
-    // See comments related to 'build projects' property below for more details.
+    // See comments related to 'include projects' property below for more details.
     generate projects =
     [
         MyModule,
@@ -67,8 +67,8 @@ solution MySolution
     // This allows you to narrow down the solution to just that projects that are being directly worked on and results
     // in faster build times for the solution.
     //
-    // leave 'generate projects' and 'build projects' empty to include all projects into the generated C# solution.
-    //build projects =
+    // leave 'generate projects' and 'include projects' empty to include all projects into the generated C# solution.
+    //include projects =
     //[
     //    regex "MyOtherModule"
     //]

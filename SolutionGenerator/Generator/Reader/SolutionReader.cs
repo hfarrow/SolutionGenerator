@@ -118,7 +118,7 @@ namespace SolutionGen.Generator.Reader
             using (new Log.ScopedIndent(true))
             {
                 IEnumerable<ObjectElement> modules = new List<ObjectElement>();
-                var includes = Solution.Settings.GetProperty<HashSet<IPath>>(pathsPropertyName);
+                var includes = Solution.Settings.GetProperty<HashSet<IPattern>>(pathsPropertyName);
                 HashSet<string> includePaths = FileUtil.GetFiles(Solution.SolutionConfigDir, includes, null);
 
                 foreach (string includePath in includePaths)

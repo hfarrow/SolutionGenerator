@@ -141,5 +141,17 @@ namespace SolutionGen.Tests
                 Path.Combine(sol.SolutionConfigDir, "Resources", "MyModule", "MyModule") + ".csproj";
             Assert.Contains(constantName, File.ReadAllText(projectPath));
         }
+
+        [Fact]
+        public void CanGenerateAndBuildSolution()
+        {
+            
+        }
+
+        [Fact]
+        public void CanGenerateSolutionWithIncludeProjectProperty()
+        {
+            
+        }
     }
 }

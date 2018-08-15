@@ -50,9 +50,9 @@ namespace SolutionGen.Generator.Model
             RelativeSourcePath = System.IO.Path.GetRelativePath(Solution.SolutionConfigDir, AbsoluteSourcePath);
             
             // Include files, exclude files, lib refs
-            var includeFilesProperty = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_INCLUDE_FILES);
-            var libSearchPaths = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_LIB_SEARCH_PATHS);
-            var libRefsValues = Settings.GetProperty<HashSet<IPath>>(Settings.PROP_LIB_REFS);
+            var includeFilesProperty = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_INCLUDE_FILES);
+            var libSearchPaths = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_SEARCH_PATHS);
+            var libRefsValues = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
 
             Log.WriteLine(
@@ -63,15 +63,15 @@ namespace SolutionGen.Generator.Model
                 includeFilesProperty.Where(p => !p.Negated),
                 includeFilesProperty.Where(p => p.Negated));
 
-            IPath[] invalidPathTypes = libSearchPaths.Where(p => !(p is LiteralPath)).ToArray();
-            if (invalidPathTypes.Length > 0)
+            IPattern[] invalidPatternTypes = libSearchPaths.Where(p => !(p is LiteralPattern)).ToArray();
+            if (invalidPatternTypes.Length > 0)
             {
                 Log.WriteLineWarning("Invalid lib search paths:");
-                Log.WriteIndentedCollection(invalidPathTypes, p => p.ToString());
+                Log.WriteIndentedCollection(invalidPatternTypes, p => p.ToString());
             }
 
             IEnumerable<string> directories = libSearchPaths
-                .OfType<LiteralPath>()
+                .OfType<LiteralPattern>()
                 .Select(p => p.Value);
 
             Log.WriteLine(

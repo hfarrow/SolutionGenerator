@@ -18,13 +18,13 @@ namespace SolutionGen.Generator.Reader
             
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
             
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(
-                Settings.PROP_INCLUDE_FILES, new HashSet<IPath> {new GlobPath(".{cs,txt,json,xml,md}", false)}),
+            new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(
+                Settings.PROP_INCLUDE_FILES, new HashSet<IPattern> {new GlobPattern(".{cs,txt,json,xml,md}", false)}),
             
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(
-                Settings.PROP_LIB_SEARCH_PATHS, new HashSet<IPath>{ new LiteralPath("./", false)}),
+            new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(
+                Settings.PROP_LIB_SEARCH_PATHS, new HashSet<IPattern>{ new LiteralPattern("./", false)}),
             
-            new PropertyCollectionDefinition<HashSet<IPath>, IPath, PathPropertyReader>(Settings.PROP_LIB_REFS),
+            new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_LIB_REFS),
             
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(Settings.PROP_PROJECT_REFS),
             
