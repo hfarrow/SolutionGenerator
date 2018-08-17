@@ -20,7 +20,7 @@ namespace SolutionGen.Utils
     {
         public string Value { get; private set; }
         public bool Negated { get; }
-        public abstract bool IsMatch(string candidate);
+        protected abstract bool CheckMatch(string candidate);
         
         protected Pattern(string value, bool negated)
         {
@@ -30,7 +30,12 @@ namespace SolutionGen.Utils
 
         public IEnumerable<string> FilterMatches(IEnumerable<string> candidates)
         {
-            return candidates.Where(c => Negated ^ IsMatch(c));
+            return candidates.Where(IsMatch);
+        }
+
+        public bool IsMatch(string candidate)
+        {
+            return Negated ^ CheckMatch((candidate));
         }
 
         public void ExpandVariableInPlace(string varName, string varExpansion)
@@ -63,7 +68,7 @@ namespace SolutionGen.Utils
         {
         }
 
-        public override bool IsMatch(string candidate)
+        protected override bool CheckMatch(string candidate)
         {
             return Value == candidate;
         }
@@ -90,7 +95,7 @@ namespace SolutionGen.Utils
             Glob = new GLOB(value);
         }
 
-        public override bool IsMatch(string candidate)
+        protected override bool CheckMatch(string candidate)
         {
             return Glob.IsMatch(candidate);
         }
@@ -117,7 +122,7 @@ namespace SolutionGen.Utils
             Regex = new Regex(regexPattern);
         }
 
-        public override bool IsMatch(string candidate)
+        protected override bool CheckMatch(string candidate)
         {
             return Regex.IsMatch(candidate);
         }

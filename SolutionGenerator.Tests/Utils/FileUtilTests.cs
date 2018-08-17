@@ -113,7 +113,7 @@ namespace SolutionGen.Tests.Utils
             };
 
             HashSet<string> result =
-                FileUtil.GetFilesInSearchPaths(searchPaths, new IPattern[] {new GlobPattern("**/Class.cs", false)}, null);
+                FileUtil.GetFiles(searchPaths, new IPattern[] {new GlobPattern("**/Class.cs", false)}, null);
             
             Assert.Equal(2, result.Count);
         }

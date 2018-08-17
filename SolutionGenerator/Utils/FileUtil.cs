@@ -8,24 +8,31 @@ namespace SolutionGen.Utils
 {
     public static class FileUtil
     {
-        public static HashSet<string> GetFilesInSearchPaths(IEnumerable<string> searchableDirectories,
-            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths)
+        private struct LiteralMatch
         {
-            IEnumerable<string> results = searchableDirectories
-                .Where(Directory.Exists)
-                .Aggregate(
-                    (IEnumerable<string>) new HashSet<string>(),
-                    (current, directory) => current.Concat(
-                        GetFiles(directory, includePaths, excludePaths)
-                            .Select(p => Path.Combine(directory, p))));
+            public readonly string File;
+            public readonly string RootDirectory;
 
-            return results.ToHashSet();
+            public LiteralMatch(string file, string rootDirectory)
+            {
+                File = file;
+                RootDirectory = rootDirectory;
+            }
         }
         
-        public static HashSet<string> GetFiles(string rootDir,
-            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths)
+        public static HashSet<string> GetFiles(string searchableDirectory,
+            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
-            Log.WriteLine("Getting files at '{0}' using provided include and exclude paths.", rootDir);
+            basePath = basePath ?? searchableDirectory;
+            return GetFiles(new[] {searchableDirectory}, includePaths, excludePaths, basePath);
+        }
+        
+        public static HashSet<string> GetFiles(IEnumerable<string> searchableDirectories,
+            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
+        {
+            searchableDirectories = searchableDirectories as string[] ?? searchableDirectories.ToArray();
+            Log.WriteLine("Getting files using base path '{0}' and provided include and exclude paths:", basePath);
+            Log.WriteIndentedCollection(searchableDirectories, d => d);
 
             HashSet<string> includeFiles;
             HashSet<GLOB> includeGlobs;
@@ -37,89 +44,126 @@ namespace SolutionGen.Utils
             (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
             (excludeFiles, excludeGlobs, excludeRegexes) = ProcessFileValues(excludePaths);
 
-            var dir = new DirectoryInfo(rootDir);
+            IEnumerable<string> finalMatches = new List<string>();
+            var literalMatches = new Dictionary<string, List<LiteralMatch>>();
             
-            string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
-                .Select(f => f.FullName.Substring(dir.FullName.Length + 1))
-                .ToArray();
+            foreach (string rootDir in searchableDirectories)
+            {
+                string relativeBasePath = basePath ?? rootDir;
+                var dir = new DirectoryInfo(rootDir);
 
-            DirectoryInfo[] allDirs = dir.GetDirectories("*", SearchOption.AllDirectories)
-                .Concat(new[] {dir})
-                .ToArray();
-            
-            #region includes
-            var includeGlob = new CompositeGlob(includeGlobs, null);
-            
-            // TODO: cache all files under RootPath instead of using DirectoryInfo
-            string[] includeGlobMatches = includeGlob.FilterMatches(dir).ToArray();
-            
-            IEnumerable<string> tempMatches = includeGlobMatches;
+                string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
+                    .Select(f => f.FullName.Substring(dir.FullName.Length + 1))
+                    .ToArray();
+
+                DirectoryInfo[] allDirs = dir.GetDirectories("*", SearchOption.AllDirectories)
+                    .Concat(new[] {dir})
+                    .ToArray();
+
+                #region includes
+
+                var includeGlob = new CompositeGlob(includeGlobs, null);
+
+                // TODO: cache all files under RootPath instead of using DirectoryInfo
+                string[] includeGlobMatches = includeGlob.FilterMatches(dir).ToArray();
+
+                IEnumerable<string> tempMatches = includeGlobMatches;
+                if (includeFiles != null)
+                {
+                    var validIncludeFiles = new List<string>();
+                    foreach (string includeFile in includeFiles.ToArray())
+                    {
+                        string file = includeFile;
+                        string[] matchesForFile =
+                            (from dirInfo in allDirs
+                                select Path.Combine(dirInfo.FullName, file)
+                                into includeFilePath
+                                where File.Exists(includeFilePath)
+                                select Path.GetRelativePath(relativeBasePath, includeFilePath)).ToArray();
+
+                        if (matchesForFile.Length > 0)
+                        {
+                            if (!literalMatches.TryGetValue(includeFile, out List<LiteralMatch> allMatches))
+                            {
+                                allMatches = new List<LiteralMatch>();
+                                literalMatches[includeFile] = allMatches;
+                                validIncludeFiles.Add(matchesForFile[0]);
+                            }
+                            allMatches.AddRange(matchesForFile.Select(m => new LiteralMatch(m, rootDir)));
+                            
+                            if (allMatches.Count > 1)
+                            {
+                                Log.WriteLineWarning(
+                                    "Multiple matches were found for literal file include '{0}' while searching path '{1}'. " +
+                                    "Only the first match '{2}' will be used. " +
+                                    "See below the conflicting matches.",
+                                    includeFile, rootDir, allMatches[0].File);
+                                Log.WriteIndentedCollection(allMatches, p => $"{p.File} (from {p.RootDirectory})");
+                            }
+                            
+                        }
+                    }
+
+                    tempMatches = tempMatches.Concat(validIncludeFiles);
+                }
+
+                if (includeRegexes != null)
+                {
+                    tempMatches = tempMatches.Concat(includeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
+                }
+
+                #endregion
+
+                #region excludes
+
+                var excludeGlob = new CompositeGlob(excludeGlobs, null);
+                string[] excludeGlobMatches = excludeGlob.FilterMatches(dir).ToArray();
+
+                tempMatches = tempMatches.Except(excludeGlobMatches);
+
+                if (excludeFiles != null)
+                {
+                    var validExcludeFiles = new List<string>();
+                    foreach (string excludeFile in excludeFiles)
+                    {
+                        string[] matchesForFile =
+                            (from dirInfo in allDirs
+                                select Path.Combine(dirInfo.FullName, excludeFile)
+                                into excludeFilePath
+                                where File.Exists(excludeFilePath)
+                                select Path.GetRelativePath(rootDir, excludeFilePath)).ToArray();
+
+                        validExcludeFiles.AddRange(matchesForFile);
+                    }
+
+                    tempMatches = tempMatches.Except(validExcludeFiles);
+                }
+
+                if (excludeRegexes != null)
+                {
+                    tempMatches = tempMatches.Except(excludeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
+                }
+
+                #endregion
+                
+                finalMatches = finalMatches.Concat(tempMatches);
+            }
+
             if (includeFiles != null)
             {
-                var validIncludeFiles = new List<string>();
                 foreach (string includeFile in includeFiles)
                 {
-                    string[] matchesForFile =
-                        (from dirInfo in allDirs
-                            select Path.Combine(dirInfo.FullName, includeFile)
-                            into includeFilePath
-                            where File.Exists(includeFilePath)
-                            select Path.GetRelativePath(rootDir, includeFilePath)).ToArray();
-                    
-                    if (matchesForFile.Length > 0)
-                    {
-                        validIncludeFiles.Add(matchesForFile[0]);
-                    }
-                    
-                    if (matchesForFile.Length > 1)
+                    if (!literalMatches.ContainsKey(includeFile))
                     {
                         Log.WriteLineWarning(
-                            "Multiple matches were found for literal file include '{0}' while recursively searching the root directory. " +
-                            "Only the first match '{1}' will be used. See below for other matches.",
-                            includeFile, matchesForFile[0]);
-                        Log.WriteIndentedCollection(matchesForFile, p => p, true);
+                            "No file matches were found for literal pattern '{0}' in any searched directories. " +
+                            "Please consider fixing the literal pattern or removing it entirely.",
+                            includeFile);
                     }
                 }
-                tempMatches = tempMatches.Concat(validIncludeFiles);
-            }
-            
-            if (includeRegexes != null)
-            {
-                tempMatches = tempMatches.Concat(includeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
-            }
-            #endregion
-            
-            #region excludes
-            var excludeGlob = new CompositeGlob(excludeGlobs, null);
-            string[] excludeGlobMatches = excludeGlob.FilterMatches(dir).ToArray();
-
-            tempMatches = tempMatches.Except(excludeGlobMatches);
-
-            if (excludeFiles != null)
-            {
-                var validExcludeFiles = new List<string>();
-                foreach (string excludeFile in excludeFiles)
-                {
-                    string[] matchesForFile =
-                        (from dirInfo in allDirs
-                            select Path.Combine(dirInfo.FullName, excludeFile)
-                            into excludeFilePath
-                            where File.Exists(excludeFilePath)
-                            select Path.GetRelativePath(rootDir, excludeFilePath)).ToArray();
-                    
-                    validExcludeFiles.AddRange(matchesForFile);
-                }
-                tempMatches = tempMatches.Except(validExcludeFiles);
             }
 
-            if (excludeRegexes != null)
-            {
-                tempMatches = tempMatches.Except(excludeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
-            }
-            #endregion
-            
-            HashSet<string> finalMatches = tempMatches.ToHashSet();
-           
+            HashSet<string> allMatchedFiles = finalMatches.ToHashSet();           
             using (new Log.ScopedIndent())
             {
                 Log.WriteLine("include globs:");
@@ -135,10 +179,10 @@ namespace SolutionGen.Utils
                 Log.WriteLine("exclude literals:");
                 Log.WriteIndentedCollection(excludeFiles, s => s);
                 Log.WriteLine("matched files:");
-                Log.WriteIndentedCollection(finalMatches, s => s);
+                Log.WriteIndentedCollection(allMatchedFiles, s => s);
             }
 
-            return finalMatches.ToHashSet();
+            return allMatchedFiles;
         }
         
         public static (HashSet<string> files, HashSet<GLOB> globs, HashSet<RegexPattern> regexes)

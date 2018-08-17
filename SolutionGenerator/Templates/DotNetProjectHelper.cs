@@ -14,6 +14,7 @@ namespace SolutionGen.Templates
         public Configuration CurrentConfiguration { get; set; }
         public Dictionary<string, Project.Identifier> ProjectIdLookup { get; set; }
         public HashSet<string> ExternalDefineConstants { get; set; }
+        public string ProjectNamePostfix { get; set; }
         
         public Project Project => Module.Configurations[CurrentConfiguration].Projects[ProjectName];
 
@@ -133,7 +134,7 @@ namespace SolutionGen.Templates
         {
             Project.Identifier projectRef = ProjectIdLookup[projectRefName];
             return Path.GetRelativePath(Project.AbsoluteSourcePath,
-                Path.Combine(projectRef.SourcePath, projectRefName + ".csproj"));
+                Path.Combine(projectRef.SourcePath, projectRefName + ProjectNamePostfix + ".csproj"));
         }
         
         private HashSet<string> commonLibRefs;

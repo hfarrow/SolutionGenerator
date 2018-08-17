@@ -26,23 +26,23 @@ namespace SolutionGen.Generator.Model
         public Configuration Configuration { get; }
         public Settings Settings { get; }
 
-        public string Name => id.Name;
-        public Guid Guid => id.Guid;
-        public string AbsoluteSourcePath => id.SourcePath;
+        public string Name => Id.Name;
+        public Guid Guid => Id.Guid;
+        public string AbsoluteSourcePath => Id.SourcePath;
         public string RelativeSourcePath { get; }
         
         public IReadOnlyCollection<string> IncludeFiles { get; }
         public IReadOnlyCollection<string> LibRefs { get; }
         public IReadOnlyCollection<string> ProjectRefs { get; }
 
-        private readonly Identifier id;
+        public readonly Identifier Id;
 
         public Project(Solution solution, string moduleName, Identifier id,
             Configuration configuration, Settings settings)
         {
             Solution = solution;
             ModuleName = moduleName;
-            this.id = id;
+            Id = id;
             Configuration = configuration;
             Settings = settings;
 
@@ -77,9 +77,10 @@ namespace SolutionGen.Generator.Model
                 "Matching path patterns to libs refs for project '{0}' as configuration '{1} - {2}' at base directory '{3}",
                 id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
             
-            LibRefs = FileUtil.GetFilesInSearchPaths(directories,
+            LibRefs = FileUtil.GetFiles(directories,
                 libRefsValues.Where(p => !p.Negated),
-                libRefsValues.Where(p => p.Negated));
+                libRefsValues.Where(p => p.Negated),
+                Solution.SolutionConfigDir);
             
             ProjectRefs = projectRefsValues
                 .ToHashSet();

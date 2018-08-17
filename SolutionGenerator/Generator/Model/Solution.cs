@@ -16,10 +16,16 @@ namespace SolutionGen.Generator.Model
         public IEnumerable<string> TargetPlatforms =>
             Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_TARGET_PLATFORMS);
 
+        public IReadOnlyCollection<IPattern> IncludedProjectsPatterns =>
+            Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_INCLUDE_PROJECTS);
+        
         public IReadOnlyCollection<IPattern> GeneratedProjectsPatterns =>
             Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_GENERATE_PROJECTS);
         
-        private readonly Dictionary<string, bool> generatableProjectMap  = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> includedProjectMap  = new Dictionary<string, bool>();
+        private readonly Dictionary<string, bool> generatedProjectMap  = new Dictionary<string, bool>();
+
+        public HashSet<string> IncludedProjects => includedProjectMap.Keys.ToHashSet();
         
         public Solution(string name, Settings settings, string solutionConfigDir,
             IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
@@ -31,6 +37,22 @@ namespace SolutionGen.Generator.Model
             ConfigurationGroups = configurationGroups;
         }
 
+        public bool CanIncludeProject(string projectName)
+        {
+            // ReSharper disable once InlineOutVariableDeclaration
+            // Inlining the out variable would cause it to default to false instead of true.
+            bool canInclude = true;
+            
+            if (IncludedProjectsPatterns.Count > 0 &&
+                !includedProjectMap.TryGetValue(projectName, out canInclude))
+            {
+                canInclude = IncludedProjectsPatterns.Any(p => p.IsMatch(projectName));
+                includedProjectMap[projectName] = canInclude;
+            }
+
+            return canInclude;
+        }
+
         public bool CanGenerateProject(string projectName)
         {
             // ReSharper disable once InlineOutVariableDeclaration
@@ -38,10 +60,10 @@ namespace SolutionGen.Generator.Model
             bool canGenerate = true;
             
             if (GeneratedProjectsPatterns.Count > 0 &&
-                !generatableProjectMap.TryGetValue(projectName, out canGenerate))
+                !generatedProjectMap.TryGetValue(projectName, out canGenerate))
             {
                 canGenerate = GeneratedProjectsPatterns.Any(p => p.IsMatch(projectName));
-                generatableProjectMap[projectName] = canGenerate;
+                generatedProjectMap[projectName] = canGenerate;
             }
 
             return canGenerate;

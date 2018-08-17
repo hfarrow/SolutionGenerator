@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using SolutionGen.Builder;
 using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser;
@@ -19,6 +21,8 @@ namespace SolutionGen
         internal DocumentReader Reader;
 
         public string ActiveConfigurationGroup { get; private set; }
+
+        private Dictionary<string, Project.Identifier> projectIdLookup;
         
         public static SolutionGenerator FromPath(string solutionConfigPath)
         {
@@ -64,13 +68,16 @@ namespace SolutionGen
                 Reader = new DocumentReader(ConfigDoc, rootDir);
                 Reader.ReadAsMainDocument();
 
+                projectIdLookup = Reader.Modules
+                    .SelectMany(kvp => kvp.Value.ProjectIdLookup)
+                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
                 Log.WriteLine("Finished parsing solution named '{0}'", Reader.Solution.Name);
             }
         }
 
         public void GenerateSolution(string configurationGroup, params string[] externalDefineConstants)
         {
-            
             Log.WriteLine("Generating solution '{0}' for configuration group '{1}'{2}",
                 Reader.Solution.Name,
                 configurationGroup,
@@ -83,94 +90,201 @@ namespace SolutionGen
 
             using (new Log.ScopedIndent())
             {
-                Log.WriteLine("Generation solution projects files");
-                using (new Log.ScopedIndent(true))
+                HashSet<string> includedProjects = Reader.Solution.IncludedProjects;
+                HashSet<string> generatableProjects = includedProjects
+                    .Where(p => Reader.Solution.CanGenerateProject(p))
+                    .ToHashSet();
+
+                GenerateSolutionFiles("-full", Reader.Modules.Values, configurationGroup, includedProjects,  externalDefineConstants);
+
+                if (Reader.Solution.GeneratedProjectsPatterns.Count > 0)
                 {
-                    ActiveConfigurationGroup = configurationGroup;
-                    Solution solution = Reader.Solution;
+                    var builder = new SolutionBuilder(Reader.Solution);
+                    builder.BuildAllConfigurations();
 
-                    Configuration currentConfiguration = solution
-                        .ConfigurationGroups[ActiveConfigurationGroup].Configurations
-                        .First().Value;
+                    // Generate new solution with references to those DLLs.
+                    IEnumerable<Module> updatedModules = ReplacePrebuiltReferences(generatableProjects);
+                    GenerateSolutionFiles("-small", updatedModules, configurationGroup, generatableProjects, externalDefineConstants);
+                }
+            }
+        }
 
-                    foreach (Module module in Reader.Modules.Values)
+        private void GenerateSolutionFiles(string namePostfix, IEnumerable<Module> modules, string configurationGroup,
+            HashSet<string> projectWhitelist, params string[] externalDefineConstants)
+        {
+            Log.WriteLine("Generating solution projects files");
+            using (new Log.ScopedIndent(true))
+            {
+                ActiveConfigurationGroup = configurationGroup;
+                Solution solution = Reader.Solution;
+
+                Configuration currentConfiguration = solution
+                    .ConfigurationGroups[ActiveConfigurationGroup].Configurations
+                    .First().Value;
+
+                foreach (Module module in modules)
+                {
+                    Log.WriteLine("Generating module '{0}' with project count of {1}",
+                        module.Name, module.ProjectIdLookup.Count);
+                    using (new Log.ScopedIndent())
                     {
-                        Log.WriteLine("Generating module '{0}' with project count of {1}",
-                            module.Name, module.ProjectIdLookup.Count);
-                        using (new Log.ScopedIndent())
+                        using (new ExpandableVar.ScopedState())
                         {
-                            using (new ExpandableVar.ScopedState())
+                            ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
+                            foreach (Project.Identifier project in module.ProjectIdLookup.Values)
                             {
-                                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
-                                foreach (Project.Identifier project in module.ProjectIdLookup.Values)
+                                if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
                                 {
-                                    if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
+                                    // Project was excluded for this configuration group.
+                                    Log.WriteLine(
+                                        "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
+                                        project.Name,
+                                        currentConfiguration.GroupName,
+                                        currentConfiguration.Name);
+                                    continue;
+                                }
+
+                                Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
+                                    project.Name, project.Guid, project.SourcePath);
+
+                                using (new Log.ScopedIndent())
+                                {
+                                    ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
+                                        project.Name);
+
+                                    var projectTemplate = new DotNetProject
                                     {
-                                        // Project was excluded for this configuration group.
-                                        Log.WriteLine(
-                                            "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
-                                            project.Name,
-                                            currentConfiguration.GroupName,
-                                            currentConfiguration.Name);
-                                        continue;
-                                    }
+                                        Generator = this,
+                                        Solution = Reader.Solution,
+                                        Module = module,
+                                        ProjectName = project.Name,
+                                        ProjectIdLookup = projectIdLookup,
+                                        CurrentConfiguration = currentConfiguration,
+                                        ExternalDefineConstants = externalDefineConstants.ToHashSet(),
+                                        ProjectNamePostfix = namePostfix,
+                                    };
 
-                                    Log.WriteLine("Generating project '{0}' with GUID '{1}' at source path '{2}'",
-                                        project.Name, project.Guid, project.SourcePath);
+                                    string projectText = projectTemplate.TransformText();
+                                    string projectPath =
+                                        Path.Combine(project.SourcePath, project.Name + namePostfix) + ".csproj";
 
-                                    using (new Log.ScopedIndent())
-                                    {
-                                        ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
-                                            project.Name);
-
-                                        var projectTemplate = new DotNetProject
-                                        {
-                                            Generator = this,
-                                            Solution = Reader.Solution,
-                                            Module = module,
-                                            ProjectName = project.Name,
-                                            ProjectIdLookup = Reader.Modules
-                                                .SelectMany(kvp => kvp.Value.ProjectIdLookup)
-                                                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
-                                            CurrentConfiguration = currentConfiguration,
-                                            ExternalDefineConstants = externalDefineConstants.ToHashSet(),
-                                        };
-
-                                        string projectText = projectTemplate.TransformText();
-                                        string projectPath =
-                                            Path.Combine(project.SourcePath, project.Name) + ".csproj";
-
-                                        Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
-                                        File.WriteAllText(projectPath, projectText);
-                                    }
+                                    Log.WriteLine("Writing project to disk at path '{0}'", projectPath);
+                                    File.WriteAllText(projectPath, projectText);
                                 }
                             }
                         }
                     }
                 }
-
-                Log.WriteLine("Generating main solution file '{0}'.sln", Reader.Solution.Name);
-                using (new Log.ScopedIndent(true))
-                {
-                    var solutionTemplate = new DotNetSolution
-                    {
-                        Generator = this,
-                        Solution = Reader.Solution,
-                        Modules = Reader.Modules,
-                        ActiveConfigurationGroup =
-                            Reader.Solution.ConfigurationGroups[ActiveConfigurationGroup],
-                    };
-
-                    string solutionText = solutionTemplate.TransformText();
-                    string solutionPath = Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name) + ".sln";
-                    Log.WriteLine("Writing solution to disk at path '{0}'", solutionPath);
-                    File.WriteAllText(solutionPath, solutionText);
-                }
-
-                Log.WriteLine("Finished generating solution '{0}' for configuration group '{1}'",
-                    Reader.Solution.Name,
-                    configurationGroup);
             }
+
+            Log.WriteLine("Generating main solution file '{0}'.sln", Reader.Solution.Name);
+            using (new Log.ScopedIndent(true))
+            {
+                var solutionTemplate = new DotNetSolution
+                {
+                    Generator = this,
+                    Solution = Reader.Solution,
+                    Modules = Reader.Modules,
+                    ActiveConfigurationGroup =
+                        Reader.Solution.ConfigurationGroups[ActiveConfigurationGroup],
+                    ProjectNamePostfix = namePostfix,
+                    ProjectWhitelist = projectWhitelist,
+                };
+
+                string solutionText = solutionTemplate.TransformText();
+                string solutionPath =
+                    Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name + namePostfix) + ".sln";
+                Log.WriteLine("Writing solution to disk at path '{0}'", solutionPath);
+                File.WriteAllText(solutionPath, solutionText);
+            }
+
+            Log.WriteLine("Finished generating solution '{0}' for configuration group '{1}'",
+                Reader.Solution.Name,
+                configurationGroup);
+        }
+
+        private IEnumerable<Module> ReplacePrebuiltReferences(ICollection<string> generatableProjects)
+        {
+            Log.WriteLine("Replacing project references with prebuilt assemblies:");
+            
+            string[] projectsToReplace = Reader.Solution.IncludedProjects
+                .Except(generatableProjects)
+                .ToArray();
+            
+            Log.WriteIndentedCollection(projectsToReplace, p => p);
+
+            var results = new List<Module>();
+            
+            using (new Log.ScopedIndent())
+            {
+                foreach (Module module in Reader.Modules.Values)
+                {
+                    var configurations = new Dictionary<Configuration, ModuleConfiguration>();
+                    foreach (KeyValuePair<Configuration, ModuleConfiguration> kvp in module.Configurations)
+                    {
+                        var newProjects = new List<Project>();
+                        foreach (Project project in
+                            kvp.Value.Projects.Values.Where(p => generatableProjects.Contains(p.Name)))
+                        {
+                            string[] libRefs = project.ProjectRefs
+                                .Intersect(projectsToReplace)
+                                .Select(p => Path.Combine(GetRelativePathToProject(p), "bin", "Debug", p + ".dll"))
+                                .ToArray();
+                            
+                            string[] projectRefs = project.ProjectRefs
+                                .Except(projectsToReplace)
+                                .ToArray();
+
+                            Settings newSettings = project.Settings.Clone();
+                            var libRefsValues = newSettings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_REFS);
+                            var projectRefsValues =
+                                newSettings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
+
+                            projectRefsValues.Clear();
+                            foreach (string p in projectRefs)
+                            {
+                                projectRefsValues.Add(p);
+                            }
+
+                            foreach (string libRef in libRefs)
+                            {
+                                libRefsValues.Add(new LiteralPattern(libRef, false));
+                            }
+
+                            if (libRefs.Length > 0)
+                            {
+                                Log.WriteLine("Project references in project '{0}' will be replaced with lib references:",
+                                    project.Name);
+                                Log.WriteIndentedCollection(libRefs, p => p);
+                                
+                                // Only create a new project instance if the reference actually changed.
+                                newProjects.Add(
+                                    new Project(Reader.Solution, module.Name, project.Id, kvp.Key, newSettings));
+                            }
+                            else
+                            {
+                                Log.WriteLine("Skipping project '{0}' because there are no references to replace",
+                                    project.Name);
+                                
+                                newProjects.Add(project);
+                            }
+                        }
+
+                        configurations[kvp.Key] =
+                            new ModuleConfiguration(newProjects.ToDictionary(p => p.Name, p => p));
+                    }
+
+                    results.Add(new Module(Reader.Solution, module.Name, configurations, module.ProjectIdLookup));
+                }
+            }
+
+            return results;
+        }
+        
+        private string GetRelativePathToProject(string toProject)
+        {
+            Project.Identifier toId = projectIdLookup[toProject];
+            return Path.GetRelativePath(Reader.SolutionConfigDir, toId.SourcePath);
         }
     }
 }

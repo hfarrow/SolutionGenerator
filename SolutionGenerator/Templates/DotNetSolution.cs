@@ -55,7 +55,7 @@ namespace SolutionGen.Templates {
             #line hidden
             
             #line 12 "./Templates/DotNetSolution.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture( Path.Combine(project.RelativeSourcePath, project.Name) ));
+            this.Write(this.ToStringHelper.ToStringWithCulture( Path.Combine(project.RelativeSourcePath, project.Name + ProjectNamePostfix) ));
             
             #line default
             #line hidden

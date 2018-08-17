@@ -13,7 +13,7 @@ template MyTemplate
             !glob "**/obj/**",
         ]
         
-        lib search paths =
+        lib search paths +=
         [
             Resources/Libs,
         ]

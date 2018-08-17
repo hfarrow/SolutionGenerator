@@ -10,9 +10,9 @@ namespace SolutionGen.Templates
         public Dictionary<string, Module> Modules { get; set; }
         public SolutionGenerator Generator { get; set; }
         public ConfigurationGroup ActiveConfigurationGroup { get; set; }
+        public string ProjectNamePostfix { get; set; }
+        public HashSet<string> ProjectWhitelist { get; set; }
 
-//        public string SolutionGuid => Solution.Guid.ToString().ToUpper();
-        
         public IReadOnlyCollection<string> ActiveConfigurations =>
             Solution.ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Keys
                 .ToArray();
@@ -20,7 +20,9 @@ namespace SolutionGen.Templates
         public IEnumerable<Project> GetProjects()
         {
             Configuration config = ActiveConfigurationGroup.Configurations.Values.First();
-            return Modules.Values.SelectMany(m => m.Configurations[config].Projects.Values);
+            return Modules.Values
+                .SelectMany(m => m.Configurations[config].Projects.Values)
+                .Where(p => ProjectWhitelist.Contains(p.Name));
         }
     }
 }

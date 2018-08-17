@@ -53,7 +53,9 @@ namespace SolutionGen.Utils
 
         public static void WriteLineWarning(string format, params object[] args)
         {
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
             WriteLine("[WARNING] " + format, args);
+            Console.ResetColor();
         }
     }
 }

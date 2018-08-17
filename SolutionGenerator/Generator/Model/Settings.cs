@@ -34,11 +34,12 @@ namespace SolutionGen.Generator.Model
         public const string PROP_CONFIGURATIONS = "configurations";
         public const string PROP_INCLUDE_TEMPLATES = "include templates";
         public const string PROP_INCLUDE_MODULES = "include modules";
+        public const string PROP_INCLUDE_PROJECTS = "include projects";
         public const string PROP_GENERATE_PROJECTS = "generate projects";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         
-        private readonly Func<string, PropertyDefinition> propertyDefinitionGetter;
+        private Func<string, PropertyDefinition> PropertyDefinitionGetter { get; }
 
         public T GetProperty<T>(string name) => (T) properties[name];
 
@@ -58,7 +59,7 @@ namespace SolutionGen.Generator.Model
             Func<string, PropertyDefinition> propertyDefinitionGetter)
         {
             this.properties = properties;
-            this.propertyDefinitionGetter = propertyDefinitionGetter;
+            PropertyDefinitionGetter = propertyDefinitionGetter;
         }
 
         public Settings ExpandVariablesInCopy()
@@ -67,11 +68,11 @@ namespace SolutionGen.Generator.Model
             foreach (string propertyName in properties.Keys)
             {
                 copy[propertyName] = ExpandableVar.ExpandAllForProperty(propertyName, copy[propertyName],
-                    ExpandableVar.ExpandableVariables, propertyDefinitionGetter);
+                    ExpandableVar.ExpandableVariables, PropertyDefinitionGetter);
 
             }
             
-            return new Settings(copy, propertyDefinitionGetter);
+            return new Settings(copy, PropertyDefinitionGetter);
         }
 
         public Dictionary<string, object> CopyProperties()
@@ -79,10 +80,15 @@ namespace SolutionGen.Generator.Model
             var copy = new Dictionary<string, object>();
             foreach (KeyValuePair<string, object> kvp in properties)
             {
-                copy[kvp.Key] = propertyDefinitionGetter(kvp.Key).CloneValue(kvp.Value);
+                copy[kvp.Key] = PropertyDefinitionGetter(kvp.Key).CloneValue(kvp.Value);
             }
 
             return copy;
+        }
+
+        public Settings Clone()
+        {
+            return new Settings(CopyProperties(), PropertyDefinitionGetter);
         }
     }
 }
