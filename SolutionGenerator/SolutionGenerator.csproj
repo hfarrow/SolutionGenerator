@@ -19,4 +19,13 @@
     <Compile Remove="Generator\ModelOld\Project.cs" />
     <Compile Remove="Generator\ModelOld\Module.cs" />
   </ItemGroup>
+  <Target Name="GenerateTemplateCode" BeforeTargets="BeforeBuild">
+    <Message Importance="high" Text="Generating pre-compiled T5 template code" />
+    <Exec Command="dotnet tt -c SolutionGen.Templates.DotNetSolution -o Templates/DotNetSolution.cs Templates/DotNetSolution.tt" />
+    <Exec Command="dotnet tt -c SolutionGen.Templates.DotNetProject -o Templates/DotNetProject.cs Templates/DotNetProject.tt" />
+    <ItemGroup>
+      <!-- Refresh included source files to include generated templated but exclude files that are already part of the project. -->
+      <Compile Include="**/*$(DefaultLanguageSourceExtension)" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(BaseIntermediateOutputPath)**;$(BaseOutputPath)**;@(Compile)" />
+    </ItemGroup>
+  </Target>
 </Project>
