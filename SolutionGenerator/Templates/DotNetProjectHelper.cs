@@ -1,5 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
+using System.Xml;
 using SolutionGen.Generator.Model;
 using Path = System.IO.Path;
 
@@ -49,6 +53,9 @@ namespace SolutionGen.Templates
         public string GetStringProperty(string property) =>
             Project.Settings.GetProperty<string>(property);
 
+        public List<string> GetListProperty(string property) =>
+            Project.Settings.GetProperty<List<string>>(property);
+        
         public HashSet<string> GetStringHashSetProperty(string property) =>
             Project.Settings.GetProperty<HashSet<string>>(property);
 
@@ -171,6 +178,43 @@ namespace SolutionGen.Templates
         public string GetRelativeLibRefPath(string libPath)
         {
             return Path.GetRelativePath(Project.AbsoluteSourcePath, libPath);
+        }
+        
+        public IReadOnlyCollection<string> GetCommonCustomContents()
+        {
+            return Project.CustomContents;
+        }
+
+        public string FormatCustomContents(IReadOnlyCollection<string> customContents, int indentSize)
+        {
+            string indent = "".PadRight(indentSize);
+            return string.Join("\n", customContents)
+                .Replace("\n", "\n" + indent)
+                .Insert(0, indent);
+        }
+
+        public void ValidateNoConfigurationSpecificCustomContents()
+        {
+            IReadOnlyCollection<string> prev = null;
+            foreach (Configuration configuration in ActiveConfigurations)
+            {
+                CurrentConfiguration = configuration;
+                IReadOnlyCollection<string> current = GetCommonCustomContents();
+                if (prev != null)
+                {
+                    if (prev.Count != current.Count ||
+                        !current.SequenceEqual(prev))
+                    {
+                        throw new NotSupportedException(
+                            string.Format(
+                                "Configuration specific '{0}' are not supported. Only common contents are allowed. " +
+                                "Consider hard coding msbuild conditionals directly into custom contents",
+                                Settings.PROP_CUSTOM_CSPROJ_CONTENTS));
+                    }
+                }
+
+                prev = current;
+            }
         }
     }
 }

@@ -141,7 +141,7 @@ namespace SolutionGen.Generator.Reader
                 IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
                 if (!result.WasSuccessful)
                 {
-                    throw new DataException($"Included document could not be parsed: {result}");
+                    throw new DocumentParseException(filePath, result.ToString());
                 }
 
                 ConfigDocument configDoc = result.Value;

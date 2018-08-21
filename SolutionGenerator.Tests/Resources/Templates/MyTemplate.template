@@ -61,6 +61,22 @@ template MyTemplate
                 TEST,
             ]
         }
+        
+        custom csproj contents +=
+        [
+            xml
+            """
+            <Target Name="AfterBuild">
+                <TestTask Arg1="\$(TargetPath)" Arg2="\$(SolutionDir)" />
+            </Target>
+            """,
+            xml
+            """
+            <Target Name="AfterBuild">
+                <TestTask2 Arg1="\$(TargetPath)" Arg2="\$(SolutionDir)" />
+            </Target>
+            """
+        ]
     }
 
     settings project.tests : project

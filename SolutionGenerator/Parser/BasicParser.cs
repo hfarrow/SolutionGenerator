@@ -92,6 +92,30 @@ namespace SolutionGen.Parser
                 from close in Parse.Char('"')
                 select content)
             .Token().Named("quoted-text");
+
+        /// <summary>
+        /// Parse a formatted text block enclosed in triple quotations. The quotations should begin on a new line
+        /// because the leading white space will be stripped from each line in the body.
+        /// Example:
+        /// formatted text =
+        /// """
+        /// text
+        /// goes
+        /// here
+        /// """
+        /// </summary>
+        /// <remarks>
+        /// formatted-text = *EOL *WSP 3""" *CHAR 3"""
+        /// </remarks>
+        public static readonly Parser<FormattedText> FormattedText =
+            (from lineLead in Parse.LineEnd.Optional()
+                from lead in Parse.WhiteSpace.Many()
+                from open in Parse.Char('"').Repeat(3)
+                from eol in Parse.LineEnd.Optional()
+                from body in Parse.AnyChar.Except(Parse.Char('"').Repeat(3)).Many().Text()
+                from close in Parse.Char('"').Repeat(3)
+                select new FormattedText(lead, body.TrimEnd()))
+            .Named("formatted-text");
         
         /// <summary>
         /// Parses a glob pattern returning only the pattern string
@@ -118,6 +142,18 @@ namespace SolutionGen.Parser
                 from value in QuotedText
                 select new RegexValue(value, negated.IsDefined))
             .Token().Named("regex");
+
+        /// <summary>
+        /// Parses a blob of xml data enclosed in an xml { ... } element
+        /// </summary>
+        /// <remarks>
+        /// xml = "xml" *WSP "{" *(CHAR / WSP) "}"
+        /// </remarks>
+        public static readonly Parser<ValueElement> XmlValue =
+            (from heading in Parse.String("xml")
+                from xml in FormattedText
+                select new XmlValue(xml))
+            .Token().Named("xml");
 
         /// <summary>
         /// Parse the none keyword which generally repreasents nothing or an empty collection.

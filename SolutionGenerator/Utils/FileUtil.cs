@@ -30,6 +30,7 @@ namespace SolutionGen.Utils
         public static HashSet<string> GetFiles(IEnumerable<string> searchableDirectories,
             IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
+            basePath = basePath ?? Directory.GetCurrentDirectory();
             searchableDirectories = searchableDirectories as string[] ?? searchableDirectories.ToArray();
             Log.WriteLine("Getting files using base path '{0}' and provided include and exclude paths:", basePath);
             Log.WriteIndentedCollection(searchableDirectories, d => d);
@@ -49,7 +50,6 @@ namespace SolutionGen.Utils
             
             foreach (string rootDir in searchableDirectories)
             {
-                string relativeBasePath = basePath ?? rootDir;
                 var dir = new DirectoryInfo(rootDir);
 
                 string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
@@ -65,7 +65,9 @@ namespace SolutionGen.Utils
                 var includeGlob = new CompositeGlob(includeGlobs, null);
 
                 // TODO: cache all files under RootPath instead of using DirectoryInfo
-                string[] includeGlobMatches = includeGlob.FilterMatches(dir).ToArray();
+                string[] includeGlobMatches = includeGlob.FilterMatches(dir)
+                    .Select(m => Path.GetRelativePath(basePath, Path.Combine(dir.FullName, m)))
+                    .ToArray();
 
                 IEnumerable<string> tempMatches = includeGlobMatches;
                 if (includeFiles != null)
@@ -79,7 +81,7 @@ namespace SolutionGen.Utils
                                 select Path.Combine(dirInfo.FullName, file)
                                 into includeFilePath
                                 where File.Exists(includeFilePath)
-                                select Path.GetRelativePath(relativeBasePath, includeFilePath)).ToArray();
+                                select Path.GetRelativePath(basePath, includeFilePath)).ToArray();
 
                         if (matchesForFile.Length > 0)
                         {
@@ -109,7 +111,9 @@ namespace SolutionGen.Utils
 
                 if (includeRegexes != null)
                 {
-                    tempMatches = tempMatches.Concat(includeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
+                    tempMatches = tempMatches.Concat(
+                        includeRegexes.SelectMany(r => r.FilterMatches(allFiles))
+                            .Select(m => Path.GetRelativePath(basePath, m)));
                 }
 
                 #endregion
@@ -117,7 +121,9 @@ namespace SolutionGen.Utils
                 #region excludes
 
                 var excludeGlob = new CompositeGlob(excludeGlobs, null);
-                string[] excludeGlobMatches = excludeGlob.FilterMatches(dir).ToArray();
+                string[] excludeGlobMatches = excludeGlob.FilterMatches(dir)
+                    .Select(m => Path.GetRelativePath(basePath, Path.Combine(dir.FullName, m)))
+                    .ToArray();
 
                 tempMatches = tempMatches.Except(excludeGlobMatches);
 
@@ -131,7 +137,7 @@ namespace SolutionGen.Utils
                                 select Path.Combine(dirInfo.FullName, excludeFile)
                                 into excludeFilePath
                                 where File.Exists(excludeFilePath)
-                                select Path.GetRelativePath(rootDir, excludeFilePath)).ToArray();
+                                select Path.GetRelativePath(basePath, excludeFilePath)).ToArray();
 
                         validExcludeFiles.AddRange(matchesForFile);
                     }
@@ -141,7 +147,9 @@ namespace SolutionGen.Utils
 
                 if (excludeRegexes != null)
                 {
-                    tempMatches = tempMatches.Except(excludeRegexes.SelectMany(r => r.FilterMatches(allFiles)));
+                    tempMatches = tempMatches.Except(
+                        excludeRegexes.SelectMany(r => r.FilterMatches(allFiles))
+                            .Select(m => Path.GetRelativePath(basePath, m)));
                 }
 
                 #endregion

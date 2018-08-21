@@ -57,7 +57,27 @@ namespace SolutionGen.Utils
             return didCopy;
         }
 
+        public bool StripEscapedVariablesInCopy(out IExpandable outCopy)
+        {
+            bool didStrip = false;
+            Pattern newCopy = Copy();
+            if (ExpandableVar.StripEscapedVariablesInCopy(Value, out object value))
+            {
+                didStrip = true;
+                newCopy.Value = (string) value;
+            }
+
+            outCopy = newCopy;
+            return didStrip;
+
+        }
+
         protected abstract Pattern Copy();
+
+        public override string ToString()
+        {
+            return (Negated ? "!" : "") + Value;
+        }
     }
 
     [Serializable]

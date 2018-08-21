@@ -104,7 +104,7 @@ namespace SolutionGen.Tests.Utils
         }
 
         [Fact]
-        public void CanGetFilesInMultipleSearchPaths()
+        public void GetFilesInMultipleSearchPathsOnlyReturnsFirst()
         {
             string[] searchPaths =
             {

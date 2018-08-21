@@ -19,8 +19,10 @@ namespace SolutionGen.Generator.Model
         public abstract void ClearCollection(object collection);
         public abstract object CloneCollection(object collection);
 
-        public abstract bool ExpandVariablesInCollection(object collection, string varName, string varExpansion,
+        public abstract bool ExpandVariableInCollection(object collection, string varName, string varExpansion,
             out object newCollection);
+
+        public abstract bool StripEscapedVariablesInCollection(object collection, out object newCollection);
     }
     
     public class PropertyCollectionDefinition<TCollection, TValue, TReader> : PropertyCollectionDefinition
@@ -76,7 +78,7 @@ namespace SolutionGen.Generator.Model
             return copy;
         }
 
-        public override bool ExpandVariablesInCollection(object collection, string varName, string varExpansion,
+        public override bool ExpandVariableInCollection(object collection, string varName, string varExpansion,
             out object newCollection)
         {
             CheckCollectionType(collection);
@@ -95,6 +97,26 @@ namespace SolutionGen.Generator.Model
 
             newCollection = collectionCopy;
             return didExpand;
+        }
+        
+        public override bool StripEscapedVariablesInCollection(object collection, out object newCollection)
+        {
+            CheckCollectionType(collection);
+            var castedCollection = (TCollection) collection;
+            
+            bool didStrip = false;
+            var collectionCopy = new TCollection();
+            foreach (TValue value in castedCollection)
+            {
+                if (ExpandableVar.StripEscapedVariablesInCopy(value, out object copy))
+                {
+                    didStrip = true;
+                }
+                collectionCopy.Add((TValue) copy);
+            }
+
+            newCollection = collectionCopy;
+            return didStrip;
         }
 
         public override object GetOrCloneDefaultValue()
@@ -115,7 +137,12 @@ namespace SolutionGen.Generator.Model
 
         public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
-            return ExpandVariablesInCollection(value, varName, varExpansion, out newValue);
+            return ExpandVariableInCollection(value, varName, varExpansion, out newValue);
+        }
+
+        public override bool StripEscapedVariables(object value, out object newValue)
+        {
+            return StripEscapedVariablesInCollection(value, out newValue);
         }
 
         public override string PrintValue(object value)

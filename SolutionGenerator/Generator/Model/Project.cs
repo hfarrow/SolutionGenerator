@@ -34,6 +34,7 @@ namespace SolutionGen.Generator.Model
         public IReadOnlyCollection<string> IncludeFiles { get; }
         public IReadOnlyCollection<string> LibRefs { get; }
         public IReadOnlyCollection<string> ProjectRefs { get; }
+        public IReadOnlyCollection<string> CustomContents { get; }
 
         public readonly Identifier Id;
 
@@ -53,6 +54,7 @@ namespace SolutionGen.Generator.Model
             var libSearchPaths = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_SEARCH_PATHS);
             var libRefsValues = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_REFS);
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
+            CustomContents = Settings.GetProperty<List<string>>(Settings.PROP_CUSTOM_CSPROJ_CONTENTS);
 
             Log.WriteLine(
                 "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",

@@ -137,8 +137,10 @@ namespace SolutionGen.Tests
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
             generator.GenerateSolution("everything", constantName);
 
-            string projectPath =
-                Path.Combine(sol.SolutionConfigDir, "Resources", "MyModule", "MyModule") + ".csproj";
+            string projectDir = Path.Combine(sol.SolutionConfigDir, "Resources", "MyModule");
+            string projectPath = Directory
+                .GetFiles(projectDir, "*.csproj").First(f => Path.GetFileName(f).Contains("MyModule"));
+            
             Assert.Contains(constantName, File.ReadAllText(projectPath));
         }
 

@@ -95,5 +95,69 @@ namespace SolutionGen.Tests.Parsing
             Assert.NotNull(array);
             Assert.Empty(array.Values);
         }
+       
+        [Fact]
+        public void XmlValueSingleLineArrayCanBeParsed()
+        {
+            const string xmlData = "<node><value>v</value></node>";
+            const string input =
+                "xml =\n" +
+                "[\n" +
+                "  xml \"\"\"" + xmlData + "\"\"\"\n" +
+                "]";
+            
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Single(array.Values);
+            Assert.Equal(XmlValue.FormatXml(xmlData), array.Values.First().Value.ToString());
+        }
+        
+        [Fact]
+        public void XmlValueMultiLineArrayCanBeParsed()
+        {
+            const string xmlData = "<node><value>v</value></node>";
+            const string input =
+                "xml =\n" +
+                "[\n" +
+                "  xml \"\"\"" + xmlData + "\"\"\",\n" +
+                "  xml \"\"\"" + xmlData + "\"\"\"\n" +
+                "]";
+            
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Equal(2, array.Values.Count());
+            Assert.Equal(XmlValue.FormatXml(xmlData), array.Values.First().Value.ToString());
+        }
+        
+        [Fact]
+        public void XmlValueMultiLineNodesInArrayCanBeParsed()
+        {
+            const string xmlData = 
+                "  <node>\n" +
+                "    <value>v</value>\n" +
+                "  </node>";
+            
+            const string xmlDataExpected = 
+                "<node>\n" +
+                "    <value>v</value>\n" +
+                "</node>";
+            
+            const string input =
+                "xml +=\n" +
+                "[\n" +
+                "  xml\n" +
+                "  \"\"\"\n" + xmlData + "\n\"\"\",\n" +
+                "  xml\n" +
+                "  \"\"\"\n" + xmlData + "\n\"\"\"\n" +
+                "]";
+            
+            PropertyElement propertyElement = DocumentParser.PropertyArray.Parse(input);
+            var array = propertyElement.ValueElement as ArrayValue;
+            Assert.NotNull(array);
+            Assert.Equal(2, array.Values.Count());
+            Assert.Equal(xmlDataExpected, array.Values.First().Value);
+        }
     }
 }

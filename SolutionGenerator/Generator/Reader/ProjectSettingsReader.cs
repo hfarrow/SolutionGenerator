@@ -43,6 +43,8 @@ namespace SolutionGen.Generator.Reader
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_WARNING_LEVEL, "4"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_CONFIGURATION_PLATFORM_TARGET, "AnyCPU"),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_EXCLUDE, "false"),
+            
+            new PropertyCollectionDefinition<List<string>, string, StringPropertyReader>(Settings.PROP_CUSTOM_CSPROJ_CONTENTS),
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =

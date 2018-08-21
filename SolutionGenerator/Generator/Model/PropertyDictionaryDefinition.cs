@@ -18,8 +18,11 @@ namespace SolutionGen.Generator.Model
         public abstract void AddToDictionary(object dictionary, string key, object value);
         public abstract void ClearDictionary(object dictionary);
         public abstract object CloneDictionary(object dictionary);
+        
         public abstract bool ExpandVariablesInDictionary(object dictionary, string varName, string varExpansion,
             out object newDictionary);
+
+        public abstract bool StripEscapedVariablesInDictionary(object dictionary, out object newDictionary);
     }
 
     public class PropertyDictionaryDefinition<TValue, TReader> : PropertyDictionaryDefinition
@@ -101,6 +104,32 @@ namespace SolutionGen.Generator.Model
             return didExpand;
         }
 
+        public override bool StripEscapedVariablesInDictionary(object dictionary, out object newDictionary)
+        {
+            CheckDictionaryType(dictionary);
+            var castedDictionary = (Dictionary<string, TValue>) dictionary;
+
+            bool didStrip = false;
+            var modifiedValues = new Dictionary<string, TValue>();
+            foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
+            {
+                if (ExpandableVar.StripEscapedVariablesInCopy(kvp.Key, out object copy))
+                {
+                    didStrip = true;
+                    modifiedValues[kvp.Key] = (TValue) copy;
+                }
+            }
+
+            foreach (KeyValuePair<string,TValue> kvp in modifiedValues)
+            {
+                castedDictionary[kvp.Key] = kvp.Value;
+            }
+
+            // dictionary strips in place (no new instance)
+            newDictionary = dictionary;
+            return didStrip;
+        }
+
         public override object GetOrCloneDefaultValue()
         {
             var copy = new Dictionary<string, TValue>();
@@ -116,7 +145,7 @@ namespace SolutionGen.Generator.Model
         {
             return CloneDictionary(value);
         }
-        
+
         public override string PrintValue(object value)
         {
             CheckDictionaryType(value);
@@ -127,6 +156,11 @@ namespace SolutionGen.Generator.Model
         public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
             return ExpandVariablesInDictionary(value, varName, varExpansion, out newValue);
+        }
+        
+        public override bool StripEscapedVariables(object value, out object newValue)
+        {
+            return StripEscapedVariablesInDictionary(value, out newValue);
         }
 
         private static void CheckDictionaryType(object dictionary)

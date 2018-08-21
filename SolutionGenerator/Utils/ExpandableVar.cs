@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using SolutionGen.Generator.Model;
 
 namespace SolutionGen.Utils
@@ -98,7 +99,7 @@ namespace SolutionGen.Utils
                     obj = copy;
                     break;
                 case string prevValue:
-                    string newValue =  prevValue.Replace($"$({varName})", varExpansion);
+                    string newValue = ReplaceOccurences(varName, varExpansion, prevValue);
                     obj = newValue;
                     if (prevValue != newValue)
                     {
@@ -112,6 +113,34 @@ namespace SolutionGen.Utils
             return didExpand;
         }
 
+        public static bool StripEscapedVariablesInCopy(object obj, out object outObj)
+        {
+            bool didStrip = false;
+            switch (obj)
+            {
+                case IExpandable expandable:
+                    if (expandable.StripEscapedVariablesInCopy(out IExpandable copy))
+                    {
+                        didStrip = true;
+                    }
+                    obj = copy;
+                    break;
+                case string prevValue:
+                    string newValue = StripEscapedVariables(prevValue);
+                    obj = newValue;
+                    if (prevValue != newValue)
+                    {
+                        didStrip = true;
+                        Log.WriteLine("Stripping escaped variables in '{0}' to '{1}'", prevValue, newValue);
+                    }
+                    break;
+            }
+
+            outObj = obj;
+            return didStrip;
+            
+        }
+
         public static object ExpandAllInCopy(object obj, IReadOnlyDictionary<string, string> varExpansions)
         {
             obj = varExpansions.Aggregate(obj, (current, kvp) =>
@@ -122,26 +151,68 @@ namespace SolutionGen.Utils
             return obj;
         }
 
-        public static object ExpandAllForProperty(string propertyName, object obj,
+        public static object ExpandAllForProperty(string propertyName, object property,
             IReadOnlyDictionary<string, string> varExpansions,
             Func<string, PropertyDefinition> propertyDefinitionGetter)
         {
             PropertyDefinition definition = propertyDefinitionGetter(propertyName);
 
             bool didExpand = false;
-            obj = varExpansions.Aggregate(obj,
+            property = varExpansions.Aggregate(property,
                 (current, kvp) =>
                 {
                     didExpand |= definition.ExpandVariable(current, kvp.Key, kvp.Value, out object copy);
                     return copy;
                 });
+            
 
             if (didExpand)
             {
-                Log.WriteLine("Expanded all variables in property '{0}' => '{1}'", propertyName, obj);
+                Log.WriteLine("Expanded all variables in property '{0}' => '{1}'", propertyName, property);
+            }
+
+            if (definition.StripEscapedVariables(property, out property))
+            {
+                Log.WriteLine("Stripped all escaped variables in property '{0}' => '{1}'", propertyName, property);
             }
             
-            return obj;
+            return property;
+        }
+
+        public static string StripEscapedVariables(string input) => input.Replace("\\$", "$");
+        
+        public static string ReplaceOccurences(string varName, string varExpansion, string input)
+        {
+            string fullVarName = $"$({varName})";
+            var builder = new StringBuilder();
+
+            int segmentStart = 0;
+            while (segmentStart < input.Length)
+            {
+                int varStart = input.IndexOf(fullVarName, segmentStart, StringComparison.Ordinal);
+                if (varStart < 0)
+                {
+                    varStart = input.Length;
+                }
+
+                builder.Append(input.Substring(segmentStart, varStart - segmentStart));
+                if (varStart != input.Length)
+                {
+                    if (varStart > 0 && input[varStart - 1] == '\\')
+                    {
+                        // var was escaped so leave the escaped var in the result
+                        builder.Append(fullVarName);
+                    }
+                    else
+                    {
+                        builder.Append(varExpansion);
+                    }
+                }
+
+                segmentStart = varStart + fullVarName.Length;
+            }
+
+            return builder.ToString();
         }
         
         public static object ExpandModuleNameInCopy(object obj, string moduleName)

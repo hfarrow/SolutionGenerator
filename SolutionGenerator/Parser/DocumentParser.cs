@@ -47,6 +47,7 @@ namespace SolutionGen.Parser
             (from value in BasicParser.QuotedText.Select(txt => new ValueElement(txt))
                     .Or(BasicParser.GlobValue)
                     .Or(BasicParser.RegexValue)
+                    .Or(BasicParser.XmlValue)
                     .Or(BasicParser.NoneValue)
                     // Unquoted Text
                     .Or(Parse.AnyChar.Except(

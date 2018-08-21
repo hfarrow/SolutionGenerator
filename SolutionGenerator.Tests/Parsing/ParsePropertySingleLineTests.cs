@@ -59,6 +59,15 @@ namespace SolutionGen.Tests.Parsing
             PropertyElement p =
                 DocumentParser.PropertySingleLine.Parse("if (true&&(false||true)) include files = value");
             Assert.True(parser.InvokeExpression(p.ConditionalExpression));
+        } 
+        
+        [Fact]
+        public void XmlValueSingleLineCanBeParsed()
+        {
+            const string xmlData = "<node><value>v</value></node>";
+            const string input = "xml = xml \"\"\"" + xmlData + "\"\"\"";
+            PropertyElement propertyElement = DocumentParser.PropertySingleLine.Parse(input);
+            Assert.Equal(XmlValue.FormatXml(xmlData), propertyElement.ValueElement.Value);
         }
     }
 }

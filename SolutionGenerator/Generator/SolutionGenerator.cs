@@ -61,7 +61,7 @@ namespace SolutionGen
                 IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
                 if (!result.WasSuccessful)
                 {
-                    throw new DataException($"Solution config could not be parsed: {result}");
+                    throw new DocumentParseException("<in-memory>", $"Solution config could not be parsed: {result}");
                 }
 
                 ConfigDoc = result.Value;
@@ -285,6 +285,15 @@ namespace SolutionGen
         {
             Project.Identifier toId = projectIdLookup[toProject];
             return Path.GetRelativePath(Reader.SolutionConfigDir, toId.SourcePath);
+        }
+    }
+
+    public sealed class DocumentParseException : Exception
+    {
+        public DocumentParseException(string filePath, string reason)
+            : base(string.Format("Failed to parse document at path '{0}': {1}", filePath, reason))
+        {
+            
         }
     }
 }
