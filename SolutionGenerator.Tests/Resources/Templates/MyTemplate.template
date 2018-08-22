@@ -12,7 +12,7 @@ template MyTemplate
             !glob "**/Tests/**",
             !glob "**/obj/**",
         ]
-        
+
         lib search paths +=
         [
             Resources/Libs,
@@ -61,21 +61,15 @@ template MyTemplate
                 TEST,
             ]
         }
-        
+
         custom csproj contents +=
         [
             xml
             """
             <Target Name="AfterBuild">
-                <TestTask Arg1="\$(TargetPath)" Arg2="\$(SolutionDir)" />
+                <ExampleTask />
             </Target>
             """,
-            xml
-            """
-            <Target Name="AfterBuild">
-                <TestTask2 Arg1="\$(TargetPath)" Arg2="\$(SolutionDir)" />
-            </Target>
-            """
         ]
     }
 

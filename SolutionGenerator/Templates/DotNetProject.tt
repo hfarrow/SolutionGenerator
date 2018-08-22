@@ -93,8 +93,14 @@ foreach (string projectName in GetCommonProjectRefs())
 <#}#>
 
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-    
-    <!-- custom csproj contents -->
+
+    <!-- property: <#= Settings.PROP_INCLUDE_BUILD_TASKS #> -->
+<# foreach (string file in Solution.GetBuildTasksFilesForProject(Project))
+{#>
+    <Import Project="<#= file #>" />
+<#}#>
+
+    <!-- property: <#= Settings.PROP_CUSTOM_CSPROJ_CONTENTS #> -->
 <#= FormatCustomContents(GetCommonCustomContents(), 4) #>
 <# ValidateNoConfigurationSpecificCustomContents(); #>
 </Project>

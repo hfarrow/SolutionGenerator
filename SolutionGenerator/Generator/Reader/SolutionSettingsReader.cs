@@ -27,6 +27,7 @@ namespace SolutionGen.Generator.Reader
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_MODULES),
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_PROJECTS),
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_GENERATE_PROJECTS),
+            new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_BUILD_TASKS)
         };
 
         private static readonly Dictionary<string, PropertyDefinition> propertyDefinitionLookup =

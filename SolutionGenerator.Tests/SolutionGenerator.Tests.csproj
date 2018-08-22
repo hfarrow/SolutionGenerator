@@ -54,6 +54,12 @@
     <None Update="Resources\Libs\Sprache.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\BuildTasks\MyTasks.tasks">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\BuildTasks\SolutionGenerator.Tests.ExampleBuildTask.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />

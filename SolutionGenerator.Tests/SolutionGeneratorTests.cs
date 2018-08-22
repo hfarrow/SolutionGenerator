@@ -30,6 +30,7 @@ namespace SolutionGen.Tests
                 }
             }
         }
+        
         public void Dispose()
         {
         }

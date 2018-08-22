@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolutionGen.Utils;
 
@@ -22,10 +23,14 @@ namespace SolutionGen.Generator.Model
         public IReadOnlyCollection<IPattern> GeneratedProjectsPatterns =>
             Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_GENERATE_PROJECTS);
         
+        public IReadOnlyCollection<IPattern> IncludeBuildTasksPattern =>
+            Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_INCLUDE_BUILD_TASKS);
+        
         private readonly Dictionary<string, bool> includedProjectMap  = new Dictionary<string, bool>();
         private readonly Dictionary<string, bool> generatedProjectMap  = new Dictionary<string, bool>();
-
         public HashSet<string> IncludedProjects => includedProjectMap.Keys.ToHashSet();
+
+        public IReadOnlyCollection<string> BuildTasksFiles { get; }
         
         public Solution(string name, Settings settings, string solutionConfigDir,
             IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
@@ -35,6 +40,10 @@ namespace SolutionGen.Generator.Model
             Settings = settings;
             SolutionConfigDir = solutionConfigDir;
             ConfigurationGroups = configurationGroups;
+
+            BuildTasksFiles = FileUtil.GetFiles(SolutionConfigDir,
+                IncludeBuildTasksPattern.Where(p => !p.Negated),
+                IncludeBuildTasksPattern.Where(p => p.Negated));
         }
 
         public bool CanIncludeProject(string projectName)
@@ -67,6 +76,11 @@ namespace SolutionGen.Generator.Model
             }
 
             return canGenerate;
+        }
+
+        public IReadOnlyCollection<string> GetBuildTasksFilesForProject(Project project)
+        {
+            return BuildTasksFiles.Select(f => Path.GetRelativePath(project.AbsoluteSourcePath, f)).ToHashSet();
         }
     }
 }
