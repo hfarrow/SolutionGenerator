@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Reader;
@@ -143,13 +144,6 @@ namespace SolutionGen.Generator.Model
         public override bool StripEscapedVariables(object value, out object newValue)
         {
             return StripEscapedVariablesInCollection(value, out newValue);
-        }
-
-        public override string PrintValue(object value)
-        {
-            CheckCollectionType(value);
-            var castedCollection = (TCollection) value;
-            return "[" + string.Join(", ", castedCollection.Select(obj => $"<{obj.ToString()}>")) + "]";
         }
 
         private static void CheckCollectionType(object collection)

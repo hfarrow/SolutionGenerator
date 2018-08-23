@@ -53,6 +53,6 @@ namespace SolutionGen.Utils
 
         public IEnumerable<string> FilterMatches(DirectoryInfo dir) =>
             FilterMatches(dir.EnumerateFiles("*", SearchOption.AllDirectories)
-                .Select(fi => fi.FullName.Substring(dir.FullName.Length + 1)));
+                .Select(fi => Path.GetRelativePath(dir.FullName, fi.FullName)));
     }
 }

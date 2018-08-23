@@ -31,7 +31,7 @@ namespace SolutionGen.Generator.Reader
 
         public Template Read(ObjectElement templateElement)
         {
-            Log.WriteLine("Reading template element with base template '{0}': {1}",
+            Log.Info("Reading template element with base template '{0}': {1}",
                 baseTemplate?.Name ?? "none", templateElement);
             
             using (new Log.ScopedIndent(true))
@@ -54,7 +54,7 @@ namespace SolutionGen.Generator.Reader
         
         private TemplateConfiguration CreateTemplateConfig(ObjectElement templateElement, Configuration configuration)
         {
-            Log.WriteLine("Creating template config '{0} - {1}' for template '{2}'",
+            Log.Heading("Creating template config '{0} - {1}' for template '{2}'",
                 configuration.GroupName, configuration.Name, templateElement.ElementHeading.Name);
 
             using (new Log.ScopedIndent(true))
@@ -118,7 +118,7 @@ namespace SolutionGen.Generator.Reader
                         //    inherited settings as the base.
                         if (baseTemplate == null)
                         {
-                            Log.WriteLine("Using inherited settings '{0}' for base settings (1)", baseSettingsName);
+                            Log.Info("Using inherited settings '{0}' for base settings (1)", baseSettingsName);
                             // Can be null if the settings element does not inherit anything
                             baseSettings = inheritedSettings;
                         }
@@ -126,7 +126,7 @@ namespace SolutionGen.Generator.Reader
                         //    as the base settings if they exist
                         else if (inheritedSettings == null)
                         {
-                            Log.WriteLine("Using template settings of same name '{0}' for base settings (2)", settingsName);
+                            Log.Info("Using template settings of same name '{0}' for base settings (2)", settingsName);
                             settingsLookup.TryGetValue(settingsName, out baseSettings);
                         }
                         // 3. reading a module object with inheritance
@@ -136,7 +136,7 @@ namespace SolutionGen.Generator.Reader
                             // only if the template contains settings of the same name.
                             if (baseTemplate.SettingsSourceElements.TryGetValue(settingsName, out ObjectElement sourceElement))
                             {
-                                Log.WriteLine("Re-reading template settings of same name '{0}' for base settings (3.a)",
+                                Log.Info("Re-reading template settings of same name '{0}' for base settings (3.a)",
                                     settingsName);
                                 baseSettings =
                                     new ProjectSettingsReader(configuration, inheritedSettings, defaultSettings).Read(sourceElement);
@@ -144,7 +144,7 @@ namespace SolutionGen.Generator.Reader
                             // b. Template does not contain settings same name so use the inheritedSettings
                             else
                             {
-                                Log.WriteLine(
+                                Log.Info(
                                     "Template does not contain settings of same name '{0}' so using inherited settings " +
                                     "'{0}' for base settings (3.b)",
                                     settingsName, baseSettingsName);

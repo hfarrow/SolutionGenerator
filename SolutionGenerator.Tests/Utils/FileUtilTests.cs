@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolutionGen.Utils;
 using Xunit;
@@ -29,7 +30,8 @@ namespace SolutionGen.Tests.Utils
         public void GlobCanGetAllFilesWithExtensionRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources", new IPattern[] {new GlobPattern("**/*.module", false)}, null);
+                FileUtil.GetFiles(Directory.GetCurrentDirectory(),
+                    new IPattern[] {new GlobPattern("**/*.module", false)}, null);
             
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
@@ -39,7 +41,7 @@ namespace SolutionGen.Tests.Utils
         public void RegexCanGetAllFilesWithExtensionRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources",
+                FileUtil.GetFiles("./",
                     new IPattern[] {new RegexPattern(@"\.module$", false)}, null);
             
             Assert.NotEmpty(result);
@@ -50,7 +52,7 @@ namespace SolutionGen.Tests.Utils
         public void GlobCanExcludeFilesWithExtensionRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources",
+                FileUtil.GetFiles("./",
                     new IPattern[] {new GlobPattern("**/*", false)},
                     new IPattern[] {new GlobPattern("**/*.module", true)});
             
@@ -62,7 +64,7 @@ namespace SolutionGen.Tests.Utils
         public void RegexCanExcludeFilesWithExtensionRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources",
+                FileUtil.GetFiles("./",
                     new IPattern[] {new RegexPattern(".*", false)},
                     new IPattern[] {new RegexPattern(@"\.module",  false)});
             
@@ -75,7 +77,7 @@ namespace SolutionGen.Tests.Utils
         public void ExcludesHavePrecedenceOverIncludes()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources",
+                FileUtil.GetFiles("./",
                     new IPattern[] {new RegexPattern(".*", false)},
                     new IPattern[] {new RegexPattern(".*",  false)});
             
@@ -86,7 +88,7 @@ namespace SolutionGen.Tests.Utils
         public void LiteralMatchesFirstFileWhenAmbiguous()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources", new IPattern[] {new LiteralPattern("Class.cs", false)}, null);
+                FileUtil.GetFiles("./", new IPattern[] {new LiteralPattern("Class.cs", false)}, null);
 
             Assert.Single(result);
             Assert.Equal("MyModule/Code/Class.cs", result.First());
@@ -96,7 +98,7 @@ namespace SolutionGen.Tests.Utils
         public void LiteralCanExcludeFileRecursively()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("Resources",
+                FileUtil.GetFiles("./",
                     new IPattern[] {new GlobPattern("**/Class.cs", false)},
                     new IPattern[] {new LiteralPattern("Class.cs", false)});
             
@@ -108,8 +110,8 @@ namespace SolutionGen.Tests.Utils
         {
             string[] searchPaths =
             {
-                "Resources/MyModule",
-                "Resources/MyOtherModule"
+                "MyModule",
+                "MyOtherModule"
             };
 
             HashSet<string> result =

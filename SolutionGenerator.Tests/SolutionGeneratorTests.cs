@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using SolutionGen.Builder;
 using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
 using Xunit;
@@ -19,16 +21,7 @@ namespace SolutionGen.Tests
         
         public SolutionGeneratorFixture()
         {
-            Assembly assembly = typeof(SolutionGeneratorFixture).GetTypeInfo().Assembly;
-
-            using (Stream stream =
-                assembly.GetManifestResourceStream("SolutionGenerator.Tests.Resources.TestSolution.txt"))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    ConfigText = reader.ReadToEnd();
-                }
-            }
+            ConfigText = File.ReadAllText("TestSolution.scfg");
         }
         
         public void Dispose()
@@ -138,7 +131,7 @@ namespace SolutionGen.Tests
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
             generator.GenerateSolution("everything", constantName);
 
-            string projectDir = Path.Combine(sol.SolutionConfigDir, "Resources", "MyModule");
+            string projectDir = Path.Combine(sol.SolutionConfigDir, "MyModule");
             string projectPath = Directory
                 .GetFiles(projectDir, "*.csproj").First(f => Path.GetFileName(f).Contains("MyModule"));
             
@@ -148,13 +141,11 @@ namespace SolutionGen.Tests
         [Fact]
         public void CanGenerateAndBuildSolution()
         {
+            const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
+            generator.GenerateSolution("everything", constantName);
             
-        }
-
-        [Fact]
-        public void CanGenerateSolutionWithIncludeProjectProperty()
-        {
-            
+            var builder = new SolutionBuilder(generator.Reader.Solution);
+            builder.BuildAllConfigurations();
         }
     }
 }

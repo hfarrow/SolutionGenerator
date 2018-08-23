@@ -26,7 +26,7 @@ namespace SolutionGen.Templates
         {
             get
             {
-                string group = Generator.ActiveConfigurationGroup;
+                string group = Generator.MasterConfiguration;
                 if (string.IsNullOrEmpty(group))
                 {
                     group = Solution.ConfigurationGroups.First().Key;
@@ -72,7 +72,7 @@ namespace SolutionGen.Templates
         }
 
         public IReadOnlyCollection<Configuration> ActiveConfigurations => 
-            Solution.ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Values.ToArray();
+            Solution.ConfigurationGroups[Generator.MasterConfiguration].Configurations.Values.ToArray();
 
         private HashSet<string> commonIncludes;
         public HashSet<string> GetCommonIncludes()

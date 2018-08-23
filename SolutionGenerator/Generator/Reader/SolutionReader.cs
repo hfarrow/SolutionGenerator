@@ -22,7 +22,7 @@ namespace SolutionGen.Generator.Reader
 
         public SolutionReader(ObjectElement solutionElement, string solutionConfigDir)
         {
-            Log.WriteLine("Reading solution element: {0}", solutionElement);
+            Log.Heading("Reading solution element: {0}", solutionElement);
             using (new Log.ScopedIndent(true))
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
@@ -41,7 +41,7 @@ namespace SolutionGen.Generator.Reader
 
                 if (settingsElement == null)
                 {
-                    Log.WriteLine(
+                    Log.Info(
                         "No settings named '{0}' found in solution element. " +
                         "Templates will use hard coded defaults instead.",
                         DEFAULT_TEMPLATE_SETTINGS);
@@ -50,7 +50,7 @@ namespace SolutionGen.Generator.Reader
                 }
                 else
                 {
-                    Log.WriteLine(
+                    Log.Info(
                         "Settings named '{0}' found in solution element. " +
                         "Templates will default to the settings read below.",
                         DEFAULT_TEMPLATE_SETTINGS);
@@ -102,13 +102,13 @@ namespace SolutionGen.Generator.Reader
 
         private List<ObjectElement> GetIncludedTemplates()
         {
-            Log.WriteLine("Loading included templates");
+            Log.Info("Loading included templates");
             return GetIncludedElements(Settings.PROP_INCLUDE_TEMPLATES, r => r.TemplateElements);
         }
         
         private List<ObjectElement> GetIncludedModules()
         {
-            Log.WriteLine("Loading included modules");
+            Log.Info("Loading included modules");
             return GetIncludedElements(Settings.PROP_INCLUDE_MODULES, r => r.ModuleElements);
         }
 
@@ -134,7 +134,7 @@ namespace SolutionGen.Generator.Reader
 
         private DocumentReader ParseInclude(string filePath)
         {
-            Log.WriteLine("Parsing included document at path '{0}'", filePath);
+            Log.Info("Parsing included document at path '{0}'", filePath);
             using (new Log.ScopedIndent())
             {
                 string configText = File.ReadAllText(filePath);
@@ -146,7 +146,7 @@ namespace SolutionGen.Generator.Reader
 
                 ConfigDocument configDoc = result.Value;
                 var reader = new DocumentReader(configDoc, Solution.SolutionConfigDir);
-                Log.WriteLine("Finished parsing included document at path '{0}'", filePath);
+                Log.Info("Finished parsing included document at path '{0}'", filePath);
                 return reader;
             }
         }

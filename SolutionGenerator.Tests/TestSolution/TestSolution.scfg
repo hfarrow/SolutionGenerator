@@ -24,7 +24,7 @@ solution MySolution
     settings template.defaults
     {
         root namespace = $(SOLUTION_NAME).$(PROJECT_NAME)
-        module source path = Resources/$(MODULE_NAME)
+        module source path = $(MODULE_NAME)
         include files = glob ".{cs,txt,json,xml,md}"
         lib search paths = ./
         lib refs = none
@@ -42,15 +42,15 @@ solution MySolution
     
     // External template and module config files to include during generation.
     // While such configs can be included directly in this documement, using external includes is the best practice.
-    include templates = glob "Resources/Templates/**/*.template"
-    include modules = glob "Resources/**/*.module"
+    include templates = glob "Templates/**/*.template"
+    include modules = glob "**/*.module"
     
     // Include build task msbuild files and import into generated projects. The tasks can be added to targets in the
     // 'custom csproj contents' project property
     // NOTE: in the future tasks should be packaged with nuget and installed locally by solution generator for generated
     // projects to reference
     // (https://natemcmaster.com/blog/2017/11/11/build-tools-in-nuget/)
-    include build tasks = glob "Resources/BuildTasks/**/*.tasks"
+    include build tasks = glob "BuildTasks/**/*.tasks"
        
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
     // See comments related to 'generate projects' property below for more details.

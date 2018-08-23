@@ -60,7 +60,7 @@ namespace SolutionGen.Utils
         {
             expandableVariables.TryGetValue(varName, out string previous);
             
-            Log.WriteLine("Setting expandable variable: {0} = {1} (previously {2})",
+            Log.Debug("Setting expandable variable: {0} = {1} (previously {2})",
                 varName,
                 varExpansion != null ? $"'{varExpansion}'" : "<null>",
                 previous != null ? $"'{previous}'" : "<null>");
@@ -70,7 +70,7 @@ namespace SolutionGen.Utils
 
         public static void ClearExpandableVariable(string varName)
         {
-            Log.WriteLine("Clearing expandable variable: {0}", varName);
+            Log.Debug("Clearing expandable variable: {0}", varName);
             expandableVariables.Remove(varName);
         }
         
@@ -104,7 +104,7 @@ namespace SolutionGen.Utils
                     if (prevValue != newValue)
                     {
                         didExpand = true;
-                        Log.WriteLine("Expanding variable '{0}' in '{1}' to '{2}'", varName, prevValue, newValue);
+                        Log.Debug("Expanding variable '{0}' in '{1}' to '{2}'", varName, prevValue, newValue);
                     }
                     break;
             }
@@ -131,7 +131,7 @@ namespace SolutionGen.Utils
                     if (prevValue != newValue)
                     {
                         didStrip = true;
-                        Log.WriteLine("Stripping escaped variables in '{0}' to '{1}'", prevValue, newValue);
+                        Log.Debug("Stripping escaped variables in '{0}' to '{1}'", prevValue, newValue);
                     }
                     break;
             }
@@ -168,12 +168,12 @@ namespace SolutionGen.Utils
 
             if (didExpand)
             {
-                Log.WriteLine("Expanded all variables in property '{0}' => '{1}'", propertyName, property);
+                Log.Debug("Expanded all variables in property '{0}' => '{1}'", propertyName, property);
             }
 
             if (definition.StripEscapedVariables(property, out property))
             {
-                Log.WriteLine("Stripped all escaped variables in property '{0}' => '{1}'", propertyName, property);
+                Log.Debug("Stripped all escaped variables in property '{0}' => '{1}'", propertyName, property);
             }
             
             return property;

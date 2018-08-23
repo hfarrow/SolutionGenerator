@@ -27,10 +27,11 @@ namespace SolutionGen.Generator.Reader
             
             if (variableExpansions != null)
             {
-                Log.WriteLine("Settings reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
-                Log.WriteIndentedCollection(
+                Log.Debug("Settings reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
+                Log.IndentedCollection(
                     variableExpansions,
-                    (kvp) => string.Format("{0} => {1}", kvp.Key, kvp.Value));
+                    (kvp) => string.Format("{0} => {1}", kvp.Key, kvp.Value),
+                    Log.Debug);
             }
         }
 
@@ -75,12 +76,12 @@ namespace SolutionGen.Generator.Reader
         {
             if (Configuration != null)
             {
-                Log.WriteLine("Reading settings element for configuration '{0} - {1}: {2}",
+                Log.Heading("Reading settings element for configuration '{0} - {1}: {2}",
                     Configuration.GroupName, Configuration.Name, settingsObject);
             }
             else
             {
-                Log.WriteLine("Reading settings element for static configuration: {0}", settingsObject);
+                Log.Heading("Reading settings element for static configuration: {0}", settingsObject);
             }
 
             using (new Log.ScopedIndent())
@@ -137,11 +138,12 @@ namespace SolutionGen.Generator.Reader
 
                 ExpandVariables(Properties);
 
-                Log.WriteLine("Finished reading settings element:");
-                Log.WriteIndentedCollection(
+                Log.Info("Finished reading settings element:");
+                Log.IndentedCollection(
                     GetVisitedProperties(),
                     kvp => string.Format("{0} => {1}",
-                        kvp.Key, GetPropertyDefinition(kvp.Key).PrintValue(kvp.Value)));
+                        kvp.Key, PropertyDefinition.LogValue(kvp.Value)),
+                    Log.Info);
 
                 return new Settings(Properties, GetPropertyDefinition);
             }

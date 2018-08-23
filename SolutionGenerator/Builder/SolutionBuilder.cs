@@ -12,7 +12,7 @@ namespace SolutionGen.Builder
 
         public void BuildAllConfigurations()
         {
-            Log.WriteLine("Building all solution configurations");
+            Log.Info("Building all solution configurations");
 //            using (new Log.ScopedIndent())
 //            {
 //            }

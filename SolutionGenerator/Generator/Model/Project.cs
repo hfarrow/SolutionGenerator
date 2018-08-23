@@ -56,7 +56,7 @@ namespace SolutionGen.Generator.Model
             var projectRefsValues = Settings.GetProperty<HashSet<string>>(Settings.PROP_PROJECT_REFS);
             CustomContents = Settings.GetProperty<List<string>>(Settings.PROP_CUSTOM_CSPROJ_CONTENTS);
 
-            Log.WriteLine(
+            Log.Debug(
                 "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
 
@@ -67,15 +67,15 @@ namespace SolutionGen.Generator.Model
             IPattern[] invalidPatternTypes = libSearchPaths.Where(p => !(p is LiteralPattern)).ToArray();
             if (invalidPatternTypes.Length > 0)
             {
-                Log.WriteLineWarning("Invalid lib search paths:");
-                Log.WriteIndentedCollection(invalidPatternTypes, p => p.ToString());
+                Log.Warn("Invalid lib search paths:");
+                Log.IndentedCollection(invalidPatternTypes, Log.Info);
             }
 
             IEnumerable<string> directories = libSearchPaths
                 .OfType<LiteralPattern>()
                 .Select(p => p.Value);
 
-            Log.WriteLine(
+            Log.Debug(
                 "Matching path patterns to libs refs for project '{0}' as configuration '{1} - {2}' at base directory '{3}",
                 id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
             

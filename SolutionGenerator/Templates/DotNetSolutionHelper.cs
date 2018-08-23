@@ -14,7 +14,7 @@ namespace SolutionGen.Templates
         public HashSet<string> ProjectWhitelist { get; set; }
 
         public IReadOnlyCollection<string> ActiveConfigurations =>
-            Solution.ConfigurationGroups[Generator.ActiveConfigurationGroup].Configurations.Keys
+            Solution.ConfigurationGroups[Generator.MasterConfiguration].Configurations.Keys
                 .ToArray();
 
         public IEnumerable<Project> GetProjects()

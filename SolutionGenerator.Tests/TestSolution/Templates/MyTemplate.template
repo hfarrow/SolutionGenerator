@@ -7,15 +7,15 @@ template MyTemplate
     {
         include files =
         [
-            glob "Resources/$(MODULE_NAME)/Code/**/*.{cs,txt,json,xml,md}",
-            glob "Resources/$(MODULE_NAME)/**/*.{txt,json,xml,md,module}",
+            glob "$(MODULE_NAME)/Code/**/*.{cs,txt,json,xml,md}",
+            glob "$(MODULE_NAME)/**/*.{txt,json,xml,md,module}",
             !glob "**/Tests/**",
             !glob "**/obj/**",
         ]
 
         lib search paths +=
         [
-            Resources/Libs,
+            Libs,
         ]
 
         lib refs +=
@@ -84,7 +84,7 @@ template MyTemplate
         {
             include files =
             [
-                glob "Resources/$(MODULE_NAME)/Code/**/Tests/**/*.{cs,txt,json,xml,md}",
+                glob "$(MODULE_NAME)/Code/**/Tests/**/*.{cs,txt,json,xml,md}",
                 !glob "**/obj/**",
             ]
 

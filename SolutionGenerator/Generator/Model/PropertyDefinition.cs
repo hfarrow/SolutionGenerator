@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -27,7 +30,44 @@ namespace SolutionGen.Generator.Model
         public abstract bool ExpandVariable(object value, string varName, string varExpansion, out object newValue);
         public abstract bool StripEscapedVariables(object value, out object newValue);
 
-        public abstract string PrintValue(object value);
+        public static string LogValue(object value)
+        {
+            // Best effort to pretty print most types of collections
+            switch (value)
+            {
+                case string str:
+                    return str;
+                case IDictionary dictionary when dictionary.Count == 0:
+                    return "<none>";
+                case IDictionary dictionary:
+                    return Log.GetIndentedCollection(dictionary,
+                        obj =>
+                        {
+                            switch (obj)
+                            {
+                                case DictionaryEntry entry:
+                                    return $"{entry.Key} => {LogValue(entry.Value)}";
+                                case KeyValuePair<string, object> kvp:
+                                    return $"{kvp.Key} => {LogValue(kvp.Value)}";
+                            }
+
+                            return obj.ToString();
+                        });
+                case ICollection collection when collection.Count == 0:
+                    return "<none>";
+                case ICollection collection:
+                    return Log.GetIndentedCollection(collection, LogValue);
+                case IEnumerable enumerable:
+                    List<object> list = enumerable.OfType<object>().ToList();
+                    if (list.Count == 0)
+                    {
+                        return "<none>";
+                    }
+                    return Log.GetIndentedCollection(list, LogValue);
+                default:
+                    return value.ToString();
+            }
+        }
     }
     
     public class PropertyDefinition<TValue, TReader> : PropertyDefinition
@@ -82,11 +122,6 @@ namespace SolutionGen.Generator.Model
 
             newValue = copy;
             return true;
-        }
-
-        public override string PrintValue(object value)
-        {
-            return value.ToString();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Reader;
@@ -145,14 +146,7 @@ namespace SolutionGen.Generator.Model
         {
             return CloneDictionary(value);
         }
-
-        public override string PrintValue(object value)
-        {
-            CheckDictionaryType(value);
-            var castedCollection = (Dictionary<string, TValue>) value;
-            return string.Join(", ", castedCollection.Select(kvp => $"{kvp.Key}=>{kvp.Value}"));
-        }
-
+        
         public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
             return ExpandVariablesInDictionary(value, varName, varExpansion, out newValue);

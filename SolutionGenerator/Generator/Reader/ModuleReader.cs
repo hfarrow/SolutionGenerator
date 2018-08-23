@@ -21,7 +21,7 @@ namespace SolutionGen.Generator.Reader
 
         public Module Read(ObjectElement moduleElement)
         {
-            Log.WriteLine("Reading module element: {0}", moduleElement);
+            Log.Heading("Reading module element: {0}", moduleElement);
 
             using (new Log.ScopedIndent(true))
             {
@@ -57,7 +57,7 @@ namespace SolutionGen.Generator.Reader
 
         private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName)
         {
-            Log.WriteLine("Creating module configs for module '{0}' from template '{1}",
+            Log.Info("Creating module configs for module '{0}' from template '{1}",
                 moduleName, template.Name);
 
             using (new Log.ScopedIndent())
@@ -85,7 +85,7 @@ namespace SolutionGen.Generator.Reader
                 using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_PROJECT_NAME, projectName))
                 {
                     
-                    Log.WriteLine(
+                    Log.Heading(
                         "Creating project config '{0} - {1}' for project '{2}' (module '{3}') with settings '{4}'",
                         config.GroupName, config.Name, projectName, moduleName, declaration.SettingsName);
                     
@@ -94,7 +94,7 @@ namespace SolutionGen.Generator.Reader
                     {
                         if (solution.IncludedProjectsPatterns.Count > 0 && !solution.CanIncludeProject(projectName))
                         {
-                            Log.WriteLine("Project '{0}' is excluded by solution '{1}' property white list",
+                            Log.Info("Project '{0}' is excluded by solution '{1}' property white list",
                                 projectName, Settings.PROP_INCLUDE_PROJECTS);
                             continue;
                         }
@@ -102,7 +102,7 @@ namespace SolutionGen.Generator.Reader
                         Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
                         if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
                         {
-                            Log.WriteLine("Project '{0}' is excluded from configuration '{1} - {2}'",
+                            Log.Info("Project '{0}' is excluded from configuration '{1} - {2}'",
                                 projectName, config.GroupName, config.Name);
                             continue;
                         }

@@ -23,7 +23,7 @@ namespace SolutionGen.Tests.Parsing
             Assembly assembly = typeof(ParseExampleTemplateFixture).GetTypeInfo().Assembly;
 
             using (Stream stream =
-                assembly.GetManifestResourceStream("SolutionGenerator.Tests.Resources.TestTemplate.txt"))
+                assembly.GetManifestResourceStream("SolutionGenerator.Tests.TestSolution.TestTemplate.txt"))
             {
                 using (var reader = new StreamReader(stream))
                 {

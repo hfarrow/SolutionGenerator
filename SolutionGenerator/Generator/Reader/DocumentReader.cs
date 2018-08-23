@@ -31,7 +31,14 @@ namespace SolutionGen.Generator.Reader
 
         public void ReadAsMainDocument()
         {
-            ParseElements();           
+            ParseElements();
+
+            if (SolutionElement == null)
+            {
+                throw new MissingElementException(
+                    $"The main solution document must contain a root level '{SectionType.SOLUTION}' object.");
+            }
+            
             solutionReader = new SolutionReader(SolutionElement, SolutionConfigDir);
             Solution = solutionReader.Solution;
             ReadTemplates(TemplateElements.Concat(solutionReader.IncludedTemplates));
@@ -137,6 +144,15 @@ namespace SolutionGen.Generator.Reader
     {
         public DuplicateModuleNameException(ObjectElement newElement, ObjectElement existingElement)
             : base("module", newElement, existingElement)
+        {
+            
+        }
+    }
+
+    public sealed class MissingElementException : Exception
+    {
+        public MissingElementException(string message)
+            : base(message)
         {
             
         }
