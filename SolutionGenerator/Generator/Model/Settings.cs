@@ -38,6 +38,7 @@ namespace SolutionGen.Generator.Model
         public const string PROP_INCLUDE_PROJECTS = "include projects";
         public const string PROP_GENERATE_PROJECTS = "generate projects";
         public const string PROP_INCLUDE_BUILD_TASKS = "include build tasks";
+        public const string PROP_BUILD_SOLUTION_COMMAND = "build solution command";
 
         private readonly IReadOnlyDictionary<string, object> properties;
         

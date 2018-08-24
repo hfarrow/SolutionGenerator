@@ -68,7 +68,7 @@ namespace SolutionGen.Generator.Model
             if (invalidPatternTypes.Length > 0)
             {
                 Log.Warn("Invalid lib search paths:");
-                Log.IndentedCollection(invalidPatternTypes, Log.Info);
+                Log.IndentedCollection(invalidPatternTypes, Log.Warn);
             }
 
             IEnumerable<string> directories = libSearchPaths

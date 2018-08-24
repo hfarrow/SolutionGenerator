@@ -7,6 +7,7 @@ using System.Reflection;
 using SolutionGen.Builder;
 using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
+using SolutionGen.Utils;
 using Xunit;
 using Module = SolutionGen.Generator.Model.Module;
 using Path = System.IO.Path;
@@ -21,6 +22,7 @@ namespace SolutionGen.Tests
         
         public SolutionGeneratorFixture()
         {
+            Log.LogLevel = Log.Level.Debug;
             ConfigText = File.ReadAllText("TestSolution.scfg");
         }
         
@@ -129,7 +131,7 @@ namespace SolutionGen.Tests
         {
             DocumentReader sol = generator.Reader;
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
-            generator.GenerateSolution("everything", constantName);
+            generator.GenerateSolution("everything", new []{constantName});
 
             string projectDir = Path.Combine(sol.SolutionConfigDir, "MyModule");
             string projectPath = Directory
@@ -142,9 +144,9 @@ namespace SolutionGen.Tests
         public void CanGenerateAndBuildSolution()
         {
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
-            generator.GenerateSolution("everything", constantName);
+            generator.GenerateSolution("everything", new[]{constantName});
             
-            var builder = new SolutionBuilder(generator.Reader.Solution);
+            var builder = new SolutionBuilder(generator.Reader.Solution, "everything");
             builder.BuildAllConfigurations();
         }
     }

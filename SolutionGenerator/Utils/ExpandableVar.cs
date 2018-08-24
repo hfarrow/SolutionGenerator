@@ -11,6 +11,7 @@ namespace SolutionGen.Utils
         public const string VAR_SOLUTION_NAME = "SOLUTION_NAME";
         public const string VAR_MODULE_NAME = "MODULE_NAME";
         public const string VAR_PROJECT_NAME = "PROJECT_NAME";
+        public const string VAR_CONFIGURATION = "CONFIGURATION";
         
         private static Dictionary<string, string> expandableVariables = new Dictionary<string, string>();
         public static IReadOnlyDictionary<string, string> ExpandableVariables => expandableVariables;
@@ -47,12 +48,16 @@ namespace SolutionGen.Utils
             
             public ScopedState()
             {
+                Log.Debug("Saving expandable variable state:");
+                Log.IndentedCollection(expandableVariables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
                 prevVars = new Dictionary<string, string>(expandableVariables);
             }
             
             public void Dispose()
             {
                 expandableVariables = prevVars;
+                Log.Debug("Restoring expandable variable state:");
+                Log.IndentedCollection(expandableVariables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
             }
         }
 

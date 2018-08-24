@@ -21,6 +21,7 @@ namespace SolutionGen
         internal DocumentReader Reader;
 
         public string MasterConfiguration { get; private set; }
+        public Solution Solution { get; private set; }
 
         private Dictionary<string, Project.Identifier> projectIdLookup;
         
@@ -67,6 +68,7 @@ namespace SolutionGen
                 ConfigDoc = result.Value;
                 Reader = new DocumentReader(ConfigDoc, rootDir);
                 Reader.ReadAsMainDocument();
+                Solution = Reader.Solution;
 
                 projectIdLookup = Reader.Modules
                     .SelectMany(kvp => kvp.Value.ProjectIdLookup)
@@ -76,26 +78,32 @@ namespace SolutionGen
             }
         }
 
-        public void GenerateSolution(string masterConfiguration, params string[] externalDefineConstants)
-        {
-            Log.Heading("Generating solution '{0}' for master configuration '{1}'{2}",
-                Reader.Solution.Name,
-                masterConfiguration,
-                externalDefineConstants.Length > 0 ? " with external define constants:" : "");
+        public void GenerateSolution(string masterConfiguration)
+            => GenerateSolution(masterConfiguration, null);
 
-            if (string.IsNullOrEmpty(masterConfiguration))
-            {
-                masterConfiguration = Reader.Solution.ConfigurationGroups.Keys.First();
-                Log.Info("No master configuration was provided. Using default '{0}'.", masterConfiguration);
-            }
+        public void GenerateSolution(string masterConfiguration, string[] externalDefineConstants)
+        {
+            externalDefineConstants = externalDefineConstants ?? new string[0];
+
+            Log.Heading("Generating solution '{0}' for master configuration '{1}'",
+                Reader.Solution.Name,
+                masterConfiguration);
 
             if (externalDefineConstants.Length > 0)
             {
+                Log.Info("with external define constans:");
                 Log.IndentedCollection(externalDefineConstants, Log.Info, true);
             }
 
+
             using (new Log.ScopedIndent())
             {
+                if (string.IsNullOrEmpty(masterConfiguration))
+                {
+                    masterConfiguration = Reader.Solution.ConfigurationGroups.Keys.First();
+                    Log.Info("No master configuration was provided. Using default '{0}'.", masterConfiguration);
+                }
+
                 HashSet<string> includedProjects = Reader.Solution.IncludedProjects;
                 HashSet<string> generatableProjects = includedProjects
                     .Where(p => Reader.Solution.CanGenerateProject(p))
@@ -103,16 +111,18 @@ namespace SolutionGen
 
                 bool generateAll = includedProjects.SetEquals(generatableProjects);
 
-                GenerateSolutionFiles("", Reader.Modules.Values, masterConfiguration, includedProjects,  externalDefineConstants);
+                GenerateSolutionFiles("", Reader.Modules.Values, masterConfiguration, includedProjects,
+                    externalDefineConstants);
 
                 if (Reader.Solution.GeneratedProjectsPatterns.Count > 0 && !generateAll)
                 {
-                    var builder = new SolutionBuilder(Reader.Solution);
+                    var builder = new SolutionBuilder(Reader.Solution, masterConfiguration);
                     builder.BuildAllConfigurations();
 
                     // Generate new solution with references to those DLLs.
                     IEnumerable<Module> updatedModules = ReplacePrebuiltReferences(generatableProjects);
-                    GenerateSolutionFiles("-small", updatedModules, masterConfiguration, generatableProjects, externalDefineConstants);
+                    GenerateSolutionFiles("-small", updatedModules, masterConfiguration, generatableProjects,
+                        externalDefineConstants);
                 }
             }
         }

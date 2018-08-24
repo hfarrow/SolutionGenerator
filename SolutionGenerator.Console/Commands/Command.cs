@@ -37,7 +37,6 @@ namespace SolutionGen.Console.Commands
             return new Func<ErrorCode>[]
                 {
                     InitLogging,
-                    InitConfigExt,
                     FindSolutionConfigFile,
                     SetWorkingDirectory,
                 }
@@ -64,7 +63,7 @@ namespace SolutionGen.Console.Commands
             return ErrorCode.Success;
         }
 
-        private ErrorCode InitConfigExt()
+        private void InitConfigExt()
         {
             if (string.IsNullOrEmpty(ConfigExt))
             {
@@ -74,12 +73,18 @@ namespace SolutionGen.Console.Commands
             {
                 ConfigExt = '.' + ConfigExt;
             }
-
-            return ErrorCode.Success;
         }
         
-        private ErrorCode FindSolutionConfigFile()
+        protected ErrorCode FindSolutionConfigFile()
         {
+            if (SolutionConfigFile != null)
+            {
+                // Was already found
+                return ErrorCode.Success;
+            }
+            
+            InitConfigExt();
+            
             if (string.IsNullOrEmpty(ConfigPath))
             {
                 ConfigPath = "./";

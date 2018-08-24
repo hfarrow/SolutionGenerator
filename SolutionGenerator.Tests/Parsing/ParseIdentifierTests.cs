@@ -17,6 +17,7 @@ namespace SolutionGen.Tests.Parsing
         [InlineData("myID.")]
         [InlineData("my1ID")]
         [InlineData("myID1")]
+        [InlineData("_myID1")]
         public void IdentifierIsValid(string input)
         {
             string id = BasicParser.IdentifierToken.Parse(input);
@@ -25,11 +26,10 @@ namespace SolutionGen.Tests.Parsing
         
         [Theory]
         [InlineData("1myID")]
-        [InlineData("_myID")]
         [InlineData("-myID")]
         [InlineData("@myID")]
         [InlineData("\"@myID")]
-        public void IdentifierMustStartWithLetter(string input)
+        public void IdentifierMustStartWithLetterOrUnderscore(string input)
         {
             Exception ex = Record.Exception(() => BasicParser.IdentifierToken.Parse(input));
             Assert.NotNull(ex);

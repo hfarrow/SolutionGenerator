@@ -65,13 +65,13 @@ namespace SolutionGen.Parser
                 .XOr(factor)).Token();
 
             // The higher the expr number, the higher the precendence. In this case, AND takes precedence over OR
-            Parser<Expression> expression2 = Parse.ChainOperator(and, operand, System.Linq.Expressions.Expression.MakeBinary);
+            Parser<Expression> expression2 = Parse.ChainOperator(and, operand, Expression.MakeBinary);
 
             expression =
-                Parse.ChainOperator(or, expression2, System.Linq.Expressions.Expression.MakeBinary);
+                Parse.ChainOperator(or, expression2, Expression.MakeBinary);
 
             lambda =
-                expression.End().Select(body => System.Linq.Expressions.Expression.Lambda<Func<bool>>(body));
+                expression.End().Select(body => Expression.Lambda<Func<bool>>(body));
         }
     }
 }

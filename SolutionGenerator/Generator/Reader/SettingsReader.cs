@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
@@ -23,11 +24,12 @@ namespace SolutionGen.Generator.Reader
         {
             this.variableExpansions = variableExpansions;
             conditionalParser = new BooleanExpressionParser();
+            conditionalParser.SetConditionalConstants(GetGeneratorConditionalConstans());
             defaultSettings = GetDefaultSettings();
             
             if (variableExpansions != null)
             {
-                Log.Debug("Settings reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
+                Log.Debug("Setting reader variable expansions:{0}", variableExpansions.Count > 0 ? "" : "<none>" );
                 Log.IndentedCollection(
                     variableExpansions,
                     (kvp) => string.Format("{0} => {1}", kvp.Key, kvp.Value),
@@ -42,12 +44,35 @@ namespace SolutionGen.Generator.Reader
             Configuration = configuration;
             if (configuration != null)
             {
-                conditionalParser.SetConditionalConstants(configuration.Conditionals);
+                conditionalParser.SetConditionalConstants(
+                    configuration.Conditionals.Concat(GetGeneratorConditionalConstans()));
             }
             this.baseSettings = baseSettings;
             this.defaultSettings = defaultSettings;
         }
-        
+
+        private IEnumerable<string> GetGeneratorConditionalConstans()
+        {
+            string platform = "unknown_platform";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                platform = "windows";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                platform = "macos";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                platform = "linux";
+            }
+
+            return new[]
+            {
+                platform
+            };
+        }
+
         protected abstract Dictionary<string, PropertyDefinition> PropertyDefinitionLookup { get; }
         protected abstract Dictionary<string, CommandDefinition> CommandDefinitionLookup { get; }
 

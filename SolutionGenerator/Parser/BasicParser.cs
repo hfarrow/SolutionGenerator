@@ -50,7 +50,7 @@ namespace SolutionGen.Parser
         /// identifier-literal = ALPHA *identifier-literal-inner
         /// </remarks>
         public static readonly Parser<string> IdentifierLiteral =
-            (from first in Parse.Letter.Once()
+            (from first in Parse.Letter.Or(Parse.Char('_')).Once()
                 from rest in IdentifierLiteralInner
                 select new string(first.Concat(rest).ToArray()))
             .Named("identifier-literal");
