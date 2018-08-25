@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
@@ -27,8 +28,8 @@ namespace SolutionGen.Console.Commands
 
         protected IConsole Console { get; private set; }
         protected CommandLineApplication App { get; private set; }
-        
         protected FileInfo SolutionConfigFile { get; private set; }
+        private Stopwatch timer = Stopwatch.StartNew();
         
         protected virtual int OnExecute(CommandLineApplication app, IConsole console)
         {
@@ -39,6 +40,7 @@ namespace SolutionGen.Console.Commands
                     InitLogging,
                     FindSolutionConfigFile,
                     SetWorkingDirectory,
+                    () => LogDuration(typeof(Command).Name),
                 }
                 .Select(step => step())
                 .Any(errorCode => errorCode != ErrorCode.Success) ? ErrorCode.CliError : ErrorCode.Success;
@@ -131,6 +133,12 @@ namespace SolutionGen.Console.Commands
             }
             
             Directory.SetCurrentDirectory(SolutionConfigFile.Directory.FullName);
+            return ErrorCode.Success;
+        }
+
+        protected ErrorCode LogDuration(string description)
+        {
+            Log.Timer(Log.Level.Info, description, timer);
             return ErrorCode.Success;
         }
     }

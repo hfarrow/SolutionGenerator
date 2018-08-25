@@ -57,7 +57,9 @@ namespace SolutionGen
         private void ParseSolutionConfig(string configText, string rootDir)
         {
             Log.Heading("Parsing main solution document");
-            using (new Log.ScopedIndent(true))
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, "Parse Solution Config")))
             {
                 IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);
                 if (!result.WasSuccessful)
@@ -92,11 +94,13 @@ namespace SolutionGen
             if (externalDefineConstants.Length > 0)
             {
                 Log.Info("with external define constans:");
-                Log.IndentedCollection(externalDefineConstants, Log.Info, true);
+                Log.IndentedCollection(externalDefineConstants, Log.Info);
             }
 
 
-            using (new Log.ScopedIndent())
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, "Generate Solution")))
             {
                 if (string.IsNullOrEmpty(masterConfiguration))
                 {
@@ -131,7 +135,7 @@ namespace SolutionGen
             HashSet<string> projectWhitelist, params string[] externalDefineConstants)
         {
             Log.Heading("Generating solution projects files");
-            using (new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent())
             {
                 MasterConfiguration = configurationGroup;
                 Solution solution = Reader.Solution;
@@ -144,51 +148,50 @@ namespace SolutionGen
                 {
                     Log.Info("Generating module '{0}' with project count of {1}",
                         module.Name, module.ProjectIdLookup.Count);
-                    using (new Log.ScopedIndent())
+                    using (new Disposable(
+                        new Log.ScopedIndent(),
+                        new ExpandableVar.ScopedState()))
                     {
-                        using (new ExpandableVar.ScopedState())
+                        ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
+                        foreach (Project.Identifier project in module.ProjectIdLookup.Values)
                         {
-                            ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
-                            foreach (Project.Identifier project in module.ProjectIdLookup.Values)
+                            if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
                             {
-                                if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
+                                // Project was excluded for this configuration group.
+                                Log.Info(
+                                    "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
+                                    project.Name,
+                                    currentConfiguration.GroupName,
+                                    currentConfiguration.Name);
+                                continue;
+                            }
+
+                            Log.Heading("Generating project '{0}' with GUID '{1}' at source path '{2}'",
+                                project.Name, project.Guid, project.SourcePath);
+
+                            using (new Log.ScopedIndent())
+                            {
+                                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
+                                    project.Name);
+
+                                var projectTemplate = new DotNetProject
                                 {
-                                    // Project was excluded for this configuration group.
-                                    Log.Info(
-                                        "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
-                                        project.Name,
-                                        currentConfiguration.GroupName,
-                                        currentConfiguration.Name);
-                                    continue;
-                                }
+                                    Generator = this,
+                                    Solution = Reader.Solution,
+                                    Module = module,
+                                    ProjectName = project.Name,
+                                    ProjectIdLookup = projectIdLookup,
+                                    CurrentConfiguration = currentConfiguration,
+                                    ExternalDefineConstants = externalDefineConstants.ToHashSet(),
+                                    ProjectNamePostfix = namePostfix,
+                                };
 
-                                Log.Heading("Generating project '{0}' with GUID '{1}' at source path '{2}'",
-                                    project.Name, project.Guid, project.SourcePath);
+                                string projectText = projectTemplate.TransformText();
+                                string projectPath =
+                                    Path.Combine(project.SourcePath, project.Name + namePostfix) + ".csproj";
 
-                                using (new Log.ScopedIndent())
-                                {
-                                    ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
-                                        project.Name);
-
-                                    var projectTemplate = new DotNetProject
-                                    {
-                                        Generator = this,
-                                        Solution = Reader.Solution,
-                                        Module = module,
-                                        ProjectName = project.Name,
-                                        ProjectIdLookup = projectIdLookup,
-                                        CurrentConfiguration = currentConfiguration,
-                                        ExternalDefineConstants = externalDefineConstants.ToHashSet(),
-                                        ProjectNamePostfix = namePostfix,
-                                    };
-
-                                    string projectText = projectTemplate.TransformText();
-                                    string projectPath =
-                                        Path.Combine(project.SourcePath, project.Name + namePostfix) + ".csproj";
-
-                                    Log.Info("Writing project to disk at path '{0}'", projectPath);
-                                    File.WriteAllText(projectPath, projectText);
-                                }
+                                Log.Info("Writing project to disk at path '{0}'", projectPath);
+                                File.WriteAllText(projectPath, projectText);
                             }
                         }
                     }
@@ -196,7 +199,7 @@ namespace SolutionGen
             }
 
             Log.Heading("Generating main solution file '{0}'.sln", Reader.Solution.Name);
-            using (new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent())
             {
                 var solutionTemplate = new DotNetSolution
                 {

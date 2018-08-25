@@ -23,7 +23,7 @@ namespace SolutionGen.Generator.Reader
         public SolutionReader(ObjectElement solutionElement, string solutionConfigDir)
         {
             Log.Heading("Reading solution element: {0}", solutionElement);
-            using (new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent())
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
@@ -115,7 +115,7 @@ namespace SolutionGen.Generator.Reader
         private List<ObjectElement> GetIncludedElements(string pathsPropertyName,
             Func<DocumentReader, IEnumerable<ObjectElement>> elementSelector)
         {
-            using (new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent())
             {
                 IEnumerable<ObjectElement> modules = new List<ObjectElement>();
                 var includes = Solution.Settings.GetProperty<HashSet<IPattern>>(pathsPropertyName);

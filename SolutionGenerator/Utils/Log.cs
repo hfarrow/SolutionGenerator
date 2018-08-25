@@ -19,25 +19,38 @@ namespace SolutionGen.Utils
         
         public class ScopedIndent : IDisposable
         {
-            private readonly bool emptyLineAfterPop;
-
-            public ScopedIndent(bool emptyLineAfterPop = false)
+            public ScopedIndent()
             {
-                this.emptyLineAfterPop = emptyLineAfterPop;
                 PushIndentLevel();
             }
             
-            public virtual void Dispose()
+            public void Dispose()
             {
                 PopIndentLevel();
-                if (emptyLineAfterPop)
-                {
-                    Info("");
-                }
             }
         }
-
+        
+        public class ScopedTimer : IDisposable
+        {
+            private readonly Level level;
+            private readonly string description;
+            private readonly Stopwatch timer = Stopwatch.StartNew();
+            
+            public ScopedTimer(Level level, string description)
+            {
+                this.level = level;
+                this.description = description;
+            }
+            
+            public void Dispose()
+            {
+                timer.Stop();
+                Timer(level, description, timer);
+            }
+        }
+        
         private static int indentLevel;
+        public static int IndentSize = 2;
 
         public static void PushIndentLevel() => ++indentLevel;
         public static void PopIndentLevel() => indentLevel = Math.Max(0, --indentLevel);
@@ -47,10 +60,9 @@ namespace SolutionGen.Utils
         private static void ProcessIndentedCollection<T>(
             IEnumerable<T> collection,
             Func<T, string> formatter,
-            Action<string, object[]> logger,
-            bool emptyLineAfterPop = false)
+            Action<string, object[]> logger)
         {
-            using (new ScopedIndent(emptyLineAfterPop))
+            using (new ScopedIndent())
             {
                 int i = -1;
                 foreach (T value in collection)
@@ -63,10 +75,9 @@ namespace SolutionGen.Utils
         private static void ProcessIndentedCollection(
             IEnumerable collection,
             Func<object, string> formatter,
-            Action<string, object[]> logger,
-            bool emptyLineAfterPop = false)
+            Action<string, object[]> logger)
         {
-            using (new ScopedIndent(emptyLineAfterPop))
+            using (new ScopedIndent())
             {
                 int i = -1;
                 foreach (object value in collection)
@@ -79,50 +90,38 @@ namespace SolutionGen.Utils
         public static void IndentedCollection<T>(
             IEnumerable<T> collection,
             Func<T, string> formatter,
-            Action<string, object[]> logger,
-            bool emptyLineAfterPop = false)
+            Action<string, object[]> logger)
         {
-            ProcessIndentedCollection(collection, formatter, logger, emptyLineAfterPop);
+            ProcessIndentedCollection(collection, formatter, logger);
         }
 
         public static string GetIndentedCollection<T>(
             IEnumerable<T> collection,
-            Func<T, string> formatter,
-            bool emptyLineAfterPop = false)
+            Func<T, string> formatter)
         {
             var builder = new StringBuilder();
             ProcessIndentedCollection(
                 collection,
                 formatter,
-                (f, a) => builder.AppendFormat("\n" + GetIndent() + f, a),
-                emptyLineAfterPop);
+                (f, a) => builder.AppendFormat("\n" + GetIndent() + f, a));
             return builder.ToString();
         }
         
-        public static string GetIndentedCollection(
-            IEnumerable collection,
-            Func<object, string> formatter,
-            bool emptyLineAfterPop = false)
+        public static string GetIndentedCollection(IEnumerable collection, Func<object, string> formatter)
         {
             var builder = new StringBuilder();
             ProcessIndentedCollection(
                 collection,
                 formatter,
-                (f, a) => builder.AppendFormat("\n" + GetIndent() + f, a),
-                emptyLineAfterPop);
+                (f, a) => builder.AppendFormat("\n" + GetIndent() + f, a));
             return builder.ToString();
         }
 
-        public static void IndentedCollection<T>(
-            IEnumerable<T> collection,
-            Action<string, object[]> logger,
-            bool emptyLineAfterPop = false)
-            => IndentedCollection(collection, x => x.ToString(), logger, emptyLineAfterPop);
+        public static void IndentedCollection<T>(IEnumerable<T> collection, Action<string, object[]> logger)
+            => IndentedCollection(collection, x => x.ToString(), logger);
         
-        public static string GetIndentedCollection<T>(
-            IEnumerable<T> collection,
-            bool emptyLineAfterPop = false)
-            => GetIndentedCollection(collection, x => x.ToString(), emptyLineAfterPop);
+        public static string GetIndentedCollection<T>(IEnumerable<T> collection)
+            => GetIndentedCollection(collection, x => x.ToString());
 
         public static void Heading(string format, params object[] args)
         {
@@ -163,6 +162,16 @@ namespace SolutionGen.Utils
                 WriteLine(ConsoleColor.Red, ConsoleColor.Black, "[ERROR] " + format, args);
             }
         }
+
+        public static void Timer(Level level, string description, Stopwatch timer)
+        {
+            if (LogLevel <= level)
+            {
+                WriteLine(ConsoleColor.Blue, ConsoleColor.Black,
+                    "Finished timer \"{0}\" with duration '{1:g}'",
+                    description, timer.Elapsed.TotalSeconds);
+            }
+        }
         
         public static void WriteLine(ConsoleColor foreground, ConsoleColor background, string format, params object[] args)
         {
@@ -182,7 +191,7 @@ namespace SolutionGen.Utils
 
         public static string GetIndent()
         {
-            return "".PadRight(indentLevel, '\t');
+            return "".PadRight(indentLevel * IndentSize, ' ');
         }
     }
 }

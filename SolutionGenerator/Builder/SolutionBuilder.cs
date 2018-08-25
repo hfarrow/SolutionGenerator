@@ -18,7 +18,9 @@ namespace SolutionGen.Builder
         public void BuildAllConfigurations()
         {
             Log.Info("Building all solution configurations");
-            using (new Log.ScopedIndent())
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, "Build All Configurations")))
             {
                 foreach (Configuration configuration in
                     solution.ConfigurationGroups[masterConfiguration].Configurations.Values)
@@ -36,13 +38,14 @@ namespace SolutionGen.Builder
         public void BuildConfiguration(Configuration configuration)
         {
             Log.Info("Building solution configuration '{0} - {1}'", configuration.GroupName, configuration.Name);
-            using (new Log.ScopedIndent())
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, string.Format("Build Configuration '{0} - {1}'",
+                    configuration.GroupName, configuration.Name)),
+                new ExpandableVar.ScopedState()))
             {
-                using (new ExpandableVar.ScopedState())
-                {
-                    ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
-                    // TODO: execute command
-                }
+                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
+                // TODO: execute command
             }
         }
     }

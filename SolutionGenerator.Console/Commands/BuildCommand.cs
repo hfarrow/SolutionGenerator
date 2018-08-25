@@ -13,24 +13,27 @@ namespace SolutionGen.Console.Commands
     {
         [Option("-g|--gen|--generate", CommandOptionType.NoValue)]
         public bool Generate { get; set; }
-        
+
         protected override int OnExecute(CommandLineApplication app, IConsole console)
         {
             ErrorCode foundConfig = CheckGenerateSolution();
-            if(foundConfig != ErrorCode.Success)
+            if (foundConfig != ErrorCode.Success)
             {
                 return foundConfig;
             }
-            
+
             return new Func<ErrorCode>[]
-               {
-                   () => base.OnExecute(app, console),
-                   SetExpandableVars,
-                   BuildSolution,
-                   ClearExpandableVars,
-               }
-               .Select(step => step())
-               .Any(errorCode => errorCode != ErrorCode.Success) ? ErrorCode.CliError : ErrorCode.Success;
+                {
+                    () => base.OnExecute(app, console),
+                    SetExpandableVars,
+                    BuildSolution,
+                    ClearExpandableVars,
+                    () => LogDuration(typeof(BuildCommand).Name),
+                }
+                .Select(step => step())
+                .Any(errorCode => errorCode != ErrorCode.Success)
+                ? ErrorCode.CliError
+                : ErrorCode.Success;
         }
 
         private ErrorCode CheckGenerateSolution()

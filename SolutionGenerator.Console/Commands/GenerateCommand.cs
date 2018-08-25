@@ -30,16 +30,19 @@ namespace SolutionGen.Console.Commands
         protected override int OnExecute(CommandLineApplication app, IConsole console)
         {
             return new Func<ErrorCode>[]
-               {
-                   () => base.OnExecute(app, console),
-                   SetDefineSymbols,
-                   ParseExpandableVariables,
-                   SetExpandableVars,
-                   GenerateSolution,
-                   ClearExpandableVars
-               }
-               .Select(step => step())
-               .Any(errorCode => errorCode != ErrorCode.Success) ? ErrorCode.CliError : ErrorCode.Success;
+                {
+                    () => base.OnExecute(app, console),
+                    SetDefineSymbols,
+                    ParseExpandableVariables,
+                    SetExpandableVars,
+                    GenerateSolution,
+                    ClearExpandableVars,
+                    () => LogDuration(typeof(GenerateCommand).Name),
+                }
+                .Select(step => step())
+                .Any(errorCode => errorCode != ErrorCode.Success)
+                ? ErrorCode.CliError
+                : ErrorCode.Success;
         }
 
         private ErrorCode SetDefineSymbols()

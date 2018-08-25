@@ -34,7 +34,9 @@ namespace SolutionGen.Generator.Reader
             Log.Info("Reading template element with base template '{0}': {1}",
                 baseTemplate?.Name ?? "none", templateElement);
             
-            using (new Log.ScopedIndent(true))
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Debug, "Read Template")))
             {
                 Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
                     configurationGroups.Values.SelectMany(g => g.Configurations.Values)
@@ -57,7 +59,7 @@ namespace SolutionGen.Generator.Reader
             Log.Heading("Creating template config '{0} - {1}' for template '{2}'",
                 configuration.GroupName, configuration.Name, templateElement.ElementHeading.Name);
 
-            using (new Log.ScopedIndent(true))
+            using (new Log.ScopedIndent())
             {
                 // When reading a template element there will be no base settings. However, when reading a module element
                 // which is treated like a template there will be base settings. Those base settings are the root template

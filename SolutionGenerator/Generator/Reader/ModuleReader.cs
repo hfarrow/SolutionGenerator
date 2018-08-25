@@ -23,7 +23,9 @@ namespace SolutionGen.Generator.Reader
         {
             Log.Heading("Reading module element: {0}", moduleElement);
 
-            using (new Log.ScopedIndent(true))
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Debug, "Read Module")))
             {
                 string moduleName = moduleElement.ElementHeading.Name;
                 string templateName = moduleElement.ElementHeading.InheritedObjectName;
@@ -90,7 +92,7 @@ namespace SolutionGen.Generator.Reader
                         config.GroupName, config.Name, projectName, moduleName, declaration.SettingsName);
                     
 
-                    using (new Log.ScopedIndent(true))
+                    using (new Log.ScopedIndent())
                     {
                         if (solution.IncludedProjectsPatterns.Count > 0 && !solution.CanIncludeProject(projectName))
                         {
