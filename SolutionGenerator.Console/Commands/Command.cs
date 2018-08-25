@@ -98,7 +98,7 @@ namespace SolutionGen.Console.Commands
                 {
                     Log.Error("Failed to find a solution config document with extension '{0}' in directory '{1}'",
                         ConfigExt, dir.FullName);
-                    Log.Error("Use the --config-ext option to change the expected file extension or provide the config file" +
+                    Log.Error("Use the --config-ext option to change the expected file extension or provide the config file " +
                           "directly instead of a directory");
 
                     return ErrorCode.CliError;

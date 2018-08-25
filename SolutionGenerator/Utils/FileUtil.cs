@@ -8,25 +8,27 @@ namespace SolutionGen.Utils
 {
     public static class FileUtil
     {
-        private struct LiteralMatch
+        private struct PatternMatch
         {
             public readonly string File;
-            public readonly string RootDirectory;
+            public readonly string SearchPath;
+            public readonly string Pattern;
 
-            public LiteralMatch(string file, string rootDirectory)
+            public PatternMatch(string file, string searchPath, string pattern)
             {
                 File = file;
-                RootDirectory = rootDirectory;
+                SearchPath = searchPath;
+                Pattern = pattern;
             }
 
-            public class Comparer : IEqualityComparer<LiteralMatch>
+            public class Comparer : IEqualityComparer<PatternMatch>
             {
-                public bool Equals(LiteralMatch x, LiteralMatch y)
+                public bool Equals(PatternMatch x, PatternMatch y)
                 {
                     return x.File == y.File;
                 }
 
-                public int GetHashCode(LiteralMatch obj)
+                public int GetHashCode(PatternMatch obj)
                 {
                     return obj.File.GetHashCode();
                 }
@@ -39,19 +41,28 @@ namespace SolutionGen.Utils
             basePath = basePath ?? searchableDirectory;
             return GetFiles(new[] {searchableDirectory}, includePaths, excludePaths, basePath);
         }
-        
-        public static HashSet<string> GetFiles(IEnumerable<string> searchableDirectories,
+
+        public static HashSet<string> GetFiles(IEnumerable<string> searchablePaths,
             IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
             basePath = basePath ?? Directory.GetCurrentDirectory();
-            searchableDirectories = searchableDirectories as string[] ?? searchableDirectories.ToArray();
+            if (basePath == "./" || basePath == ".")
+            {
+                // new DirectoryInfo is inconsistent... dir.FullName will include a trailing slash when
+                // Directory.GetCurrentDirectory is passed in but will not contain a trailing slash if
+                // "./" is passed in. If "./" is used, convert it to Directory.GetCurrentDirectory() first.
+                basePath = Directory.GetCurrentDirectory();
+            }
+            var basePathInfo = new DirectoryInfo(basePath);
+            
+            searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
             Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
             using (new Log.ScopedIndent())
             {
                 Log.Debug("search paths:");
-                Log.IndentedCollection(searchableDirectories, Log.Debug);
-                
-                var matchComparer = new LiteralMatch.Comparer();
+                Log.IndentedCollection(searchablePaths, Log.Debug);
+
+                var matchComparer = new PatternMatch.Comparer();
 
                 HashSet<string> includeFiles;
                 HashSet<GLOB> includeGlobs;
@@ -62,22 +73,26 @@ namespace SolutionGen.Utils
 
                 (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
                 (excludeFiles, excludeGlobs, excludeRegexes) = ProcessFileValues(excludePaths);
+                var searchPathMatches = new Dictionary<string, List<PatternMatch>>();
 
-                IEnumerable<string> finalMatches = new List<string>();
-                var literalMatches = new Dictionary<string, List<LiteralMatch>>();
-
-                foreach (string rootDir in searchableDirectories)
+                foreach (string currentSearchPath in searchablePaths)
                 {
-                    
-                    var dir = new DirectoryInfo(rootDir);
+                    var currentMatches = new List<PatternMatch>();
+
+                    // new DirectoryInfo is inconsistent... dir.FullName will include a trailing slash when
+                    // Directory.GetCurrentDirectory is passed in but will not contain a trailing slash if
+                    // "./" is passed in. If "./" is used, convert it to Directory.GetCurrentDirectory() first.
+                    var dir = new DirectoryInfo(currentSearchPath == "." || currentSearchPath == "./"
+                        ? Directory.GetCurrentDirectory()
+                        : currentSearchPath);
                     if (!dir.Exists)
                     {
-                        Log.Debug("Skipping searchable directory because it does not exist: {0}'", rootDir);
+                        Log.Debug("Skipping searchable directory because it does not exist: {0}'", currentSearchPath);
                         continue;
                     }
 
                     string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
-                        .Select(f => f.FullName.Substring(dir.FullName.Length + 1))
+                        .Select(f => f.FullName.Substring(basePathInfo.FullName.Length + 1))
                         .ToArray();
 
                     DirectoryInfo[] allDirs = dir.GetDirectories("*", SearchOption.AllDirectories)
@@ -86,123 +101,107 @@ namespace SolutionGen.Utils
 
                     #region includes
 
-                    var includeGlob = new CompositeGlob(includeGlobs, null);
-
-                    // TODO: cache all files under RootPath instead of using DirectoryInfo
-                    string[] includeGlobMatches = includeGlob.FilterMatches(dir)
-                        .Select(m => Path.GetRelativePath(basePath, Path.Combine(dir.FullName, m)))
-                        .ToArray();
-
-                    IEnumerable<string> tempMatches = includeGlobMatches;
-                    if (includeFiles != null)
+                    if (includeGlobs != null && includeGlobs.Count > 0)
                     {
-                        var validIncludeFiles = new List<string>();
-                        foreach (string includeFile in includeFiles.ToArray())
+                        foreach (GLOB glob in includeGlobs)
                         {
-                            string file = includeFile;
+                            IEnumerable<string> matchesForGlob = allFiles.Where(f => glob.IsMatch(f))
+                                .Select(f => Path.GetRelativePath(basePath, f));
+                            
+                            currentMatches.AddRange(matchesForGlob.Select(
+                                m => new PatternMatch(m, currentSearchPath, "glob \"" + glob.Pattern + "\"")));
+                        }
+                    }
+
+                    var literalPatternMatches = new Dictionary<string, PatternMatch[]>();
+                    if (includeFiles != null && includeFiles.Count > 0)
+                    {
+                        foreach (string filePattern in includeFiles.ToArray())
+                        {
                             string[] matchesForFile =
                                 (from dirInfo in allDirs
-                                    select Path.Combine(dirInfo.FullName, file)
+                                    select Path.Combine(dirInfo.FullName, filePattern)
                                     into includeFilePath
                                     where File.Exists(includeFilePath)
                                     select Path.GetRelativePath(basePath, includeFilePath)).ToArray();
 
-                            if (matchesForFile.Length > 0)
+                            PatternMatch[] patternMatchesForFile = matchesForFile.Select(
+                                m => new PatternMatch(m, currentSearchPath, filePattern))
+                                .ToArray();
+
+                            if (patternMatchesForFile.Length > 0)
                             {
-                                if (!literalMatches.TryGetValue(includeFile, out List<LiteralMatch> allMatches))
-                                {
-                                    allMatches = new List<LiteralMatch>();
-                                    literalMatches[includeFile] = allMatches;
-                                    validIncludeFiles.Add(matchesForFile[0]);
-                                }
-
-                                allMatches.AddRange(matchesForFile.Select(m => new LiteralMatch(m, rootDir)));
-
-                                if (allMatches.Distinct(matchComparer).Count() > 1)
-                                {
-                                    // TODO: Keep better track of the matches for a pattern in each search path
-                                    // because this code can print the warning multiple times if the same file is found
-                                    // when searching multiple paths. The warning should only be triggered once after
-                                    // all includes an excludes are processed. Currently, exludes are not considered
-                                    // which could produce false positive warnings.
-                                    Log.Warn(
-                                        "Multiple matches were found for literal file include '{0}' while searching path '{1}'. " +
-                                        "Only the first match '{2}' will be used. " +
-                                        "See below the conflicting matches.",
-                                        includeFile, rootDir, allMatches[0].File);
-                                    Log.IndentedCollection(allMatches,
-                                        p => $"{p.File} (from {p.RootDirectory})",
-                                        Log.Warn);
-                                }
+                                literalPatternMatches[filePattern] = patternMatchesForFile;
+                                currentMatches.AddRange(patternMatchesForFile);
                             }
                         }
-
-                        tempMatches = tempMatches.Concat(validIncludeFiles);
                     }
 
-                    if (includeRegexes != null)
+                    if (includeRegexes != null && includeRegexes.Count > 0)
                     {
-                        tempMatches = tempMatches.Concat(
-                            includeRegexes.SelectMany(r => r.FilterMatches(allFiles))
-                                .Select(m => Path.GetRelativePath(basePath, m)));
+                        IEnumerable<PatternMatch> matchesForRegex = includeRegexes.SelectMany(
+                            r => r.FilterMatches(allFiles).Select(
+                                m => new PatternMatch(m,
+                                    currentSearchPath,
+                                    "regex \"" + r.Value + "\"")));
+
+                        currentMatches.AddRange(matchesForRegex);
                     }
 
                     #endregion
 
                     #region excludes
 
-                    var excludeGlob = new CompositeGlob(excludeGlobs, null);
-                    string[] excludeGlobMatches = excludeGlob.FilterMatches(dir)
-                        .Select(m => Path.GetRelativePath(basePath, Path.Combine(dir.FullName, m)))
-                        .ToArray();
-
-                    tempMatches = tempMatches.Except(excludeGlobMatches);
-
-                    if (excludeFiles != null)
+                    IEnumerable<PatternMatch> tempMatches = currentMatches;
+                    if (excludeGlobs != null && excludeGlobs.Count > 0)
                     {
-                        var validExcludeFiles = new List<string>();
-                        foreach (string excludeFile in excludeFiles)
-                        {
-                            string[] matchesForFile =
-                                (from dirInfo in allDirs
-                                    select Path.Combine(dirInfo.FullName, excludeFile)
-                                    into excludeFilePath
-                                    where File.Exists(excludeFilePath)
-                                    select Path.GetRelativePath(basePath, excludeFilePath)).ToArray();
-
-                            validExcludeFiles.AddRange(matchesForFile);
-                        }
-
-                        tempMatches = tempMatches.Except(validExcludeFiles);
+                        var excludeGlob = new CompositeGlob(excludeGlobs, null);
+                        tempMatches = tempMatches.Where(m => !excludeGlob.IsMatch(m.File))
+                            .ToList(); // Helps with debugging
                     }
 
-                    if (excludeRegexes != null)
+                    if (excludeFiles != null && excludeFiles.Count > 0)
                     {
-                        tempMatches = tempMatches.Except(
-                            excludeRegexes.SelectMany(r => r.FilterMatches(allFiles))
-                                .Select(m => Path.GetRelativePath(basePath, m)));
+                        tempMatches = tempMatches.Where(m => excludeFiles.All(x => x != Path.GetFileName(m.File)))
+                            .ToList(); // Helps with debugging
+                    }
+
+                    if (excludeRegexes != null && excludeRegexes.Count > 0)
+                    {
+                        tempMatches = tempMatches.Where(m => excludeRegexes.All(r => !r.Regex.IsMatch(m.File)))
+                            .ToList(); // Helps with debugging
                     }
 
                     #endregion
 
-                    finalMatches = finalMatches.Concat(tempMatches);
-                }
-
-                if (includeFiles != null)
-                {
-                    foreach (string includeFile in includeFiles)
+                    currentMatches = tempMatches.ToList();
+                    foreach (KeyValuePair<string, PatternMatch[]> kvp in literalPatternMatches)
                     {
-                        if (!literalMatches.ContainsKey(includeFile))
+                        PatternMatch[] patternMatchesForFile = kvp.Value;
+                        if (patternMatchesForFile.Length > 1
+                            && currentMatches.Intersect(patternMatchesForFile).Count() > 1)
                         {
-                            Log.Warn(
-                                "No file matches were found for literal pattern '{0}' in any searched directories. " +
-                                "Please consider fixing the literal pattern or removing it entirely.",
-                                includeFile);
+                            Log.Warn("The literal pattern '{0}' matched more than one file.",
+                                kvp.Key);
+                            Log.Warn("Only the first match '{0}' will be returned. See all matches below.",
+                                patternMatchesForFile.First().File);
+
+                            int count = 0;
+                            Log.IndentedCollection(patternMatchesForFile,
+                                p => $"{p.File} (from {p.SearchPath}) {(count++ == 0 ? "*" : "")}",
+                                Log.Warn);
+
+                            currentMatches = currentMatches.Except(patternMatchesForFile.Skip(1)).ToList();
                         }
                     }
+                    
+                    searchPathMatches[currentSearchPath] = currentMatches;
                 }
 
-                HashSet<string> allMatchedFiles = finalMatches.ToHashSet();
+                IEnumerable<PatternMatch> allMatches = searchPathMatches.Values.SelectMany(v => v);
+                IEnumerable<PatternMatch> finalMatches = ValidateMatches(allMatches);
+                HashSet<string> allMatchedFiles = finalMatches.Select(m => m.File).ToHashSet();
+                
                 Log.Debug("include globs:");
                 Log.IndentedCollection(includeGlobs, s => s.Pattern, Log.Debug);
                 Log.Debug("include regexes:");
@@ -221,7 +220,7 @@ namespace SolutionGen.Utils
                 return allMatchedFiles;
             }
         }
-        
+
         public static (HashSet<string> files, HashSet<GLOB> globs, HashSet<RegexPattern> regexes)
             ProcessFileValues(IEnumerable<IPattern> filesValues)
         {
@@ -256,5 +255,67 @@ namespace SolutionGen.Utils
 
             return (files, globs, regexes);
         }
+
+        private static IEnumerable<PatternMatch> ValidateMatches(IEnumerable<PatternMatch> allMatches)
+        {
+            IEnumerable<PatternMatch> patterMatches = allMatches as PatternMatch[] ?? allMatches.ToArray();
+            var invalidMatches = new List<PatternMatch>();
+            
+            // Group all matches by pattern
+            Dictionary<string, PatternMatch[]> patternGroups = patterMatches
+                .GroupBy(m => m.Pattern)
+                .ToDictionary(g => g.Key, g => g.ToArray());
+
+            // Find patterns that matched files across more than one search path.
+            // Only return files from the first search path
+            foreach (KeyValuePair<string, PatternMatch[]> patternGroup in patternGroups)
+            {
+                Dictionary<string, PatternMatch[]> searchPathGroups = patternGroup.Value
+                    .GroupBy(m => m.SearchPath)
+                    .Where(g => g.Any())
+                    .ToDictionary(g => g.Key, g => g.ToArray());
+
+                if (searchPathGroups.Count > 1)
+                {
+                    IEnumerable<PatternMatch> candidates = searchPathGroups.SelectMany(kvp => kvp.Value).ToArray();
+
+                    if (candidates.Distinct(new PatternMatch.Comparer()).Count() > 1)
+                    {
+                        KeyValuePair<string, PatternMatch[]> first = searchPathGroups.First();
+                        Log.Warn("The pattern '{0}' matched file(s) in multiple provided search paths. ",
+                            patternGroup.Key);
+                        Log.Warn("Only the matches from '{0}' will be returned. See all matches below.",
+                            first.Key);
+
+                        Log.IndentedCollection(candidates,
+                            p => $"{p.File} (from {p.SearchPath}) {(p.SearchPath == first.Key ? "*" : "")}",
+                            Log.Warn);
+
+                        invalidMatches.AddRange(searchPathGroups.Skip(1).SelectMany(g => g.Value));
+                    }
+                }
+            }
+            
+            return patterMatches.Except(invalidMatches).ToHashSet();
+        }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -34,7 +34,8 @@ namespace SolutionGen.Tests.Utils
                     new IPattern[] {new GlobPattern("**/*.module", false)}, null);
             
             Assert.NotEmpty(result);
-            Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
+            Assert.All(result, p => Assert.Equal(".module", Path.GetExtension(p)));
+            Assert.All(result, p => Assert.True(File.Exists(p)));
         }
         
         [Fact]
@@ -45,7 +46,8 @@ namespace SolutionGen.Tests.Utils
                     new IPattern[] {new RegexPattern(@"\.module$", false)}, null);
             
             Assert.NotEmpty(result);
-            Assert.All(result, (p) => Assert.Equal(".module", Path.GetExtension(p)));
+            Assert.All(result, p => Assert.Equal(".module", Path.GetExtension(p)));
+            Assert.All(result, p => Assert.True(File.Exists(p)));
         }
 
         [Fact]
@@ -71,7 +73,31 @@ namespace SolutionGen.Tests.Utils
             Assert.NotEmpty(result);
             Assert.All(result, (p) => Assert.NotEqual(".module", Path.GetExtension(p)));
         }
+
+        [Fact]
+        public void RegexMatchesReturnsCorrectPathNotCurrentDir()
+        {
+            HashSet<string> result =
+                FileUtil.GetFiles("Libs",
+                    new IPattern[] {new RegexPattern("Sprache.dll", false),},
+                    new IPattern[] {new RegexPattern("/bin/", false),});
+            
+            Assert.NotEmpty(result);
+            Assert.Equal("Sprache.dll", result.First());
+        }
         
+        [Fact]
+        public void RegexMatchesReturnsCorrectPathCurrentDir()
+        {
+            HashSet<string> result =
+                FileUtil.GetFiles("Libs",
+                    new IPattern[] {new RegexPattern("Sprache.dll", false),},
+                    new IPattern[] {new RegexPattern("/bin/", false),},
+                    "./");
+            
+            Assert.NotEmpty(result);
+            Assert.Equal("Libs/Sprache.dll", result.First());
+        }
 
         [Fact]
         public void ExcludesHavePrecedenceOverIncludes()
@@ -92,6 +118,7 @@ namespace SolutionGen.Tests.Utils
 
             Assert.Single(result);
             Assert.Equal("MyModule/Code/Class.cs", result.First());
+            Assert.True(File.Exists(result.First()));
         }
         
         [Fact]
@@ -106,6 +133,15 @@ namespace SolutionGen.Tests.Utils
         }
 
         [Fact]
+        public void LiteralMatchesFileWhenInMultipleSearchPaths()
+        {
+            HashSet<string> result =
+                FileUtil.GetFiles(new []{"./", "Libs"}, new IPattern[] {new LiteralPattern("Sprache.dll", false)}, null);
+
+            Assert.Single(result);
+        }
+
+        [Fact]
         public void GetFilesInMultipleSearchPathsOnlyReturnsFirst()
         {
             string[] searchPaths =
@@ -117,7 +153,7 @@ namespace SolutionGen.Tests.Utils
             HashSet<string> result =
                 FileUtil.GetFiles(searchPaths, new IPattern[] {new GlobPattern("**/Class.cs", false)}, null);
             
-            Assert.Equal(2, result.Count);
+            Assert.Single(result);
         }
     }
 }
