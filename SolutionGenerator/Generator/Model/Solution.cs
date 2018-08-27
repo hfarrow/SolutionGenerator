@@ -26,14 +26,14 @@ namespace SolutionGen.Generator.Model
         public IReadOnlyCollection<IPattern> IncludeBuildTasksPattern =>
             Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_INCLUDE_BUILD_TASKS);
 
-        public string BuildCommand =>
-            Settings.GetProperty<string>(Settings.PROP_BUILD_COMMAND);
+        public IReadOnlyCollection<string> BuildCommands =>
+            Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_BUILD_COMMANDS);
         
-        public string BeforeBuildCommand =>
-            Settings.GetProperty<string>(Settings.PROP_BEFORE_BUILD_COMMAND);
-        
-        public string AfterBuildCommand =>
-            Settings.GetProperty<string>(Settings.PROP_AFTER_BUILD_COMMAND);
+        public IReadOnlyCollection<string> BeforeBuildCommands =>
+            Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_BEFORE_BUILD_COMMANDS);
+
+        public IReadOnlyCollection<string> AfterBuildCommands =>
+            Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_AFTER_BUILD_COMMANDS);
         
         public string OpenCommand =>
             Settings.GetProperty<string>(Settings.PROP_OPEN_SOLUTION_COMMAND);

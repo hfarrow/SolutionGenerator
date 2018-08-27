@@ -43,16 +43,17 @@ solution MySolution
     if (windows)
     {
         open solution command = "$(SOLUTION_PATH)"
-        before build command = "test"
-        build command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
-        after build command = "test"
+        before build commands = "test"
+        build commands = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
+        after builds command = "test"
     }
     
     if (macos)
     {
         open solution command = "open $(SOLUTION_PATH)"
-        before build command = "echo $(SOLUTION_PATH)"
-        build command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
+        before build commands = "echo $(SOLUTION_PATH)"
+        build commands = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
+        after build commands = "echo $(SOLUTION_PATH)"
     }
     
     // External template and module config files to include during generation.

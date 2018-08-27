@@ -28,9 +28,9 @@ namespace SolutionGen.Generator.Reader
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_PROJECTS),
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_GENERATE_PROJECTS),
             new PropertyCollectionDefinition<HashSet<IPattern>, IPattern, PatternPropertyReader>(Settings.PROP_INCLUDE_BUILD_TASKS),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_BUILD_COMMAND, ""),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_BEFORE_BUILD_COMMAND, ""),
-            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_AFTER_BUILD_COMMAND, ""),
+            new PropertyCollectionDefinition<List<string>, string, StringPropertyReader>(Settings.PROP_BUILD_COMMANDS),
+            new PropertyCollectionDefinition<List<string>, string, StringPropertyReader>(Settings.PROP_BEFORE_BUILD_COMMANDS),
+            new PropertyCollectionDefinition<List<string>, string, StringPropertyReader>(Settings.PROP_AFTER_BUILD_COMMANDS),
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_OPEN_SOLUTION_COMMAND, ""),
         };
 

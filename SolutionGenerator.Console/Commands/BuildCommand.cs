@@ -56,7 +56,7 @@ namespace SolutionGen.Console.Commands
                     builder.BuildConfiguration(BuildConfiguration);
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // Exception is logged by builder already.
                 return ErrorCode.GeneratorException;

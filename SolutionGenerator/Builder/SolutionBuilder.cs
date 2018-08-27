@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -62,17 +63,17 @@ namespace SolutionGen.Builder
                 new ExpandableVar.ScopedState()))
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
-                if (!string.IsNullOrEmpty(solution.BeforeBuildCommand))
-                {
-                    ExecuteCommand(solution.BeforeBuildCommand, Settings.PROP_BEFORE_BUILD_COMMAND);
-                }
-                
-                ExecuteCommand(solution.BuildCommand, Settings.PROP_BUILD_COMMAND);
-                
-                if (!string.IsNullOrEmpty(solution.AfterBuildCommand))
-                {
-                    ExecuteCommand(solution.AfterBuildCommand, Settings.PROP_AFTER_BUILD_COMMAND);
-                }
+                ExecuteCommands(solution.BeforeBuildCommands, Settings.PROP_BEFORE_BUILD_COMMANDS);
+                ExecuteCommands(solution.BuildCommands, Settings.PROP_BUILD_COMMANDS);
+                ExecuteCommands(solution.AfterBuildCommands, Settings.PROP_AFTER_BUILD_COMMANDS);
+            }
+        }
+
+        private void ExecuteCommands(IReadOnlyCollection<string> commands, string commandType)
+        {
+            foreach (string command in commands)
+            {
+                ExecuteCommand(command, commandType);
             }
         }
 
