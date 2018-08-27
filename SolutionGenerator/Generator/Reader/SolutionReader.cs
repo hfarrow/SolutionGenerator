@@ -30,6 +30,9 @@ namespace SolutionGen.Generator.Reader
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
                 
+                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_PATH,
+                    Path.Combine(solutionConfigDir, solutionElement.ElementHeading.Name + ".sln"));
+                
                 settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);
 

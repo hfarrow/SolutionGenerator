@@ -18,7 +18,7 @@ namespace SolutionGen.Utils
             bool waitForExit = false,
             int timeOutSeconds = 180)
         {
-            Console.WriteLine("startProcess: {0} {1}\n\tredirectStdIn={2}\n\twaitForExit={3}",
+            Log.Debug("startProcess: [{0} {1}]\n\tredirectStdIn={2}\n\twaitForExit={3}",
                 psi.FileName, psi.Arguments, redirectStandardInput, waitForExit);
             Process process;
 
@@ -73,7 +73,7 @@ namespace SolutionGen.Utils
 
                         process.Start();
                         didStart = true;
-                        Console.WriteLine("Process started...");
+                        Log.Debug("Process started...");
 
                         if (stdOutHandler != null)
                         {

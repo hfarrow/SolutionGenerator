@@ -11,6 +11,7 @@ namespace SolutionGen.Console
     [Command(Description = "A C# solution generator tool"),
      Subcommand("gen", typeof(GenerateCommand)),
      Subcommand("build", typeof(BuildCommand)),
+     Subcommand("open", typeof(OpenCommand)),
      VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     internal class Console : Command
     {

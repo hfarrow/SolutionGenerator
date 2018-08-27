@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using SolutionGen.Generator.Model;
 
 namespace SolutionGen.Utils
@@ -9,6 +10,7 @@ namespace SolutionGen.Utils
     public static class ExpandableVar
     {
         public const string VAR_SOLUTION_NAME = "SOLUTION_NAME";
+        public const string VAR_SOLUTION_PATH = "SOLUTION_PATH";
         public const string VAR_MODULE_NAME = "MODULE_NAME";
         public const string VAR_PROJECT_NAME = "PROJECT_NAME";
         public const string VAR_CONFIGURATION = "CONFIGURATION";
@@ -221,6 +223,11 @@ namespace SolutionGen.Utils
             }
 
             return builder.ToString();
+        }
+
+        public static string ExpandToEmptyInString(string str)
+        {
+            return Regex.Replace(str, @"\$\(.*\)", string.Empty);
         }
         
         public static object ExpandModuleNameInCopy(object obj, string moduleName)

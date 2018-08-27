@@ -29,6 +29,9 @@ namespace SolutionGen.Generator.Model
         public string BuildCommand =>
             Settings.GetProperty<string>(Settings.PROP_BUILD_SOLUTION_COMMAND);
         
+        public string OpenCommand =>
+            Settings.GetProperty<string>(Settings.PROP_OPEN_SOLUTION_COMMAND);
+        
         private readonly Dictionary<string, bool> includedProjectMap  = new Dictionary<string, bool>();
         private readonly Dictionary<string, bool> generatedProjectMap  = new Dictionary<string, bool>();
         public HashSet<string> IncludedProjects => includedProjectMap.Keys.ToHashSet();

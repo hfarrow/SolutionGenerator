@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
 using SolutionGen.Parser;
@@ -12,8 +13,8 @@ namespace SolutionGen.Console.Commands
     [Command("gen", Description = "Generate solution from target configuration document")]
     public class GenerateCommand : Command
     {
-        [Argument(1, Description = "The master configuration to apply to the generated project")]
-        public string MasterConfiguration { get; set; }
+        [Argument(1, Description = "The master configuration to apply to the generated project and build configuration delmited by ':'.")]
+        public string ConfigurationRaw { private get; set; }
         
         [Option("-d|--define", CommandOptionType.MultipleValue,
             Description = "Scripting define symbols to add to all configurations.")]
@@ -28,9 +29,12 @@ namespace SolutionGen.Console.Commands
         public string[] PropertyOverridesRaw { get; set; }
 
         private HashSet<string> defineSymbols;
-        protected Dictionary<string, string> Variables;
-        protected List<PropertyElement> PropertyOverrides;
-        protected bool SkipGenerateCommand = false;
+        protected Dictionary<string, string> Variables { get; private set; }
+        protected List<PropertyElement> PropertyOverrides { get; private set; }
+        protected bool SkipGenerateCommand { get; set; }
+        protected string MasterConfiguration { get; private set; }
+        protected string BuildConfiguration { get; private set; }
+
         private SolutionGenerator solution;
 
         protected override int OnExecute(CommandLineApplication app, IConsole console)
@@ -42,6 +46,7 @@ namespace SolutionGen.Console.Commands
                     ParseExpandableVariables,
                     SetExpandableVars,
                     ParsePropertyOverrides,
+                    ParseConfiguration,
                     GenerateSolution,
                     ClearExpandableVars,
                     () => LogDuration(typeof(GenerateCommand).Name),
@@ -50,6 +55,19 @@ namespace SolutionGen.Console.Commands
                 .Any(errorCode => errorCode != ErrorCode.Success)
                 ? ErrorCode.CliError
                 : ErrorCode.Success;
+        }
+        
+        protected ErrorCode CheckGenerateSolution(bool forceGenerate)
+        {
+            ErrorCode foundConfig = FindSolutionConfigFile();
+            if(!forceGenerate &&
+               foundConfig == ErrorCode.Success &&
+               File.Exists(GetGenerator().Solution.Name + ".sln"))
+            {
+                SkipGenerateCommand = true;
+            }
+
+            return foundConfig;
         }
 
         private ErrorCode SetDefineSymbols()
@@ -132,6 +150,23 @@ namespace SolutionGen.Console.Commands
             return ErrorCode.Success;
         }
 
+        private ErrorCode ParseConfiguration()
+        {
+            if (!string.IsNullOrEmpty(ConfigurationRaw))
+            {
+                string[] parts = ConfigurationRaw.Split(':');
+                MasterConfiguration = parts[0];
+                if (parts.Length > 1)
+                {
+                    BuildConfiguration = parts[1];
+                }
+            }
+            
+            Log.Debug("Master Configuration = " + MasterConfiguration);
+            Log.Debug("Build Configuration = " + BuildConfiguration);
+            return ErrorCode.Success;
+        }
+
         private ErrorCode GenerateSolution()
         {
             if (SkipGenerateCommand)
@@ -140,7 +175,6 @@ namespace SolutionGen.Console.Commands
             }
             
             Log.Debug("Config = " + SolutionConfigFile.FullName);
-            Log.Debug("Master Configuration = " + MasterConfiguration);
             Log.Debug("Define Symbols =");
             if (defineSymbols.Count > 0)
             {

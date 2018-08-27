@@ -38,6 +38,20 @@ namespace SolutionGen.Builder
             BuildConfiguration(solution.ConfigurationGroups[masterConfiguration].Configurations.Values.First());
         }
 
+        public void BuildConfiguration(string configurationStr)
+        {
+            if (solution.ConfigurationGroups[masterConfiguration].Configurations
+                .TryGetValue(configurationStr, out Configuration configuration))
+            {
+                BuildConfiguration(configuration);
+            }
+            else
+            {
+                throw new InvalidConfigurationException(configurationStr,
+                    solution.ConfigurationGroups[masterConfiguration].Configurations.Keys.ToArray());
+            }
+        }
+
         public void BuildConfiguration(Configuration configuration)
         {
             Log.Info("Building solution configuration '{0} - {1}'", configuration.GroupName, configuration.Name);
@@ -49,6 +63,7 @@ namespace SolutionGen.Builder
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
                 string command = ExpandableVar.ExpandAllInString(solution.BuildCommand);
+                command = ExpandableVar.ExpandToEmptyInString(command);
                 Log.Info("Executing build command: {0}", command);
 
                 string process = command;
@@ -73,6 +88,7 @@ namespace SolutionGen.Builder
                 {
                     Log.Error("Failed to execute build command. See Exception below.");
                     Log.Error(ex.ToString());
+                    throw;
                 }
             }
         }
@@ -85,6 +101,16 @@ namespace SolutionGen.Builder
         private static void ConsoleErrorHandler(object sendingProcess, DataReceivedEventArgs line)
         {
             Log.Error(line.Data.TrimEnd().TrimEnd('\r', '\n'));
+        }
+    }
+
+    public sealed class InvalidConfigurationException : Exception
+    {
+        public InvalidConfigurationException(string configuration, string[] validConfigurations)
+            : base($"'{configuration}' is not a valid configuration for this solution. " +
+                   $"Valid configurations are [{string.Join(", ", validConfigurations)}].")
+        {
+            
         }
     }
 }

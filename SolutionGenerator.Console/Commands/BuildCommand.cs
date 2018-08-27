@@ -4,11 +4,12 @@ using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
 using SolutionGen.Builder;
 using SolutionGen.Generator.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Console.Commands
 {
     [Command("build",
-        Description = "Build the solution. Solution will be generated if it does not exists.")]
+        Description = "Build the solution. Solution will be generated if it does not exist.")]
     public class BuildCommand : GenerateCommand
     {
         [Option("-g|--gen|--generate", CommandOptionType.NoValue)]
@@ -19,7 +20,7 @@ namespace SolutionGen.Console.Commands
             // normally logging in initialized in base.OnExecute but we need it before that runs.
             InitLogging();
             
-            ErrorCode foundConfig = CheckGenerateSolution();
+            ErrorCode foundConfig = CheckGenerateSolution(Generate);
             if (foundConfig != ErrorCode.Success)
             {
                 return foundConfig;
@@ -38,29 +39,29 @@ namespace SolutionGen.Console.Commands
                 ? ErrorCode.CliError
                 : ErrorCode.Success;
         }
-
-        private ErrorCode CheckGenerateSolution()
-        {
-            ErrorCode foundConfig = FindSolutionConfigFile();
-            if(!Generate &&
-               foundConfig == ErrorCode.Success &&
-               File.Exists(GetGenerator().Solution.Name + ".sln"))
-            {
-                SkipGenerateCommand = true;
-            }
-
-            return foundConfig;
-        }
-
+        
         private ErrorCode BuildSolution()
         {
             Solution solution = GetGenerator().Solution;
             var builder = new SolutionBuilder(solution, MasterConfiguration);
-            
-            builder.BuildDefaultConfiguration();
-            // TODO: add cli arg for configaration and then find the configuration
-            // in GetSolution()
-            
+
+            try
+            {
+                if (string.IsNullOrEmpty(BuildConfiguration))
+                {
+                    builder.BuildDefaultConfiguration();
+                }
+                else
+                {
+                    builder.BuildConfiguration(BuildConfiguration);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Exception is logged by builder already.
+                return ErrorCode.GeneratorException;
+            }
+
             return ErrorCode.Success;
         }
     }
