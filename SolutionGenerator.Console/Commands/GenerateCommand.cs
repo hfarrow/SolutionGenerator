@@ -100,10 +100,22 @@ namespace SolutionGen.Console.Commands
 
         private ErrorCode ParsePropertyOverrides()
         {
+            // TODO: change solution overrides to -p 'MySolution/property = test' to match module and template overrides below
+            // TODO: allow override of nested dictionary properties: -p 'MySolution/configurations/everything/Debug = [debug,test]'
+            //     Check for valid property at each path separator. Once you find a dictionary property the path component becomes the key indexer
+            // TODO: allow override of nested object properties: -p 'MySolution/template defaults/root namespace = my.namespace'
+            // TODO: allow override of module or template object properties/settings objects: -p 'MyTemplate/project/root namespace = my.namespace'
+            // Store all overrides in one data structure that is injected into SolutionGenerator. When reading an object check for overrides to
+            // apply based on property path. SettingsReader.ApplyPropertyOverrides already exists.
+            
             PropertyOverrides = new List<PropertyElement>();
             if (PropertyOverridesRaw != null)
             {
-                Parser<PropertyElement> parser = DocumentParser.PropertyArray.Or(DocumentParser.PropertySingleLine);
+                Parser<PropertyElement> parser = DocumentParser
+                    .PropertyDictionary
+                    .Or(DocumentParser.PropertyArray)
+                    .Or(DocumentParser.PropertySingleLine);
+                
                 foreach (string propertyStr in PropertyOverridesRaw)
                 {
                     IResult<PropertyElement> result = parser.TryParse(propertyStr);
