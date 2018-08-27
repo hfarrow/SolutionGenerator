@@ -13,6 +13,9 @@ namespace SolutionGen.Generator.Model
         public string SolutionConfigDir { get; }
         public readonly Settings Settings;
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
+        
+        public string ToolsVersion =>
+            Settings.GetProperty<string>(Settings.PROP_MSBUILD_TOOLS_VERSION);
 
         public IEnumerable<string> TargetPlatforms =>
             Settings.GetProperty<IReadOnlyCollection<string>>(Settings.PROP_TARGET_PLATFORMS);

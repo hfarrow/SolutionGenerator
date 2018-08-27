@@ -31,6 +31,7 @@ namespace SolutionGen.Generator.Model
         public const string CMD_DECLARE_PROJECT = "project";
         
         // Solution
+        public const string PROP_MSBUILD_TOOLS_VERSION = "msbuild tools version";
         public const string PROP_TARGET_PLATFORMS = "target platforms";
         public const string PROP_CONFIGURATIONS = "configurations";
         public const string PROP_INCLUDE_TEMPLATES = "include templates";

@@ -10,6 +10,8 @@ namespace SolutionGen.Generator.Reader
     {
         private static readonly List<PropertyDefinition> propertyDefinitions = new List<PropertyDefinition>
         {
+            new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_MSBUILD_TOOLS_VERSION, "12"),
+            
             new PropertyCollectionDefinition<HashSet<string>, string, StringPropertyReader>(
                 Settings.PROP_TARGET_PLATFORMS, new HashSet<string>() {"Any CPU"}),
 

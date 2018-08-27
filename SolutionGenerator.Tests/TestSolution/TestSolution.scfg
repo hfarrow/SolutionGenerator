@@ -39,7 +39,9 @@ solution MySolution
         warning level = 4
         platform target = AnyCPU
     }
-    
+
+    msbuild tools version = 12
+
     if (windows)
     {
         open solution command = "$(SOLUTION_PATH)"
@@ -47,7 +49,7 @@ solution MySolution
         build commands = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
         after builds command = "test"
     }
-    
+
     if (macos)
     {
         open solution command = "open $(SOLUTION_PATH)"
@@ -55,19 +57,19 @@ solution MySolution
         build commands = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
         after build commands = "echo $(SOLUTION_PATH)"
     }
-    
+
     // External template and module config files to include during generation.
     // While such configs can be included directly in this documement, using external includes is the best practice.
     include templates = glob "Templates/**/*.template"
     include modules = glob "**/*.module"
-    
+
     // Include build task msbuild files and import into generated projects. The tasks can be added to targets in the
     // 'custom csproj contents' project property
     // NOTE: in the future tasks should be packaged with nuget and installed locally by solution generator for generated
     // projects to reference
     // (https://natemcmaster.com/blog/2017/11/11/build-tools-in-nuget/)
     include build tasks = glob "BuildTasks/**/*.tasks"
-       
+
     // Projects that will be included in generation. If ommitted or empty, all projects will be generated.
     // See comments related to 'generate projects' property below for more details.
     include projects =
@@ -77,7 +79,7 @@ solution MySolution
         MyOtherModule,
         MyOtherModule.Tests,
     ]
-    
+
     // Only the projects listed here will be added to the generated C# solution. If a project is not in this list but is
     // in the 'include projects' list, it will be pre-built during the generation phase and added as an assembly
     // reference to the projects in this list that depend on it.
@@ -85,7 +87,7 @@ solution MySolution
     // This allows you to narrow down the solution to just that projects that are being directly worked on and results
     // in faster build times for the solution.
     //
-    // leave 'include projects' and 'generate projects' empty to genereate a solution that will build all project from source 
+    // leave 'include projects' and 'generate projects' empty to genereate a solution that will build all project from source
     generate projects =
     [
         regex ".*"
