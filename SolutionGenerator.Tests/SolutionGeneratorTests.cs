@@ -149,7 +149,7 @@ namespace SolutionGen.Tests
             generator.GenerateSolution("everything", null,
                 new[]
                 {
-                    DocumentParser.PropertySingleLine.Parse(Settings.PROP_BUILD_SOLUTION_COMMAND + " = test")
+                    DocumentParser.PropertySingleLine.Parse(Settings.PROP_BUILD_COMMAND + " = test")
                 });
             
             Assert.Equal("test", generator.Solution.BuildCommand);

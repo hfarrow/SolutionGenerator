@@ -89,7 +89,7 @@ namespace SolutionGen.Utils
                         {
                             if (process.WaitForExit((int) timeout.TotalMilliseconds))
                             {
-                                Console.WriteLine("Exit code {0} for process: {1}",
+                                Log.Debug("Exit code {0} for process: {1}",
                                     process.ExitCode,
                                     psi.FileName);
                             }
@@ -155,7 +155,7 @@ namespace SolutionGen.Utils
 
         private static void onProcessExited(ProcessStartInfo psi)
         {
-            Console.WriteLine("External process exited: {0}", psi.FileName);
+            Log.Debug("External process exited: {0}", psi.FileName);
         }
     }
 }

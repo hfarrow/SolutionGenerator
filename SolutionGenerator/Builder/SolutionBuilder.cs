@@ -54,7 +54,7 @@ namespace SolutionGen.Builder
 
         public void BuildConfiguration(Configuration configuration)
         {
-            Log.Info("Building solution configuration '{0} - {1}'", configuration.GroupName, configuration.Name);
+            Log.Heading("Building solution configuration '{0} - {1}'", configuration.GroupName, configuration.Name);
             using (new Disposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, string.Format("Build Configuration '{0} - {1}'",
@@ -62,45 +62,69 @@ namespace SolutionGen.Builder
                 new ExpandableVar.ScopedState()))
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
-                string command = ExpandableVar.ExpandAllInString(solution.BuildCommand);
-                command = ExpandableVar.ExpandToEmptyInString(command);
-                Log.Info("Executing build command: {0}", command);
-
-                string process = command;
-                string args = "";
-                int argsIndex = command.IndexOf(' ') + 1;
-                if (argsIndex > 1)
+                if (!string.IsNullOrEmpty(solution.BeforeBuildCommand))
                 {
-                    process = command.Substring(0, argsIndex - 1);
-                    args = command.Substring(argsIndex);
+                    ExecuteCommand(solution.BeforeBuildCommand, Settings.PROP_BEFORE_BUILD_COMMAND);
                 }
-
-                var psi = new ProcessStartInfo(process, args)
+                
+                ExecuteCommand(solution.BuildCommand, Settings.PROP_BUILD_COMMAND);
+                
+                if (!string.IsNullOrEmpty(solution.AfterBuildCommand))
                 {
-                    WorkingDirectory = Directory.GetCurrentDirectory()
-                };
+                    ExecuteCommand(solution.AfterBuildCommand, Settings.PROP_AFTER_BUILD_COMMAND);
+                }
+            }
+        }
 
-                try
+        private void ExecuteCommand(string command, string commandType)
+        {
+            command = ExpandableVar.ExpandAllInString(command);
+            command = ExpandableVar.ExpandToEmptyInString(command);
+            Log.Info("Executing '{0}' process: {1}", commandType, command);
+
+            string process = command;
+            string args = "";
+            int argsIndex = command.IndexOf(' ') + 1;
+            if (argsIndex > 1)
+            {
+                process = command.Substring(0, argsIndex - 1);
+                args = command.Substring(argsIndex);
+            }
+
+            var psi = new ProcessStartInfo(process, args)
+            {
+                WorkingDirectory = Directory.GetCurrentDirectory()
+            };
+
+            try
+            {
+                using (new Log.ScopedIndent())
                 {
                     ShellUtil.StartProcess(psi, ConsoleOutputHandler, ConsoleErrorHandler, true, true);
                 }
-                catch (Exception ex)
-                {
-                    Log.Error("Failed to execute build command. See Exception below.");
-                    Log.Error(ex.ToString());
-                    throw;
-                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed to execute build command. See Exception below.");
+                Log.Error(ex.ToString());
+                throw;
             }
         }
 
         private static void ConsoleOutputHandler(object sendingProcess, DataReceivedEventArgs line)
         {
-            Log.Info(line.Data.TrimEnd().TrimEnd('\r', '\n'));
+            using (new Log.ScopedIndent())
+            {
+                Log.Debug("> " + line.Data.TrimEnd().TrimEnd('\r', '\n'));
+            }
         }
 
         private static void ConsoleErrorHandler(object sendingProcess, DataReceivedEventArgs line)
         {
-            Log.Error(line.Data.TrimEnd().TrimEnd('\r', '\n'));
+            using (new Log.ScopedIndent())
+            {
+                Log.Error("> " + line.Data.TrimEnd().TrimEnd('\r', '\n'));
+            }
         }
     }
 

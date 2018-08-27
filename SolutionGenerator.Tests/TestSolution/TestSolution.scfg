@@ -40,10 +40,20 @@ solution MySolution
         platform target = AnyCPU
     }
     
-    if (windows) build solution command = "windows command goes here"
-    if (macos)   build solution command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
-    if (windows) open solution command = "$(SOLUTION_PATH)"
-    if (macos)   open solution command = "open $(SOLUTION_PATH)"
+    if (windows)
+    {
+        open solution command = "$(SOLUTION_PATH)"
+        before build command = "test"
+        build command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
+        after build command = "test"
+    }
+    
+    if (macos)
+    {
+        open solution command = "open $(SOLUTION_PATH)"
+        before build command = "echo $(SOLUTION_PATH)"
+        build command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_PATH)"
+    }
     
     // External template and module config files to include during generation.
     // While such configs can be included directly in this documement, using external includes is the best practice.
