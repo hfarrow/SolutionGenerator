@@ -41,7 +41,7 @@ solution MySolution
     }
     
     if (windows) build solution command = "windows command goes here"
-    if (macos)   build solution command = "$(XBUILD_PATH) /p:Configuration=$(CONFIGURATION) $(SOLUTION_NAME).sln"
+    if (macos)   build solution command = "msbuild /p:Configuration=$(CONFIGURATION) $(BUILD_OPTIONS) $(SOLUTION_NAME).sln"
     
     // External template and module config files to include during generation.
     // While such configs can be included directly in this documement, using external includes is the best practice.

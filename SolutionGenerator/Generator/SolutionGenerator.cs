@@ -69,22 +69,25 @@ namespace SolutionGen
 
                 ConfigDoc = result.Value;
                 Reader = new DocumentReader(ConfigDoc, rootDir);
-                Reader.ReadAsMainDocument();
+                Reader.ParseSolution();
                 Solution = Reader.Solution;
-
-                projectIdLookup = Reader.Modules
-                    .SelectMany(kvp => kvp.Value.ProjectIdLookup)
-                    .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
                 Log.Info("Finished parsing solution named '{0}'", Reader.Solution.Name);
             }
         }
 
         public void GenerateSolution(string masterConfiguration)
-            => GenerateSolution(masterConfiguration, null);
+            => GenerateSolution(masterConfiguration, null, null);
 
-        public void GenerateSolution(string masterConfiguration, string[] externalDefineConstants)
+        public void GenerateSolution(string masterConfiguration,
+            string[] externalDefineConstants,
+            PropertyElement[] propertyOverrides)
         {
+            Reader.ReadFullSolution(propertyOverrides);
+            projectIdLookup = Reader.Modules
+                .SelectMany(kvp => kvp.Value.ProjectIdLookup)
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            
             externalDefineConstants = externalDefineConstants ?? new string[0];
 
             Log.Heading("Generating solution '{0}' for master configuration '{1}'",
@@ -96,7 +99,6 @@ namespace SolutionGen
                 Log.Info("with external define constans:");
                 Log.IndentedCollection(externalDefineConstants, Log.Info);
             }
-
 
             using (new Disposable(
                 new Log.ScopedIndent(),

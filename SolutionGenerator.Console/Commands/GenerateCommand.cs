@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
-using SolutionGen.Generator.Model;
+using SolutionGen.Parser;
+using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
+using Sprache;
 
 namespace SolutionGen.Console.Commands
 {
@@ -20,10 +22,14 @@ namespace SolutionGen.Console.Commands
         [Option("-v|--var|--variable", CommandOptionType.MultipleValue,
             Description = "User defined variables that can be reference by the solution config.")]
         public string[] VariablesRaw { get; set; }
+        
+        [Option("-p|--property", CommandOptionType.MultipleValue,
+            Description = "User defined solution config property overrides.")]
+        public string[] PropertyOverridesRaw { get; set; }
 
         private HashSet<string> defineSymbols;
         protected Dictionary<string, string> Variables;
-
+        protected List<PropertyElement> PropertyOverrides;
         protected bool SkipGenerateCommand = false;
         private SolutionGenerator solution;
 
@@ -35,6 +41,7 @@ namespace SolutionGen.Console.Commands
                     SetDefineSymbols,
                     ParseExpandableVariables,
                     SetExpandableVars,
+                    ParsePropertyOverrides,
                     GenerateSolution,
                     ClearExpandableVars,
                     () => LogDuration(typeof(GenerateCommand).Name),
@@ -91,6 +98,28 @@ namespace SolutionGen.Console.Commands
             return ErrorCode.Success;
         }
 
+        private ErrorCode ParsePropertyOverrides()
+        {
+            PropertyOverrides = new List<PropertyElement>();
+            if (PropertyOverridesRaw != null)
+            {
+                Parser<PropertyElement> parser = DocumentParser.PropertyArray.Or(DocumentParser.PropertySingleLine);
+                foreach (string propertyStr in PropertyOverridesRaw)
+                {
+                    IResult<PropertyElement> result = parser.TryParse(propertyStr);
+                    if (!result.WasSuccessful)
+                    {
+                        Log.Error("Could not parse user property override: {0}", propertyStr);
+                        Log.Error("{0}", result.ToString());
+                        return ErrorCode.CliError;
+                    }
+
+                    PropertyOverrides.Add(result.Value);                    
+                }
+            }
+            return ErrorCode.Success;
+        }
+
         private ErrorCode GenerateSolution()
         {
             if (SkipGenerateCommand)
@@ -113,8 +142,8 @@ namespace SolutionGen.Console.Commands
 
             try
             {
-                solution = SolutionGenerator.FromPath(SolutionConfigFile.FullName);
-                solution.GenerateSolution(MasterConfiguration, defineSymbols.ToArray());
+                solution = GetGenerator();
+                solution.GenerateSolution(MasterConfiguration, defineSymbols.ToArray(), PropertyOverrides.ToArray());
                 
                 // If MasterConfiguration was null or empty, the generator will select a default.
                 MasterConfiguration = solution.MasterConfiguration;
@@ -147,15 +176,15 @@ namespace SolutionGen.Console.Commands
             return ErrorCode.Success;
         }
 
-        protected Solution GetSolution()
+        protected SolutionGenerator GetGenerator()
         {
             if (solution?.Solution != null)
             {
-                return solution.Solution;
+                return solution;
             }
             
             solution = SolutionGenerator.FromPath(SolutionConfigFile.FullName);
-            return solution.Solution;
+            return solution;
         }
     }
 }

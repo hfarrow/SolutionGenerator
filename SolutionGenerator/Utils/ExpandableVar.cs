@@ -146,6 +146,9 @@ namespace SolutionGen.Utils
             
         }
 
+        public static string ExpandAllInString(string obj) =>
+            (string) ExpandAllInCopy(obj, expandableVariables);
+
         public static object ExpandAllInCopy(object obj, IReadOnlyDictionary<string, string> varExpansions)
         {
             obj = varExpansions.Aggregate(obj, (current, kvp) =>

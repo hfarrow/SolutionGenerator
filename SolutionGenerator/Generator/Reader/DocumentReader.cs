@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 
 namespace SolutionGen.Generator.Reader
 {
@@ -29,7 +30,7 @@ namespace SolutionGen.Generator.Reader
             SolutionConfigDir = solutionConfigDir;
         }
 
-        public void ReadAsMainDocument()
+        public void ParseSolution()
         {
             ParseElements();
 
@@ -39,10 +40,28 @@ namespace SolutionGen.Generator.Reader
                     $"The main solution document must contain a root level '{SectionType.SOLUTION}' object.");
             }
             
-            solutionReader = new SolutionReader(SolutionElement, SolutionConfigDir);
+            solutionReader = new SolutionReader(SolutionElement, SolutionConfigDir, false);
             Solution = solutionReader.Solution;
-            ReadTemplates(TemplateElements.Concat(solutionReader.IncludedTemplates));
-            ReadModules(ModuleElements.Concat(solutionReader.IncludedModules));
+        }
+
+        public void ReadFullSolution(PropertyElement[] propertyOverrides = null)
+        {
+            if (SolutionElement == null)
+            {
+                ParseSolution();
+            }
+            
+            Log.Heading("Reading full solution (templates and modules)");
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, "Read Full Solution")))
+            {
+                
+                solutionReader.ApplyPropertyOverrides(propertyOverrides);
+                solutionReader.LoadIncludes();
+                ReadTemplates(TemplateElements.Concat(solutionReader.IncludedTemplates));
+                ReadModules(ModuleElements.Concat(solutionReader.IncludedModules));
+            }
         }
         
         public void ParseElements()

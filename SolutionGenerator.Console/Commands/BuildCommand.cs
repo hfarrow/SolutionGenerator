@@ -16,6 +16,9 @@ namespace SolutionGen.Console.Commands
 
         protected override int OnExecute(CommandLineApplication app, IConsole console)
         {
+            // normally logging in initialized in base.OnExecute but we need it before that runs.
+            InitLogging();
+            
             ErrorCode foundConfig = CheckGenerateSolution();
             if (foundConfig != ErrorCode.Success)
             {
@@ -41,7 +44,7 @@ namespace SolutionGen.Console.Commands
             ErrorCode foundConfig = FindSolutionConfigFile();
             if(!Generate &&
                foundConfig == ErrorCode.Success &&
-               File.Exists(Path.ChangeExtension(SolutionConfigFile.FullName, ".sln")))
+               File.Exists(GetGenerator().Solution.Name + ".sln"))
             {
                 SkipGenerateCommand = true;
             }
@@ -51,7 +54,7 @@ namespace SolutionGen.Console.Commands
 
         private ErrorCode BuildSolution()
         {
-            Solution solution = GetSolution();
+            Solution solution = GetGenerator().Solution;
             var builder = new SolutionBuilder(solution, MasterConfiguration);
             
             builder.BuildDefaultConfiguration();

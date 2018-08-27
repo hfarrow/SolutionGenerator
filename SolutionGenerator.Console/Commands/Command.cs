@@ -46,7 +46,7 @@ namespace SolutionGen.Console.Commands
                 .Any(errorCode => errorCode != ErrorCode.Success) ? ErrorCode.CliError : ErrorCode.Success;
         }
 
-        private ErrorCode InitLogging()
+        protected ErrorCode InitLogging()
         {
             if (string.IsNullOrEmpty(LogLevel))
             {
@@ -133,12 +133,14 @@ namespace SolutionGen.Console.Commands
             }
             
             Directory.SetCurrentDirectory(SolutionConfigFile.Directory.FullName);
+            Log.Debug("Working Directory = " + Directory.GetCurrentDirectory());
             return ErrorCode.Success;
         }
 
         protected ErrorCode LogDuration(string description)
         {
             Log.Timer(Log.Level.Info, description, timer);
+            timer.Restart();
             return ErrorCode.Success;
         }
     }

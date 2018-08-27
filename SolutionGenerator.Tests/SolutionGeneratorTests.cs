@@ -7,7 +7,10 @@ using System.Reflection;
 using SolutionGen.Builder;
 using SolutionGen.Generator.Model;
 using SolutionGen.Generator.Reader;
+using SolutionGen.Parser;
+using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
+using Sprache;
 using Xunit;
 using Module = SolutionGen.Generator.Model.Module;
 using Path = System.IO.Path;
@@ -131,7 +134,7 @@ namespace SolutionGen.Tests
         {
             DocumentReader sol = generator.Reader;
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
-            generator.GenerateSolution("everything", new []{constantName});
+            generator.GenerateSolution("everything", new []{constantName}, null);
 
             string projectDir = Path.Combine(sol.SolutionConfigDir, "MyModule");
             string projectPath = Directory
@@ -139,12 +142,24 @@ namespace SolutionGen.Tests
             
             Assert.Contains(constantName, File.ReadAllText(projectPath));
         }
+        
+        [Fact]
+        public void CanGenerateSolutionWithPropertyOverride()
+        {
+            generator.GenerateSolution("everything", null,
+                new[]
+                {
+                    DocumentParser.PropertySingleLine.Parse(Settings.PROP_BUILD_SOLUTION_COMMAND + " = test")
+                });
+            
+            Assert.Equal("test", generator.Solution.BuildCommand);
+        }
 
         [Fact]
         public void CanGenerateAndBuildSolution()
         {
             const string constantName = "MY_EXTERNAL_DEFINE_CONSTANT";
-            generator.GenerateSolution("everything", new[]{constantName});
+            generator.GenerateSolution("everything", new[]{constantName}, null);
             
             var builder = new SolutionBuilder(generator.Reader.Solution, "everything");
             builder.BuildAllConfigurations();

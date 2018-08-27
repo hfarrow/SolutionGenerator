@@ -25,6 +25,9 @@ namespace SolutionGen.Generator.Model
         
         public IReadOnlyCollection<IPattern> IncludeBuildTasksPattern =>
             Settings.GetProperty<IReadOnlyCollection<IPattern>>(Settings.PROP_INCLUDE_BUILD_TASKS);
+
+        public string BuildCommand =>
+            Settings.GetProperty<string>(Settings.PROP_BUILD_SOLUTION_COMMAND);
         
         private readonly Dictionary<string, bool> includedProjectMap  = new Dictionary<string, bool>();
         private readonly Dictionary<string, bool> generatedProjectMap  = new Dictionary<string, bool>();

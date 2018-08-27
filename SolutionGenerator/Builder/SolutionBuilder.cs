@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Utils;
 
@@ -45,8 +48,43 @@ namespace SolutionGen.Builder
                 new ExpandableVar.ScopedState()))
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
-                // TODO: execute command
+                string command = ExpandableVar.ExpandAllInString(solution.BuildCommand);
+                Log.Info("Executing build command: {0}", command);
+
+                string process = command;
+                string args = "";
+                int argsIndex = command.IndexOf(' ') + 1;
+                if (argsIndex > 1)
+                {
+                    process = command.Substring(0, argsIndex - 1);
+                    args = command.Substring(argsIndex);
+                }
+
+                var psi = new ProcessStartInfo(process, args)
+                {
+                    WorkingDirectory = Directory.GetCurrentDirectory()
+                };
+
+                try
+                {
+                    ShellUtil.StartProcess(psi, ConsoleOutputHandler, ConsoleErrorHandler, true, true);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error("Failed to execute build command. See Exception below.");
+                    Log.Error(ex.ToString());
+                }
             }
+        }
+
+        private static void ConsoleOutputHandler(object sendingProcess, DataReceivedEventArgs line)
+        {
+            Log.Info(line.Data.TrimEnd().TrimEnd('\r', '\n'));
+        }
+
+        private static void ConsoleErrorHandler(object sendingProcess, DataReceivedEventArgs line)
+        {
+            Log.Error(line.Data.TrimEnd().TrimEnd('\r', '\n'));
         }
     }
 }

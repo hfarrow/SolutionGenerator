@@ -162,16 +162,39 @@ namespace SolutionGen.Generator.Reader
                 }
 
                 ExpandVariables(Properties);
-
-                Log.Info("Finished reading settings element:");
-                Log.IndentedCollection(
-                    GetVisitedProperties(),
-                    kvp => string.Format("{0} => {1}",
-                        kvp.Key, PropertyDefinition.LogValue(kvp.Value)),
-                    Log.Info);
+                LogVisitedProperties();
 
                 return new Settings(Properties, GetPropertyDefinition);
             }
+        }
+
+        public void ApplyPropertyOverrides(IEnumerable<PropertyElement> propertyElements)
+        {
+            Log.Info("Applying property overrides to settings reader");
+
+            if (propertyElements == null)
+            {
+                return;
+            }
+            
+            VisitedProperties.Clear();
+            foreach (PropertyElement propertyElement in 
+                EvaluateConditionalBlocks(propertyElements).Cast<PropertyElement>())
+            {
+                ReadProperty(propertyElement);
+            }
+            ExpandVariables(Properties);
+            LogVisitedProperties();
+        }
+
+        private void LogVisitedProperties()
+        {
+            Log.Info("Finished reading settings element:");
+            Log.IndentedCollection(
+                GetVisitedProperties(),
+                kvp => string.Format("{0} => {1}",
+                    kvp.Key, PropertyDefinition.LogValue(kvp.Value)),
+                Log.Info);
         }
 
         private IEnumerable<ConfigElement> EvaluateConditionalBlocks(IEnumerable<ConfigElement> elements)

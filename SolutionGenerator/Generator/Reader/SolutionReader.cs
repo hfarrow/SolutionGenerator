@@ -17,10 +17,12 @@ namespace SolutionGen.Generator.Reader
 
         public Solution Solution { get; }
         public Settings TemplateDefaultSettings { get; }
-        public List<ObjectElement> IncludedTemplates { get; }
-        public List<ObjectElement> IncludedModules { get; }
+        public List<ObjectElement> IncludedTemplates { get; private set; }
+        public List<ObjectElement> IncludedModules { get; private set; }
 
-        public SolutionReader(ObjectElement solutionElement, string solutionConfigDir)
+        private readonly SolutionSettingsReader settingsReader;
+
+        public SolutionReader(ObjectElement solutionElement, string solutionConfigDir, bool loadIncludes)
         {
             Log.Heading("Reading solution element: {0}", solutionElement);
             using (new Log.ScopedIndent())
@@ -28,7 +30,7 @@ namespace SolutionGen.Generator.Reader
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
                 
-                var settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
+                settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);
 
                 Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir,
@@ -63,9 +65,22 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
 
-                IncludedTemplates = GetIncludedTemplates();
-                IncludedModules = GetIncludedModules();
+                if (loadIncludes)
+                {
+                    LoadIncludes();
+                }
             }
+        }
+
+        public void LoadIncludes()
+        {
+            IncludedTemplates = GetIncludedTemplates();
+            IncludedModules = GetIncludedModules();
+        }
+
+        public void ApplyPropertyOverrides(IEnumerable<PropertyElement> propertyElements)
+        {
+            settingsReader.ApplyPropertyOverrides(propertyElements);
         }
 
         private static Dictionary<string, ConfigurationGroup> GetConfigurationGroups(Settings settings)
