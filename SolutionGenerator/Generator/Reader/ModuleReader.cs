@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
@@ -119,7 +120,10 @@ namespace SolutionGen.Generator.Reader
                         // All configurations of a project must have the same guid.
                         if (!idLookup.TryGetValue(projectName, out Project.Identifier id))
                         {
-                            id = new Project.Identifier(projectName, guid, moduleSourcePath);
+                            string relativeSourcePath =
+                                Path.GetRelativePath(solution.SolutionConfigDir, moduleSourcePath);
+                            
+                            id = new Project.Identifier(projectName, guid, moduleSourcePath, relativeSourcePath);
                             idLookup[projectName] = id;
                         }
 

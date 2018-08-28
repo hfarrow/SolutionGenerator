@@ -146,6 +146,8 @@ namespace SolutionGen
                     .ConfigurationGroups[MasterConfiguration].Configurations
                     .First().Value;
 
+                Directory.CreateDirectory(Reader.Solution.OutputDir);
+
                 foreach (Module module in modules)
                 {
                     Log.Info("Generating module '{0}' with project count of {1}",
@@ -169,7 +171,7 @@ namespace SolutionGen
                             }
 
                             Log.Heading("Generating project '{0}' with GUID '{1}' at source path '{2}'",
-                                project.Name, project.Guid, project.SourcePath);
+                                project.Name, project.Guid, project.AbsoluteSourcePath);
 
                             using (new Log.ScopedIndent())
                             {
@@ -190,9 +192,13 @@ namespace SolutionGen
 
                                 string projectText = projectTemplate.TransformText();
                                 string projectPath =
-                                    Path.Combine(project.SourcePath, project.Name + namePostfix) + ".csproj";
+                                    Path.Combine(
+                                        Reader.Solution.OutputDir,
+                                        project.AbsoluteSourcePath, 
+                                        project.Name + namePostfix) + ".csproj";
 
                                 Log.Info("Writing project to disk at path '{0}'", projectPath);
+                                Directory.CreateDirectory(Path.GetDirectoryName(projectPath));
                                 File.WriteAllText(projectPath, projectText);
                             }
                         }
@@ -216,7 +222,11 @@ namespace SolutionGen
 
                 string solutionText = solutionTemplate.TransformText();
                 string solutionPath =
-                    Path.Combine(Reader.SolutionConfigDir, Reader.Solution.Name + namePostfix) + ".sln";
+                    Path.Combine(
+                        Reader.SolutionConfigDir,
+                        Reader.Solution.OutputDir,
+                        Reader.Solution.Name + namePostfix) + ".sln";
+                
                 Log.Info("Writing solution to disk at path '{0}'", solutionPath);
                 File.WriteAllText(solutionPath, solutionText);
             }
@@ -307,7 +317,7 @@ namespace SolutionGen
         private string GetRelativePathToProject(string toProject)
         {
             Project.Identifier toId = projectIdLookup[toProject];
-            return Path.GetRelativePath(Reader.SolutionConfigDir, toId.SourcePath);
+            return Path.GetRelativePath(Reader.SolutionConfigDir, toId.AbsoluteSourcePath);
         }
     }
 

@@ -14,6 +14,9 @@ namespace SolutionGen.Generator.Model
         public readonly Settings Settings;
         public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
         
+        public string OutputDir =>
+            new DirectoryInfo(Settings.GetProperty<string>(Settings.PROP_OUTPUT_DIR)).FullName;
+        
         public string ToolsVersion =>
             Settings.GetProperty<string>(Settings.PROP_MSBUILD_TOOLS_VERSION);
 
@@ -95,7 +98,8 @@ namespace SolutionGen.Generator.Model
 
         public IReadOnlyCollection<string> GetBuildTasksFilesForProject(Project project)
         {
-            return BuildTasksFiles.Select(f => Path.GetRelativePath(project.AbsoluteSourcePath, f)).ToHashSet();
+            return BuildTasksFiles
+                .Select(f => Path.GetRelativePath(Path.Combine(OutputDir, project.RelativeSourcePath), f)).ToHashSet();
         }
     }
 }

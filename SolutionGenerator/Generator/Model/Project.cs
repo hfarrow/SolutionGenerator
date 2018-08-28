@@ -11,13 +11,15 @@ namespace SolutionGen.Generator.Model
         {
             public string Name { get; }
             public Guid Guid { get; }
-            public string SourcePath { get; }
-            
-            public Identifier(string name, Guid guid, string sourcePath)
+            public string AbsoluteSourcePath { get; }
+            public string RelativeSourcePath { get; }
+
+            public Identifier(string name, Guid guid, string absoluteSourcePath, string relativeSourcePath)
             {
                 Name = name;
                 Guid = guid;
-                SourcePath = sourcePath;
+                AbsoluteSourcePath = absoluteSourcePath;
+                RelativeSourcePath = relativeSourcePath;
             }
         }
         
@@ -28,8 +30,8 @@ namespace SolutionGen.Generator.Model
 
         public string Name => Id.Name;
         public Guid Guid => Id.Guid;
-        public string AbsoluteSourcePath => Id.SourcePath;
-        public string RelativeSourcePath { get; }
+        public string AbsoluteSourcePath => Id.AbsoluteSourcePath;
+        public string RelativeSourcePath => Id.RelativeSourcePath;
         
         public IReadOnlyCollection<string> IncludeFiles { get; }
         public IReadOnlyCollection<string> LibRefs { get; }
@@ -46,9 +48,7 @@ namespace SolutionGen.Generator.Model
             Id = id;
             Configuration = configuration;
             Settings = settings;
-
-            RelativeSourcePath = System.IO.Path.GetRelativePath(Solution.SolutionConfigDir, AbsoluteSourcePath);
-            
+           
             // Include files, exclude files, lib refs
             var includeFilesProperty = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_INCLUDE_FILES);
             var libSearchPaths = Settings.GetProperty<HashSet<IPattern>>(Settings.PROP_LIB_SEARCH_PATHS);

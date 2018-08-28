@@ -40,6 +40,7 @@ solution MySolution
         platform target = AnyCPU
     }
 
+    output directory = "./"
     msbuild tools version = 12
 
     if (windows)
