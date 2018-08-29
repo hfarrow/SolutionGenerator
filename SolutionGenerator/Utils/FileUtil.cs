@@ -38,31 +38,30 @@ namespace SolutionGen.Utils
         public static HashSet<string> GetFiles(string searchableDirectory,
             IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
-            basePath = basePath ?? searchableDirectory;
             return GetFiles(new[] {searchableDirectory}, includePaths, excludePaths, basePath);
         }
 
         public static HashSet<string> GetFiles(IEnumerable<string> searchablePaths,
             IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
-            basePath = basePath ?? Directory.GetCurrentDirectory();
+            basePath = basePath ?? "./";
+            bool returnAbsolutePaths = Path.IsPathRooted(basePath);
+            string absBasePath;
             if (basePath == "./" || basePath == ".")
             {
-                // new DirectoryInfo is inconsistent... dir.FullName will include a trailing slash when
-                // Directory.GetCurrentDirectory is passed in but will not contain a trailing slash if
-                // "./" is passed in. If "./" is used, convert it to Directory.GetCurrentDirectory() first.
-                basePath = Directory.GetCurrentDirectory();
+                absBasePath = new DirectoryInfo(Directory.GetCurrentDirectory()).FullName;
             }
-            var basePathInfo = new DirectoryInfo(basePath);
-            
-            searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
+            else
+            {
+                absBasePath = new DirectoryInfo(basePath).FullName;
+            }
+
             Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
             using (new Log.ScopedIndent())
             {
+                searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
                 Log.Debug("search paths:");
                 Log.IndentedCollection(searchablePaths, Log.Debug);
-
-                var matchComparer = new PatternMatch.Comparer();
 
                 HashSet<string> includeFiles;
                 HashSet<GLOB> includeGlobs;
@@ -74,45 +73,59 @@ namespace SolutionGen.Utils
                 (includeFiles, includeGlobs, includeRegexes) = ProcessFileValues(includePaths);
                 (excludeFiles, excludeGlobs, excludeRegexes) = ProcessFileValues(excludePaths);
                 var searchPathMatches = new Dictionary<string, List<PatternMatch>>();
-
+                
                 foreach (string currentSearchPath in searchablePaths)
                 {
                     var currentMatches = new List<PatternMatch>();
 
-                    // new DirectoryInfo is inconsistent... dir.FullName will include a trailing slash when
-                    // Directory.GetCurrentDirectory is passed in but will not contain a trailing slash if
-                    // "./" is passed in. If "./" is used, convert it to Directory.GetCurrentDirectory() first.
-                    var dir = new DirectoryInfo(currentSearchPath == "." || currentSearchPath == "./"
-                        ? Directory.GetCurrentDirectory()
-                        : currentSearchPath);
+
+                    var dir = new DirectoryInfo(new DirectoryInfo(
+                        currentSearchPath == "./" || currentSearchPath == "."
+                            ? Directory.GetCurrentDirectory()
+                            : currentSearchPath)
+                        .FullName);
+
+                    bool makeCandidatesAbsolute = Path.IsPathRooted(currentSearchPath);
+                    
                     if (!dir.Exists)
                     {
                         Log.Debug("Skipping searchable directory because it does not exist: {0}'", currentSearchPath);
                         continue;
                     }
 
-                    string[] allFiles = dir.GetFiles("*", SearchOption.AllDirectories)
-                        .Select(f => f.FullName.Substring(basePathInfo.FullName.Length + 1))
+                    string[] candidates = dir.GetFilesSafeRecursive("*")
+                        .Select(f => GetPath(makeCandidatesAbsolute, f.FullName, absBasePath))
+                        .Reverse()
                         .ToArray();
 
-                    DirectoryInfo[] allDirs = dir.GetDirectories("*", SearchOption.AllDirectories)
+                    DirectoryInfo[] allDirs = dir.GetDirectoriesSafeRecursive("*")
+                        .Reverse()
                         .Concat(new[] {dir})
                         .ToArray();
 
                     #region includes
-
                     if (includeGlobs != null && includeGlobs.Count > 0)
                     {
                         foreach (GLOB glob in includeGlobs)
                         {
-                            IEnumerable<string> matchesForGlob = allFiles.Where(f => glob.IsMatch(f))
-                                .Select(f => Path.GetRelativePath(basePath, f));
+                            IEnumerable<string> matchesForGlob = candidates.Where(f => glob.IsMatch(f));
                             
                             currentMatches.AddRange(matchesForGlob.Select(
-                                m => new PatternMatch(m, currentSearchPath, "glob \"" + glob.Pattern + "\"")));
+                                f => new PatternMatch(f, currentSearchPath, "glob \"" + glob.Pattern + "\"")));
                         }
                     }
 
+                    if (includeRegexes != null && includeRegexes.Count > 0)
+                    {
+                        IEnumerable<PatternMatch> matchesForRegex = includeRegexes.SelectMany(
+                            r => r.FilterMatches(candidates).Select(
+                                f => new PatternMatch(f,
+                                    currentSearchPath,
+                                    "regex \"" + r.Value + "\"")));
+
+                        currentMatches.AddRange(matchesForRegex);
+                    }
+                    
                     var literalPatternMatches = new Dictionary<string, PatternMatch[]>();
                     if (includeFiles != null && includeFiles.Count > 0)
                     {
@@ -123,10 +136,11 @@ namespace SolutionGen.Utils
                                     select Path.Combine(dirInfo.FullName, filePattern)
                                     into includeFilePath
                                     where File.Exists(includeFilePath)
-                                    select Path.GetRelativePath(basePath, includeFilePath)).ToArray();
+                                    select GetPath(makeCandidatesAbsolute, includeFilePath, absBasePath))
+                                .ToArray();
 
                             PatternMatch[] patternMatchesForFile = matchesForFile.Select(
-                                m => new PatternMatch(m, currentSearchPath, filePattern))
+                                    f => new PatternMatch(f, currentSearchPath, filePattern))
                                 .ToArray();
 
                             if (patternMatchesForFile.Length > 0)
@@ -136,27 +150,20 @@ namespace SolutionGen.Utils
                             }
                         }
                     }
-
-                    if (includeRegexes != null && includeRegexes.Count > 0)
-                    {
-                        IEnumerable<PatternMatch> matchesForRegex = includeRegexes.SelectMany(
-                            r => r.FilterMatches(allFiles).Select(
-                                m => new PatternMatch(m,
-                                    currentSearchPath,
-                                    "regex \"" + r.Value + "\"")));
-
-                        currentMatches.AddRange(matchesForRegex);
-                    }
-
                     #endregion
 
                     #region excludes
-
                     IEnumerable<PatternMatch> tempMatches = currentMatches;
                     if (excludeGlobs != null && excludeGlobs.Count > 0)
                     {
                         var excludeGlob = new CompositeGlob(excludeGlobs, null);
                         tempMatches = tempMatches.Where(m => !excludeGlob.IsMatch(m.File))
+                            .ToList(); // Helps with debugging
+                    }
+                    
+                    if (excludeRegexes != null && excludeRegexes.Count > 0)
+                    {
+                        tempMatches = tempMatches.Where(m => excludeRegexes.All(r => !r.Regex.IsMatch(m.File)))
                             .ToList(); // Helps with debugging
                     }
 
@@ -165,13 +172,6 @@ namespace SolutionGen.Utils
                         tempMatches = tempMatches.Where(m => excludeFiles.All(x => x != Path.GetFileName(m.File)))
                             .ToList(); // Helps with debugging
                     }
-
-                    if (excludeRegexes != null && excludeRegexes.Count > 0)
-                    {
-                        tempMatches = tempMatches.Where(m => excludeRegexes.All(r => !r.Regex.IsMatch(m.File)))
-                            .ToList(); // Helps with debugging
-                    }
-
                     #endregion
 
                     currentMatches = tempMatches.ToList();
@@ -200,7 +200,8 @@ namespace SolutionGen.Utils
 
                 IEnumerable<PatternMatch> allMatches = searchPathMatches.Values.SelectMany(v => v);
                 IEnumerable<PatternMatch> finalMatches = ValidateMatches(allMatches);
-                HashSet<string> allMatchedFiles = finalMatches.Select(m => m.File).ToHashSet();
+                HashSet<string> allMatchedFiles =
+                    finalMatches.Select(m => GetPath(returnAbsolutePaths, m.File, absBasePath)).ToHashSet();
                 
                 Log.Debug("include globs:");
                 Log.IndentedCollection(includeGlobs, s => s.Pattern, Log.Debug);
@@ -219,6 +220,17 @@ namespace SolutionGen.Utils
 
                 return allMatchedFiles;
             }
+        }
+
+        private static string GetPath(bool makeAbsolute, string filePath, string absBasePath)
+        {
+            string absFilePath = Path.IsPathRooted(filePath)
+                ? filePath
+                : new FileInfo(Path.Combine(absBasePath, filePath)).FullName;
+            
+            return makeAbsolute
+                ? absFilePath
+                : Path.GetRelativePath(absBasePath, absFilePath);
         }
 
         public static (HashSet<string> files, HashSet<GLOB> globs, HashSet<RegexPattern> regexes)

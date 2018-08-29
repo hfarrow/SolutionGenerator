@@ -142,12 +142,10 @@ namespace SolutionGen.Parser
                     // Not sure why this cast is needed here because it's the same as above and below
                     .Or((Parser<ConfigElement>)ConditionalBlockElement)
                     .Or(NamedObject)
-                    .Or(InlineObject)
                     .Or(SimpleCommand)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))
                 select element)
             .Named("object-element");
-        
 
         public static readonly Parser<ConfigDocument> Document =
             (from elements in ObjectElement.XMany()

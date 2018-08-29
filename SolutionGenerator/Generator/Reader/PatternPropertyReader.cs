@@ -49,7 +49,7 @@ namespace SolutionGen.Generator.Reader
             return new Result<IEnumerable<IPattern>>(false, values);
         }
 
-        private static LiteralPattern MakeLiteralPattern(string str)
+        public static LiteralPattern MakeLiteralPattern(string str)
         {
             bool negated = str.Trim().StartsWith('!');
             str = negated ? str.Substring(1) : str;

@@ -196,7 +196,7 @@ namespace SolutionGen.Console.Commands
             }
             catch (Exception ex)
             {
-                Log.Error(ex.ToString());
+                Log.Error("{0}", ex.ToString());
                 return ErrorCode.GeneratorException;
             }
 

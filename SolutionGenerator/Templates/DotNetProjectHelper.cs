@@ -74,22 +74,22 @@ namespace SolutionGen.Templates
         public IReadOnlyCollection<Configuration> ActiveConfigurations => 
             Solution.ConfigurationGroups[Generator.MasterConfiguration].Configurations.Values.ToArray();
 
-        private HashSet<string> commonIncludes;
-        public HashSet<string> GetCommonIncludes()
+        private HashSet<(string, string)> commonIncludes;
+        public HashSet<(string, string)> GetCommonIncludes()
         {
             if (commonIncludes == null)
             {
                 string basePath = GetRelativeSourcePath();
                 
-                List<IEnumerable<string>> collections =
+                List<IEnumerable<(string, string)>> collections =
                     ActiveConfigurations
                         .Select(c => Module.Configurations[c].Projects[Project.Name])
-                        .Select(c => c.IncludeFiles.Select(f => Path.Combine(basePath, f)))
+                        .Select(c => c.IncludeFiles.Select(f => (basePath != "." ? Path.Combine(basePath, f) : f, f)))
                         .ToList();
 
                 commonIncludes = collections
                     .Skip(1)
-                    .Aggregate(new HashSet<string>(collections.First()),
+                    .Aggregate(new HashSet<(string, string)>(collections.First()),
                         (h, e) =>
                         {
                             h.IntersectWith(e);
@@ -100,11 +100,11 @@ namespace SolutionGen.Templates
             return commonIncludes;
         }
 
-        public HashSet<string> GetConfigurationSpecificIncludes()
+        public HashSet<(string, string)> GetConfigurationSpecificIncludes()
         {
             string basePath = GetRelativeSourcePath();
             return Project.IncludeFiles
-                .Select(f => Path.Combine(basePath, f))
+                .Select(f => (basePath != "." ? Path.Combine(basePath, f): f, f))
                 .Except(GetCommonIncludes())
                 .ToHashSet();
         }
@@ -112,7 +112,8 @@ namespace SolutionGen.Templates
         public string GetRelativeSourcePath()
         {
             string fromPath = Path.Combine(Solution.OutputDir, Project.RelativeSourcePath);
-            return Path.GetRelativePath(fromPath, Solution.OutputDir);
+            return Path.GetRelativePath(fromPath,
+                Path.Combine(Solution.SolutionConfigDir, Project.RelativeSourcePath));
         }
 
         private HashSet<string> commonProjectRefs;

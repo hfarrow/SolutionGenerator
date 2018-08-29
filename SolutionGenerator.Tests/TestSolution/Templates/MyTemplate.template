@@ -7,8 +7,8 @@ template MyTemplate
     {
         include files =
         [
-            glob "$(MODULE_NAME)/Code/**/*.{cs,txt,json,xml,md}",
-            glob "$(MODULE_NAME)/**/*.{txt,json,xml,md,module}",
+            glob "Code/**/*.{cs,txt,json,xml,md}",
+            glob "**/*.{txt,json,xml,md,module}",
             !glob "**/Tests/**",
             !glob "**/obj/**",
         ]
@@ -84,7 +84,7 @@ template MyTemplate
         {
             include files =
             [
-                glob "$(MODULE_NAME)/Code/**/Tests/**/*.{cs,txt,json,xml,md}",
+                glob "Code/**/Tests/**/*.{cs,txt,json,xml,md}",
                 !glob "**/obj/**",
             ]
 

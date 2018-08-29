@@ -67,6 +67,7 @@ namespace SolutionGen.Tests
         public void CanLoadSolutionConfig()
         {
             Assert.NotNull(generator);
+            generator.Reader.ReadFullSolution();
         }
 
         [Theory]

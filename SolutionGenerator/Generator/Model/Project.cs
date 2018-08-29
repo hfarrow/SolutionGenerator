@@ -58,11 +58,12 @@ namespace SolutionGen.Generator.Model
 
             Log.Debug(
                 "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",
-                id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
+                id.Name, configuration.GroupName, configuration.Name, AbsoluteSourcePath);
 
-            IncludeFiles = FileUtil.GetFiles(Solution.SolutionConfigDir,
+            IncludeFiles = FileUtil.GetFiles(RelativeSourcePath,
                 includeFilesProperty.Where(p => !p.Negated),
-                includeFilesProperty.Where(p => p.Negated));
+                includeFilesProperty.Where(p => p.Negated),
+                RelativeSourcePath);
 
             IPattern[] invalidPatternTypes = libSearchPaths.Where(p => !(p is LiteralPattern)).ToArray();
             if (invalidPatternTypes.Length > 0)

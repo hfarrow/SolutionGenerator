@@ -43,15 +43,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <Compile Remove="TestSolution\MyModule\Code\Tests\ClassTest.cs" />
-    <None Include="TestSolution\MyModule\Code\Tests\ClassTest.cs" />
     <Compile Remove="TestSolution\MyModule\Code\Class.cs" />
-    <None Include="TestSolution\MyModule\Code\Class.cs" />
     <Compile Remove="TestSolution\MyOtherModule\Code\Class.cs" />
-    <None Include="TestSolution\MyOtherModule\Code\Class.cs" />
     <Compile Remove="TestSolution\MyOtherModule\Code\Tests\ClassTest.cs" />
-    <None Include="TestSolution\MyOtherModule\Code\Tests\ClassTest.cs" />
     <Compile Remove="TestSolution\MyOtherModule\LiteralInclude\LiteralInclude.cs" />
-    <None Include="TestSolution\MyOtherModule\LiteralInclude\LiteralInclude.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SolutionGenerator\SolutionGenerator.csproj" />
@@ -61,10 +56,6 @@
     <Content Include="SolutionGenerator.Tests.xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="TestSolution\TestTemplate.txt" />
-    <EmbeddedResource Include="TestSolution\TestTemplate.txt" />
   </ItemGroup>
   <ItemGroup>
     <TestSolutionFiles Include="$(SolutionDir)\SolutionGenerator.Tests\TestSolution\**\*"/>

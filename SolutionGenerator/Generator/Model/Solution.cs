@@ -59,7 +59,8 @@ namespace SolutionGen.Generator.Model
             SolutionConfigDir = solutionConfigDir;
             ConfigurationGroups = configurationGroups;
 
-            BuildTasksFiles = FileUtil.GetFiles(SolutionConfigDir,
+            BuildTasksFiles = FileUtil.GetFiles(
+                Path.GetRelativePath(Directory.GetCurrentDirectory(), SolutionConfigDir),
                 IncludeBuildTasksPattern.Where(p => !p.Negated),
                 IncludeBuildTasksPattern.Where(p => p.Negated));
         }

@@ -47,10 +47,18 @@
     </ItemGroup>
     <ItemGroup>
         <!-- Common to all configurations -->
-<# foreach (string file in GetCommonIncludes())
-{#>
-        <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
-<#}
+<# foreach ((string, string) file in GetCommonIncludes())
+{
+    string filePath = file.Item1;
+    string linkPath = file.Item2;
+    bool hasLink = filePath != linkPath;
+#>
+        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>" <#= hasLink ? ">" : "/>\n" #><#
+    if (hasLink)
+    {#><Link><#= linkPath #></Link></<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #>>
+<#
+    }
+}
 foreach (string projectName in GetCommonProjectRefs())
 {#>
         <ProjectReference Include="<#= GetRelativeProjectRefPath(projectName) #>" >
@@ -70,10 +78,18 @@ foreach (string projectName in GetCommonProjectRefs())
 {
     CurrentConfiguration = configuration;#>
     <ItemGroup Condition=" '$(Configuration)' == '<#= configuration.Name #>' ">
-<#  foreach(string file in GetConfigurationSpecificIncludes())
-    {#>
-        <<#= Path.GetExtension(file) == ".cs" ? "Compile" : "Content" #> Include="<#= file #>" />
-<#  }
+<#  foreach((string, string) file in GetConfigurationSpecificIncludes())
+    {
+        string filePath = file.Item1;
+        string linkPath = file.Item2;
+        bool hasLink = filePath != linkPath;
+#>
+        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>" <#= hasLink ? ">" : "/>\n" #><#
+        if (hasLink)
+        {#><Link><#= linkPath #></Link></<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #>>
+<#
+        }
+    }
 
     foreach(string projectName in GetConfigurationSpecificProjectRefs())
     {#>

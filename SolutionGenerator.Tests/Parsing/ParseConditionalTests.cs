@@ -12,5 +12,6 @@ namespace SolutionGen.Tests.Parsing
             string result = DocumentParser.ConditionalExpression.Parse("if(true)");
             Assert.Equal("true", result);
         }
+        
     }
 }
