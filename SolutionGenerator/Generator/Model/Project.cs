@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using SolutionGen.Utils;
 
@@ -79,11 +80,32 @@ namespace SolutionGen.Generator.Model
             Log.Debug(
                 "Matching path patterns to libs refs for project '{0}' as configuration '{1} - {2}' at base directory '{3}",
                 id.Name, configuration.GroupName, configuration.Name, Solution.SolutionConfigDir);
+
+            IEnumerable<IPattern> libIncludes = libRefsValues.Where(p => !p.Negated).ToArray();
+            IEnumerable<LiteralPattern> absoluteLibIncludes =
+                libIncludes.OfType<LiteralPattern>().Where(p => Path.IsPathRooted(p.Value)).ToArray();
+            libIncludes = libIncludes.Except(absoluteLibIncludes);
             
-            LibRefs = FileUtil.GetFiles(directories,
-                libRefsValues.Where(p => !p.Negated),
+            HashSet<string> libRefs = FileUtil.GetFiles(directories,
+                libIncludes,
                 libRefsValues.Where(p => p.Negated),
                 Solution.SolutionConfigDir);
+
+            foreach (LiteralPattern pattern in absoluteLibIncludes)
+            {
+                if (!File.Exists(pattern.Value))
+                {
+                    Log.Warn("Absolute lib path does not exists and will not be added to references: {0}",
+                        pattern.Value);
+                }
+                else
+                {
+                    Log.Debug("Found absolute path to lib reference: {0}", pattern.Value);
+                    libRefs.Add(pattern.Value);
+                }
+            }
+
+            LibRefs = libRefs;
             
             ProjectRefs = projectRefsValues
                 .ToHashSet();

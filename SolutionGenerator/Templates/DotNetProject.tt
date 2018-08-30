@@ -52,13 +52,10 @@
     string filePath = file.Item1;
     string linkPath = file.Item2;
     bool hasLink = filePath != linkPath;
+    // Links are not used because they make it impossible to add files at the correct location.
 #>
-        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>" <#= hasLink ? ">" : "/>\n" #><#
-    if (hasLink)
-    {#><Link><#= linkPath #></Link></<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #>>
-<#
-    }
-}
+        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>"/>
+<#}
 foreach (string projectName in GetCommonProjectRefs())
 {#>
         <ProjectReference Include="<#= GetRelativeProjectRefPath(projectName) #>" >
@@ -83,13 +80,10 @@ foreach (string projectName in GetCommonProjectRefs())
         string filePath = file.Item1;
         string linkPath = file.Item2;
         bool hasLink = filePath != linkPath;
+        // Links are not used because they make it impossible to add files at the correct location.
 #>
-        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>" <#= hasLink ? ">" : "/>\n" #><#
-        if (hasLink)
-        {#><Link><#= linkPath #></Link></<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #>>
-<#
-        }
-    }
+        <<#= Path.GetExtension(filePath) == ".cs" ? "Compile" : "Content" #> Include="<#= filePath #>"/>
+<#  }
 
     foreach(string projectName in GetConfigurationSpecificProjectRefs())
     {#>

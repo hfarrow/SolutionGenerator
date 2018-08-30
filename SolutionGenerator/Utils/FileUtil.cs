@@ -57,7 +57,9 @@ namespace SolutionGen.Utils
             }
 
             Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
-            using (new Log.ScopedIndent())
+            using (new Disposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Debug, "GetFiiles")))
             {
                 searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
                 Log.Debug("search paths:");
