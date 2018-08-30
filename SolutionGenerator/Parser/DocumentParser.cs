@@ -111,30 +111,29 @@ namespace SolutionGen.Parser
                     args.GetOrElse(string.Empty),
                     conditional.GetOrElse(string.Empty).Length >= 3 ? conditional.GetOrDefault() : "true"))
             .Token().Named("command-element");
+        
+        public static readonly Parser<IEnumerable<ConfigElement>> ObjectBlock =
+            from lbrace in Parse.Char('{').Token()
+            from elements in ObjectElement.XMany()
+            from rbrace in Parse.Char('}').Token()
+            select elements;
 
         public static readonly Parser<ObjectElement> NamedObject =
             (from heading in ObjectHeading
-                from lbrace in Parse.Char('{').Token()
-                from elements in ObjectElement.XMany()
-                from rbrace in Parse.Char('}').Token()
+                from elements in ObjectBlock
                 select new ObjectElement(heading, elements))
             .Token().Named("object-with-heading");
-        
+
         public static readonly Parser<ObjectElement> InlineObject =
-            (from lbrace in Parse.Char('{').Token()
-                from elements in ObjectElement.XMany()
-                from rbrace in Parse.Char('}').Token()
+            (from elements in ObjectBlock
                 select new ObjectElement(new ObjectElementHeading("<inline>", "", null), elements))
             .Token().Named("object");
         
         public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
             (from conditional in ConditionalExpression.Text()
-                // TODO: block lines below are used three times. extract into field parser
-                from lbrace in Parse.Char('{').Token()
-                from elements in ObjectElement.XMany()
-                from rbrace in Parse.Char('}').Token()
+                from elements in ObjectBlock
                 select new ConditionalBlockElement(conditional, elements))
-            .Token().Named("conditional-block");
+            .Token().Named("conditional-block");           
         
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertyDictionary
