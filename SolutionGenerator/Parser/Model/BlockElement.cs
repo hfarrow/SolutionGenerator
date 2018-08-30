@@ -2,12 +2,11 @@
 
 namespace SolutionGen.Parser.Model
 {
-    // TODO: Could be called "BlockElement"
-    public class ConditionalBlockElement : ConfigElement
+    public class GroupElement : ConfigElement
     {
         public IEnumerable<ConfigElement> Elements { get; }
         
-        public ConditionalBlockElement(string conditionalExpression, IEnumerable<ConfigElement> elements)
+        public GroupElement(string conditionalExpression, IEnumerable<ConfigElement> elements)
             : base(conditionalExpression)
         {
             Elements = elements;

@@ -201,11 +201,11 @@ namespace SolutionGen.Generator.Reader
         {
             foreach (ConfigElement element in elements)
             {
-                if (element is ConditionalBlockElement block)
+                if (element is GroupElement group)
                 {
-                    if (ElementReader.EvaluateConditional(block.ConditionalExpression, conditionalParser))
+                    if (ElementReader.EvaluateConditional(group.ConditionalExpression, conditionalParser))
                     {
-                        foreach (ConfigElement blockElement in EvaluateConditionalBlocks(block.Elements))
+                        foreach (ConfigElement blockElement in EvaluateConditionalBlocks(group.Elements))
                         {
                             yield return blockElement;
                         }

@@ -17,11 +17,11 @@ namespace SolutionGen.Tests.Parsing
                 "\n" +
                 "}";
 
-            ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
+            GroupElement group = DocumentParser.ConditionalBlockElement.Parse(input);
             
-            Assert.NotNull(block);
-            Assert.Empty(block.Elements);
-            Assert.Equal("true", block.ConditionalExpression);
+            Assert.NotNull(group);
+            Assert.Empty(group.Elements);
+            Assert.Equal("true", group.ConditionalExpression);
         }
         
         [Fact]
@@ -33,7 +33,7 @@ namespace SolutionGen.Tests.Parsing
                 "\n" +
                 "}";
 
-            ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
+            GroupElement group = DocumentParser.ConditionalBlockElement.Parse(input);
         }
         
         [Fact]
@@ -47,10 +47,10 @@ namespace SolutionGen.Tests.Parsing
                 "  }\n" +
                 "}";
 
-            ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
+            GroupElement group = DocumentParser.ConditionalBlockElement.Parse(input);
             
-            Assert.Single(block.Elements);
-            ConfigElement element = block.Elements.ElementAt(0);
+            Assert.Single(group.Elements);
+            ConfigElement element = group.Elements.ElementAt(0);
             Assert.IsType<ObjectElement>(element);
             var obj = (ObjectElement) element;
             Assert.Equal("myType", obj.ElementHeading.Type);
@@ -68,11 +68,11 @@ namespace SolutionGen.Tests.Parsing
                 "  }\n" +
                 "}";
 
-            ConditionalBlockElement block = DocumentParser.ConditionalBlockElement.Parse(input);
+            GroupElement block = DocumentParser.ConditionalBlockElement.Parse(input);
             
             Assert.Single(block.Elements);
             ConfigElement element = block.Elements.ElementAt(0);
-            Assert.IsType<ConditionalBlockElement>(element);
+            Assert.IsType<GroupElement>(element);
         }
     }
 }

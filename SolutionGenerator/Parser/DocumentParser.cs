@@ -129,10 +129,10 @@ namespace SolutionGen.Parser
                 select new ObjectElement(new ObjectElementHeading("<inline>", "", null), elements))
             .Token().Named("object");
         
-        public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
+        public static readonly Parser<GroupElement> ConditionalBlockElement =
             (from conditional in ConditionalExpression.Text()
                 from elements in ObjectBlock
-                select new ConditionalBlockElement(conditional, elements))
+                select new GroupElement(conditional, elements))
             .Token().Named("conditional-block");           
         
         public static readonly Parser<ConfigElement> ObjectElement =
