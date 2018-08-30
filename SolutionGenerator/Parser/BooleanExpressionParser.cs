@@ -50,7 +50,7 @@ namespace SolutionGen.Parser
         public BooleanExpressionParser()
         {
             Parser<Expression> boolean = BasicParser.IdentifierToken
-                .Select(id => System.Linq.Expressions.Expression.Constant(conditionalConstants.Contains(id)))
+                .Select(id => Expression.Constant(conditionalConstants.Contains(id)))
                 .Named("boolean");
 
             Parser<Expression> factor = (from lparen in Parse.Char('(')

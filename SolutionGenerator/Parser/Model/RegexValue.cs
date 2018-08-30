@@ -11,7 +11,7 @@ namespace SolutionGen.Parser.Model
         public RegexValue(string value, bool negated) : base(value)
         {
             RegexPattern = value;
-            Regex = new Regex(RegexPattern);
+            Regex = new Regex(RegexPattern, RegexOptions.Compiled);
             Negated = negated;
         }
         

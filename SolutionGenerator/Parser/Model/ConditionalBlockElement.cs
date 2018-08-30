@@ -2,6 +2,7 @@
 
 namespace SolutionGen.Parser.Model
 {
+    // TODO: Could be called "BlockElement"
     public class ConditionalBlockElement : ConfigElement
     {
         public IEnumerable<ConfigElement> Elements { get; }

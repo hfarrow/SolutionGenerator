@@ -139,15 +139,15 @@ namespace SolutionGen.Generator.Reader
                             terminate = false;
                             break;
                         
-                        case PropertyElement propertyElement when element is PropertyElement:
+                        case PropertyElement propertyElement:
                             terminate = ReadProperty(propertyElement);
                             break;
 
-                        case SimpleCommandElement cmdElement when element is SimpleCommandElement:
+                        case SimpleCommandElement cmdElement:
                             terminate = ReadCommand(cmdElement);
                             break;
 
-                        case CommentElement _ when element is CommentElement:
+                        case CommentElement _:
                             terminate = false;
                             break;
 

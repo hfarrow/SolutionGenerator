@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
+using SolutionGen.Utils;
 using Sprache;
 using Xunit;
 
@@ -20,16 +21,8 @@ namespace SolutionGen.Tests.Parsing
 
         public ParseExampleTemplateFixture()
         {
-            Assembly assembly = typeof(ParseExampleTemplateFixture).GetTypeInfo().Assembly;
-
-            using (Stream stream =
-                assembly.GetManifestResourceStream("SolutionGenerator.Tests.TestSolution.TestTemplate.txt"))
-            {
-                using (var reader = new StreamReader(stream))
-                {
-                    TemplateText = reader.ReadToEnd();
-                }
-            }
+            Log.LogLevel = Log.Level.Debug;
+            TemplateText = File.ReadAllText("TestTemplate.txt");
 
             IResult<ConfigDocument> result = DocumentParser.Document.TryParse(TemplateText);
             if (!result.WasSuccessful)

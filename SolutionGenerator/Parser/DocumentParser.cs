@@ -129,6 +129,7 @@ namespace SolutionGen.Parser
         
         public static readonly Parser<ConditionalBlockElement> ConditionalBlockElement =
             (from conditional in ConditionalExpression.Text()
+                // TODO: block lines below are used three times. extract into field parser
                 from lbrace in Parse.Char('{').Token()
                 from elements in ObjectElement.XMany()
                 from rbrace in Parse.Char('}').Token()
@@ -137,10 +138,9 @@ namespace SolutionGen.Parser
         
         public static readonly Parser<ConfigElement> ObjectElement =
             (from element in PropertyDictionary
-                    .Or(PropertyArray)
+                    .Or((Parser<ConfigElement>)PropertyArray)
                     .Or(PropertySingleLine)
-                    // Not sure why this cast is needed here because it's the same as above and below
-                    .Or((Parser<ConfigElement>)ConditionalBlockElement)
+                    .Or(ConditionalBlockElement)
                     .Or(NamedObject)
                     .Or(SimpleCommand)
                     .Or(BasicParser.CommentSingleLine.Select(c => new CommentElement(c)))

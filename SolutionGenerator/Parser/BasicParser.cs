@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using SolutionGen.Parser.Model;
 using Sprache;
 
@@ -182,14 +184,48 @@ namespace SolutionGen.Parser
         /// <returns></returns>
         public static Parser<string> EnclosedText(char openChar, char closeChar)
         {
-            return
-                (from left in Parse.Char(openChar).Once().Text()
-                    from leftBody in Parse.AnyChar.Except(Parse.Chars(openChar, closeChar)).Many().Text()
-                    from innerBody in EnclosedText(openChar, closeChar).Optional()
-                    from rightBody in Parse.AnyChar.Except(Parse.Char(closeChar)).Many().Text()
-                    from right in Parse.Char(closeChar).Once().Text()
-                    select left + leftBody + innerBody.GetOrElse(string.Empty) + rightBody + right)
-                .Token().Named("enclosed-text");
+            return i =>
+            {
+                if (i.AtEnd)
+                {
+                    return Result.Failure<string>(i,
+                        "Unexpected end of input reached",
+                        new[] {$"open char '{openChar}'"});
+                }
+
+                int count = 0;
+                int startPos = i.Position;
+                if (i.Current != openChar)
+                {
+                    return Result.Failure<string>(i,
+                        $"unexpected '{i.Current}'",
+                        new[] {$"open char '{openChar}'"});
+                }
+
+                while (!i.AtEnd)
+                {
+                    if (i.Current == openChar)
+                    {
+                        ++count;
+                    }
+                    else if (i.Current == closeChar)
+                    {
+                        --count;
+                    }
+
+                    i = i.Advance();
+
+                    if (count == 0)
+                    {
+                        return Result.Success(i.Source.Substring(startPos, i.Position - startPos), i);
+                    }
+                }
+
+                return Result.Failure<string>(i,
+                    "unexpected end of input reached",
+                    new[] {$"close char '{closeChar}'"});
+
+            };
         }
     }
 }
