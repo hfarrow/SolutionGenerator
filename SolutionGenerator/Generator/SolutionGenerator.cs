@@ -209,6 +209,9 @@ namespace SolutionGen
             Log.Heading("Generating main solution file '{0}'.sln", Reader.Solution.Name);
             using (new Log.ScopedIndent())
             {
+                Log.Debug("Project Whitelist:");
+                Log.IndentedCollection(projectWhitelist, Log.Debug);
+                
                 var solutionTemplate = new DotNetSolution
                 {
                     Generator = this,

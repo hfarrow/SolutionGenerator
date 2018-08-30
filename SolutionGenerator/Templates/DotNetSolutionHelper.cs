@@ -20,9 +20,15 @@ namespace SolutionGen.Templates
         public IEnumerable<Project> GetProjects()
         {
             Configuration config = ActiveConfigurationGroup.Configurations.Values.First();
-            return Modules.Values
-                .SelectMany(m => m.Configurations[config].Projects.Values)
-                .Where(p => ProjectWhitelist.Contains(p.Name));
+
+            IEnumerable<Project> allProjects = Modules.Values
+                .SelectMany(m => m.Configurations[config].Projects.Values);
+            if (ProjectWhitelist == null || ProjectWhitelist.Count == 0)
+            {
+                return allProjects;
+            }
+            
+            return allProjects.Where(p => ProjectWhitelist.Contains(p.Name));
         }
     }
 }
