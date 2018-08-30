@@ -161,6 +161,11 @@ namespace SolutionGen.Console.Commands
                     BuildConfiguration = parts[1];
                 }
             }
+            else
+            {
+                // assign default
+                MasterConfiguration = GetGenerator().MasterConfiguration;
+            }
             
             Log.Debug("Master Configuration = " + MasterConfiguration);
             Log.Debug("Build Configuration = " + BuildConfiguration);

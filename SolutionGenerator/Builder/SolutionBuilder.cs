@@ -36,7 +36,9 @@ namespace SolutionGen.Builder
 
         public void BuildDefaultConfiguration()
         {
-            BuildConfiguration(solution.ConfigurationGroups[masterConfiguration].Configurations.Values.First());
+            BuildConfiguration(string.IsNullOrEmpty(masterConfiguration)
+                ? solution.ConfigurationGroups.Values.First().Configurations.Values.First()
+                : solution.ConfigurationGroups[masterConfiguration].Configurations.Values.First());
         }
 
         public void BuildConfiguration(string configurationStr)

@@ -187,7 +187,29 @@ namespace SolutionGen.Templates
         
         public string GetRelativeLibRefPath(string libPath)
         {
-            return Path.GetRelativePath(Path.Combine(Solution.OutputDir, Project.RelativeSourcePath), libPath);
+            string libRoot = Directory.GetDirectoryRoot(libPath);
+            string outputRoot = Directory.GetDirectoryRoot(Solution.OutputDir);
+            bool useAbsolutePath = true;
+            
+            if (libRoot == outputRoot)
+            {
+                string firstLibFolder = libPath.Substring(libRoot.Length)
+                    .Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .First();
+                
+                string firstOutputFolder = Solution.OutputDir.Substring(outputRoot.Length)
+                    .Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                    .First();
+                
+                if(firstLibFolder == firstOutputFolder)
+                {
+                    useAbsolutePath = false;
+                }
+            }
+
+            return useAbsolutePath
+                ? libPath
+                : Path.GetRelativePath(Path.Combine(Solution.OutputDir, Project.RelativeSourcePath), libPath);
         }
         
         public IReadOnlyCollection<string> GetCommonCustomContents()
