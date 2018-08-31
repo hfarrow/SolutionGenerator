@@ -193,8 +193,6 @@ namespace SolutionGen.Parser
                         new[] {$"open char '{openChar}'"});
                 }
 
-                int count = 0;
-                int startPos = i.Position;
                 if (i.Current != openChar)
                 {
                     return Result.Failure<string>(i,
@@ -202,6 +200,8 @@ namespace SolutionGen.Parser
                         new[] {$"open char '{openChar}'"});
                 }
 
+                int count = 0;
+                int startPos = i.Position;
                 while (!i.AtEnd)
                 {
                     if (i.Current == openChar)

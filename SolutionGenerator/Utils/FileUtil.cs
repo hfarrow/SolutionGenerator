@@ -44,6 +44,7 @@ namespace SolutionGen.Utils
         public static HashSet<string> GetFiles(IEnumerable<string> searchablePaths,
             IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
         {
+            includePaths = includePaths as IPattern[] ?? includePaths.ToArray();
             basePath = basePath ?? "./";
             bool returnAbsolutePaths = Path.IsPathRooted(basePath);
             string absBasePath;
@@ -59,7 +60,7 @@ namespace SolutionGen.Utils
             Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
             using (new Disposable(
                 new Log.ScopedIndent(),
-                new Log.ScopedTimer(Log.Level.Debug, "GetFiiles")))
+                new Log.ScopedTimer(Log.Level.Debug, "GetFiles(...)")))
             {
                 searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
                 Log.Debug("search paths:");
@@ -123,7 +124,7 @@ namespace SolutionGen.Utils
                             r => r.FilterMatches(candidates).Select(
                                 f => new PatternMatch(f,
                                     currentSearchPath,
-                                    "regex \"" + r.Value + "\"")));
+                                    r.ToString())));
 
                         currentMatches.AddRange(matchesForRegex);
                     }
@@ -201,7 +202,7 @@ namespace SolutionGen.Utils
                 }
 
                 IEnumerable<PatternMatch> allMatches = searchPathMatches.Values.SelectMany(v => v);
-                IEnumerable<PatternMatch> finalMatches = ValidateMatches(allMatches);
+                IEnumerable<PatternMatch> finalMatches = ValidateMatches(allMatches, includePaths);
                 HashSet<string> allMatchedFiles =
                     finalMatches.Select(m => GetPath(returnAbsolutePaths, m.File, absBasePath)).ToHashSet();
                 
@@ -270,7 +271,8 @@ namespace SolutionGen.Utils
             return (files, globs, regexes);
         }
 
-        private static IEnumerable<PatternMatch> ValidateMatches(IEnumerable<PatternMatch> allMatches)
+        private static IEnumerable<PatternMatch> ValidateMatches(IEnumerable<PatternMatch> allMatches,
+            IEnumerable<IPattern> allPatterns)
         {
             IEnumerable<PatternMatch> patterMatches = allMatches as PatternMatch[] ?? allMatches.ToArray();
             var invalidMatches = new List<PatternMatch>();
@@ -308,6 +310,17 @@ namespace SolutionGen.Utils
                         invalidMatches.AddRange(searchPathGroups.Skip(1).SelectMany(g => g.Value));
                     }
                 }
+            }
+            
+            string[] patternsWithNoMatches = allPatterns
+                .Select(p => p.ToString())
+                .Except(patternGroups.Keys)
+                .ToArray();
+                
+            foreach (string pattern in patternsWithNoMatches)
+            {
+                Log.Warn("Pattern '{0}' produced zero matches across all provided search paths.",
+                    pattern);
             }
             
             return patterMatches.Except(invalidMatches).ToHashSet();

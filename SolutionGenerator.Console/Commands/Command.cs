@@ -29,7 +29,7 @@ namespace SolutionGen.Console.Commands
         protected IConsole Console { get; private set; }
         protected CommandLineApplication App { get; private set; }
         protected FileInfo SolutionConfigFile { get; private set; }
-        private Stopwatch timer = Stopwatch.StartNew();
+        private readonly Stopwatch timer = Stopwatch.StartNew();
         
         protected virtual int OnExecute(CommandLineApplication app, IConsole console)
         {

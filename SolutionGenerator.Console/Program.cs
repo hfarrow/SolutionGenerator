@@ -15,7 +15,12 @@ namespace SolutionGen.Console
      VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     internal class Console : Command
     {
-        private static void Main(string[] args) => CommandLineApplication.Execute<Console>(args);
+        private static void Main(string[] args)
+        {
+            CommandLineApplication.Execute<Console>(args);
+            Log.ScopedTimer.LogResults(Log.Level.Debug);
+            Log.ScopedTimer.ClearResults();
+        }
 
         private static string GetVersion() => typeof(Console).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()

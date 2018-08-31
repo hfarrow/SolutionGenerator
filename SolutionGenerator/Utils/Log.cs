@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace SolutionGen.Utils
@@ -47,10 +48,60 @@ namespace SolutionGen.Utils
                 timer.Stop();
                 Timer(level, description, timer);
             }
+
+            public struct Result
+            {
+                public readonly TimeSpan Duration;
+
+                public Result(TimeSpan duration)
+                {
+                    Duration = duration;
+                }
+            }
+
+            private static readonly Dictionary<string, List<Result>> results = new Dictionary<string, List<Result>>();
+
+            public static void ClearResults() => results.Clear();
+
+            public static void LogResults(Level level)
+            {
+                Timer(level, "Logging all completed timers...");
+                foreach (KeyValuePair<string, List<Result>> kvp in results)
+                {
+                    Timer(level, "Timer results for \"{0}\":", kvp.Key);
+                    using (new ScopedIndent())
+                    {
+                        long sum = kvp.Value.Sum(r => r.Duration.Ticks);
+                        long min = kvp.Value.Min(r => r.Duration.Ticks);
+                        long max = kvp.Value.Max(r => r.Duration.Ticks);
+                        long ave = (long) kvp.Value.Average(r => r.Duration.Ticks);
+                        Timer(level, "Sum={0:g} Min={1:g} Ave={2:g} Max={3:g}",
+                            new TimeSpan(sum).TotalSeconds,
+                            new TimeSpan(min).TotalSeconds,
+                            new TimeSpan(ave).TotalSeconds,
+                            new TimeSpan(max).TotalSeconds);
+                        
+                        IndentedCollection(kvp.Value,
+                            r => $"{r.Duration.TotalSeconds:g}",
+                            (fmt, args) => Timer(level, fmt, args));
+                    }
+                }
+            }
+
+            internal static void TrackTimerResult(string description, TimeSpan duration)
+            {
+                if (!results.TryGetValue(description, out List<Result> list))
+                {
+                    list = new List<Result>();
+                    results[description] = list;
+                }
+                
+                list.Add(new Result(duration));
+            }
         }
         
         private static int indentLevel;
-        public static int IndentSize = 2;
+        public const int INDENT_SIZE = 2;
 
         public static void PushIndentLevel() => ++indentLevel;
         public static void PopIndentLevel() => indentLevel = Math.Max(0, --indentLevel);
@@ -64,10 +115,12 @@ namespace SolutionGen.Utils
         {
             using (new ScopedIndent())
             {
+                T[] arr = collection.ToArray();
+                int padding = (int) Math.Floor(Math.Log10(arr.Length) + 1);
                 int i = -1;
-                foreach (T value in collection)
+                foreach (T value in arr)
                 {
-                    logger("[{0}] {1}", new object[]{++i, formatter(value)});
+                    logger("[{0}] {1}", new object[]{(++i).ToString().PadLeft(padding), formatter(value)});
                 }
             }
         }
@@ -77,14 +130,7 @@ namespace SolutionGen.Utils
             Func<object, string> formatter,
             Action<string, object[]> logger)
         {
-            using (new ScopedIndent())
-            {
-                int i = -1;
-                foreach (object value in collection)
-                {
-                    logger("[{0}] {1}", new object[]{++i, formatter(value)});
-                }
-            }
+            ProcessIndentedCollection(collection.Cast<object>(), formatter, logger);
         }
 
         public static void IndentedCollection<T>(
@@ -167,9 +213,18 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= level)
             {
-                WriteLine(ConsoleColor.Blue, ConsoleColor.Black,
-                    "Finished timer \"{0}\" with duration '{1:g}'",
-                    description, timer.Elapsed.TotalSeconds);
+                TimeSpan duration = timer.Elapsed;
+                ScopedTimer.TrackTimerResult(description, duration);
+                Timer(level, "Finished timer \"{0}\" with duration '{1:g}'",
+                    description, duration.TotalSeconds);
+            }
+        }
+
+        public static void Timer(Level level, string format, params object[] args)
+        {
+            if (LogLevel <= level)
+            {
+                WriteLine(ConsoleColor.Blue, ConsoleColor.Black, format, args);
             }
         }
         
@@ -191,7 +246,7 @@ namespace SolutionGen.Utils
 
         public static string GetIndent()
         {
-            return "".PadRight(indentLevel * IndentSize, ' ');
+            return "".PadRight(indentLevel * INDENT_SIZE, ' ');
         }
     }
 }
