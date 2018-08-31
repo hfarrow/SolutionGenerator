@@ -177,6 +177,7 @@ namespace SolutionGen.Utils
                     }
                     #endregion
 
+                    #region literal validation
                     currentMatches = tempMatches.ToList();
                     foreach (KeyValuePair<string, PatternMatch[]> kvp in literalPatternMatches)
                     {
@@ -199,10 +200,15 @@ namespace SolutionGen.Utils
                     }
                     
                     searchPathMatches[currentSearchPath] = currentMatches;
+                    #endregion
                 }
 
+                #region validation
                 IEnumerable<PatternMatch> allMatches = searchPathMatches.Values.SelectMany(v => v);
                 IEnumerable<PatternMatch> finalMatches = ValidateMatches(allMatches, includePaths);
+                #endregion
+                
+                #region results
                 HashSet<string> allMatchedFiles =
                     finalMatches.Select(m => GetPath(returnAbsolutePaths, m.File, absBasePath)).ToHashSet();
                 
@@ -222,6 +228,7 @@ namespace SolutionGen.Utils
                 Log.IndentedCollection(allMatchedFiles, Log.Debug);
 
                 return allMatchedFiles;
+                #endregion
             }
         }
 
