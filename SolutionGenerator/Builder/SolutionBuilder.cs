@@ -16,6 +16,20 @@ namespace SolutionGen.Builder
         public SolutionBuilder(Solution solution, string masterConfiguration)
         {
             this.solution = solution;
+
+            if (string.IsNullOrEmpty(masterConfiguration))
+            {
+                masterConfiguration = solution.ConfigurationGroups.Keys.First();
+            }
+
+            if (!solution.ConfigurationGroups.ContainsKey(masterConfiguration))
+            {
+                var ex = new InvalidMasterConfigurationException(masterConfiguration,
+                    solution.ConfigurationGroups.Keys.ToArray());
+                Log.Error("{0}", ex);
+                throw ex;
+            }
+                
             this.masterConfiguration = masterConfiguration;
         }
 
@@ -50,8 +64,10 @@ namespace SolutionGen.Builder
             }
             else
             {
-                throw new InvalidConfigurationException(configurationStr,
+                var ex = new InvalidConfigurationException(configurationStr,
                     solution.ConfigurationGroups[masterConfiguration].Configurations.Keys.ToArray());
+                Log.Error("{0}", ex.ToString());
+                throw ex;
             }
         }
 
@@ -135,6 +151,16 @@ namespace SolutionGen.Builder
     {
         public InvalidConfigurationException(string configuration, string[] validConfigurations)
             : base($"'{configuration}' is not a valid configuration for this solution. " +
+                   $"Valid configurations are [{string.Join(", ", validConfigurations)}].")
+        {
+            
+        }
+    }
+    
+    public sealed class InvalidMasterConfigurationException : Exception
+    {
+        public InvalidMasterConfigurationException(string configuration, string[] validConfigurations)
+            : base($"'{configuration}' is not a valid master configuration for this solution. " +
                    $"Valid configurations are [{string.Join(", ", validConfigurations)}].")
         {
             

@@ -41,7 +41,7 @@ namespace SolutionGen.Console.Commands
         private ErrorCode OpenSolution()
         {
             Solution solution = GetGenerator().Solution;
-            var file = new FileInfo(solution.Name + ".sln");
+            var file = new FileInfo(Path.Combine(solution.OutputDir, solution.Name + ".sln"));
             if (!file.Exists)
             {
                 Log.Error("Could not find a solution file to open. Was it generated?");
@@ -50,7 +50,7 @@ namespace SolutionGen.Console.Commands
 
             try
             {
-                string command = solution.OpenCommand;
+                string command = ExpandableVar.ExpandAllInString(solution.OpenCommand);
                 string process = command;
                 string args = "";
                 int argsIndex = command.IndexOf(' ') + 1;
@@ -64,7 +64,7 @@ namespace SolutionGen.Console.Commands
                 {
                     WorkingDirectory = Directory.GetCurrentDirectory()
                 };
-                ShellUtil.StartProcess(psi, ConsoleOutputHandler, ConsoleErrorHandler, true, false);
+                ShellUtil.StartProcess(psi, ConsoleOutputHandler, ConsoleErrorHandler, true, true, 1);
             }
             catch (Exception ex)
             {

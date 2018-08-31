@@ -38,7 +38,7 @@ namespace SolutionGen.Generator.Reader
                 
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_PATH,
                     Path.Combine(Solution.OutputDir, solutionElement.ElementHeading.Name + ".sln"));
-
+                
                 ObjectElement settingsElement = solutionElement.Elements
                     .OfType<ObjectElement>()
                     .FirstOrDefault(obj => obj.ElementHeading.Type == SectionType.SETTINGS &&

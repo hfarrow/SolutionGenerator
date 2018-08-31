@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
@@ -43,10 +44,26 @@ namespace SolutionGen.Console.Commands
         private ErrorCode BuildSolution()
         {
             Solution solution = GetGenerator().Solution;
-            var builder = new SolutionBuilder(solution, MasterConfiguration);
 
             try
             {
+                string[] properties =
+                    File.ReadAllLines(Path.Combine(solution.OutputDir, solution.Name + ".sln.config"));
+                Dictionary<string, string> propertiesLookup = properties
+                    .Select(s => s.Split('='))
+                    .ToDictionary(arr => arr[0], arr => arr[1]);
+                
+                Log.Debug("Loaded solution properties:");
+                Log.IndentedCollection(propertiesLookup, kvp => $"{kvp.Key} = {kvp.Value}", Log.Debug);
+
+                if (!propertiesLookup.TryGetValue("MasterConfiguration", out string cfg))
+                {
+                    Log.Warn("Failed to determine what mast configuration was used to generate the solution. " +
+                             "Default master configuration will be used for build.");
+                    cfg = MasterConfiguration;
+                }
+                
+                var builder = new SolutionBuilder(solution, cfg);
                 if (string.IsNullOrEmpty(BuildConfiguration))
                 {
                     builder.BuildDefaultConfiguration();
@@ -56,9 +73,11 @@ namespace SolutionGen.Console.Commands
                     builder.BuildConfiguration(BuildConfiguration);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Exception is logged by builder already.
+                // Error message should have been logged by builder already.
+                // Just in case, log it at debug level.
+                Log.Debug("Builder Exception: {0}", ex);
                 return ErrorCode.GeneratorException;
             }
 

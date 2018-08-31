@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using McMaster.Extensions.CommandLineUtils;
+using SolutionGen.Generator.Model;
 using SolutionGen.Parser;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -61,10 +62,13 @@ namespace SolutionGen.Console.Commands
         {
             ErrorCode foundConfig = FindSolutionConfigFile();
             if(!forceGenerate &&
-               foundConfig == ErrorCode.Success &&
-               File.Exists(GetGenerator().Solution.Name + ".sln"))
+               foundConfig == ErrorCode.Success)
             {
-                SkipGenerateCommand = true;
+                Solution sln = GetGenerator().Solution;
+                if(File.Exists(Path.Combine(sln.OutputDir, sln.Name + ".sln")))
+                {
+                    SkipGenerateCommand = true;
+                }
             }
 
             return foundConfig;
@@ -205,6 +209,8 @@ namespace SolutionGen.Console.Commands
                 return ErrorCode.GeneratorException;
             }
 
+            File.WriteAllText(Path.Combine(solution.Solution.OutputDir, solution.Solution.Name + ".sln.config"),
+                "MasterConfiguration=" + MasterConfiguration);
             
             return ErrorCode.Success;
         }
