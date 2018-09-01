@@ -58,7 +58,7 @@ namespace SolutionGen.Utils
             }
 
             Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Debug, "GetFiles(...)")))
             {

@@ -36,7 +36,7 @@ namespace SolutionGen.Builder
         public void BuildAllConfigurations()
         {
             Log.Info("Building all solution configurations");
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, "Build All Configurations")))
             {
@@ -74,7 +74,7 @@ namespace SolutionGen.Builder
         public void BuildConfiguration(Configuration configuration)
         {
             Log.Heading("Building solution configuration '{0} - {1}'", configuration.GroupName, configuration.Name);
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, string.Format("Build Configuration '{0} - {1}'",
                     configuration.GroupName, configuration.Name)),

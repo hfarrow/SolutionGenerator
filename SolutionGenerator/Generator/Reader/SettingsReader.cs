@@ -24,7 +24,7 @@ namespace SolutionGen.Generator.Reader
         {
             this.variableExpansions = variableExpansions;
             conditionalParser = new BooleanExpressionParser();
-            conditionalParser.SetConditionalConstants(GetGeneratorConditionalConstans());
+            conditionalParser.SetConditionalConstants(GetGeneratorConditionalConstants());
             defaultSettings = GetDefaultSettings();
             
             if (variableExpansions != null)
@@ -45,13 +45,13 @@ namespace SolutionGen.Generator.Reader
             if (configuration != null)
             {
                 conditionalParser.SetConditionalConstants(
-                    configuration.Conditionals.Concat(GetGeneratorConditionalConstans()));
+                    configuration.Conditionals.Concat(GetGeneratorConditionalConstants()));
             }
             this.baseSettings = baseSettings;
             this.defaultSettings = defaultSettings;
         }
 
-        private IEnumerable<string> GetGeneratorConditionalConstans()
+        private IEnumerable<string> GetGeneratorConditionalConstants()
         {
             string platform = "unknown_platform";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -239,6 +239,7 @@ namespace SolutionGen.Generator.Reader
                 
                 switch (definition)
                 {
+                    // TODO: this logic should be in the property definitions themselves.
                     case PropertyCollectionDefinition collectionDefinition:
                         if (element.Action == PropertyAction.Set)
                         {

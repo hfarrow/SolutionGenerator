@@ -34,7 +34,7 @@ namespace SolutionGen.Generator.Reader
             Log.Info("Reading template element with base template '{0}': {1}",
                 baseTemplate?.Name ?? "none", templateElement);
             
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Debug, "Read Template")))
             {

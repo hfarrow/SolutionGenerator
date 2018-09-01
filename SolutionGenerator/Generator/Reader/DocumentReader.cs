@@ -52,7 +52,7 @@ namespace SolutionGen.Generator.Reader
             }
             
             Log.Heading("Reading full solution (templates and modules)");
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, "Read Full Solution")))
             {

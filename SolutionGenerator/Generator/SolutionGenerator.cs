@@ -57,7 +57,7 @@ namespace SolutionGen
         private void ParseSolutionConfig(string configText, string rootDir)
         {
             Log.Heading("Parsing main solution document");
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, "Parse Solution Config")))
             {
@@ -100,7 +100,7 @@ namespace SolutionGen
                 Log.IndentedCollection(externalDefineConstants, Log.Info);
             }
 
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, "Generate Solution")))
             {
@@ -152,7 +152,7 @@ namespace SolutionGen
                 {
                     Log.Info("Generating module '{0}' with project count of {1}",
                         module.Name, module.ProjectIdLookup.Count);
-                    using (new Disposable(
+                    using (new CompositeDisposable(
                         new Log.ScopedIndent(),
                         new ExpandableVar.ScopedState()))
                     {

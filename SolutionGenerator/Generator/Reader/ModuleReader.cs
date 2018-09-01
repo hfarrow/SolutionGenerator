@@ -24,7 +24,7 @@ namespace SolutionGen.Generator.Reader
         {
             Log.Heading("Reading module element: {0}", moduleElement);
 
-            using (new Disposable(
+            using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Debug, "Read Module")))
             {

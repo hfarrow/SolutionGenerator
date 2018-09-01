@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace SolutionGen.Utils
 {
-    public class Disposable : IDisposable
+    public class CompositeDisposable : IDisposable
     {
         private readonly IDisposable[] disposables;
 
-        public Disposable(params IDisposable[] disposables)
+        public CompositeDisposable(params IDisposable[] disposables)
         {
             this.disposables = disposables;
         }
