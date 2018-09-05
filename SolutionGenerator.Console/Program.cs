@@ -15,11 +15,16 @@ namespace SolutionGen.Console
      VersionOptionFromMember("--version", MemberName = nameof(GetVersion))]
     internal class Console : Command
     {
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
-            CommandLineApplication.Execute<Console>(args);
+            int code = CommandLineApplication.Execute<Console>(args);
             Log.ScopedTimer.LogResults(Log.Level.Debug);
             Log.ScopedTimer.ClearResults();
+            if (code != ErrorCode.Success)
+            {
+                Log.Error("Terminating with error code: {0}", code);
+            }
+            return code;
         }
 
         private static string GetVersion() => typeof(Console).Assembly

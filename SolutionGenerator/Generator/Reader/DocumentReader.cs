@@ -44,18 +44,31 @@ namespace SolutionGen.Generator.Reader
             Solution = solutionReader.Solution;
         }
 
-        public void ReadFullSolution(PropertyElement[] propertyOverrides = null)
+        public void ReadFullSolution(PropertyElement[] propertyOverrides = null,
+            string masterConfiguration = null, 
+            string[] configurationFilter = null)
         {
             if (SolutionElement == null)
             {
                 ParseSolution();
             }
+
             
             Log.Heading("Reading full solution (templates and modules)");
             using (new CompositeDisposable(
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, "Read Full Solution")))
             {
+                if (!string.IsNullOrEmpty(masterConfiguration))
+                {
+                    Solution.FilterMasterConfigurations(new[] {masterConfiguration});
+                }
+                
+                if (configurationFilter != null)
+                {
+                    Solution.FilterConfigurations(configurationFilter);
+                }
+
                 
                 solutionReader.ApplyPropertyOverrides(propertyOverrides);
                 solutionReader.LoadIncludes();

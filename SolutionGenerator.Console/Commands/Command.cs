@@ -36,14 +36,14 @@ namespace SolutionGen.Console.Commands
             Console = console;
             App = app;
             return new Func<ErrorCode>[]
-                {
-                    InitLogging,
-                    FindSolutionConfigFile,
-                    SetWorkingDirectory,
-                    () => LogDuration(typeof(Command).Name),
-                }
-                .Select(step => step())
-                .Any(errorCode => errorCode != ErrorCode.Success) ? ErrorCode.CliError : ErrorCode.Success;
+               {
+                   InitLogging,
+                   FindSolutionConfigFile,
+                   SetWorkingDirectory,
+                   () => LogDuration(typeof(Command).Name),
+               }
+               .Select(step => step())
+               .FirstOrDefault(errorCode => errorCode != ErrorCode.Success) ?? ErrorCode.Success;
         }
 
         protected ErrorCode InitLogging()

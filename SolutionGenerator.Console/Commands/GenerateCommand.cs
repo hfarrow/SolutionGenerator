@@ -18,11 +18,11 @@ namespace SolutionGen.Console.Commands
         public string ConfigurationRaw { private get; set; }
         
         [Option("-d|--define", CommandOptionType.MultipleValue,
-            Description = "Scripting define symbols to add to all configurations.")]
+            Description = "Scripting define symbols to add to all configurations. Use comma to delimit multiple defines.")]
         public string[] DefineSymbolsRaw { get; set; }
         
         [Option("-v|--var|--variable", CommandOptionType.MultipleValue,
-            Description = "User defined variables that can be reference by the solution config.")]
+            Description = "User defined variables that can be reference by the solution config. Use comma to delimit multiple vars.")]
         public string[] VariablesRaw { get; set; }
         
         [Option("-p|--property", CommandOptionType.MultipleValue,
@@ -53,9 +53,7 @@ namespace SolutionGen.Console.Commands
                     () => LogDuration(typeof(GenerateCommand).Name),
                 }
                 .Select(step => step())
-                .Any(errorCode => errorCode != ErrorCode.Success)
-                ? ErrorCode.CliError
-                : ErrorCode.Success;
+                .FirstOrDefault(errorCode => errorCode != ErrorCode.Success) ?? ErrorCode.Success;
         }
         
         protected ErrorCode CheckGenerateSolution(bool forceGenerate)
@@ -198,7 +196,11 @@ namespace SolutionGen.Console.Commands
             try
             {
                 solution = GetGenerator();
-                solution.GenerateSolution(MasterConfiguration, defineSymbols.ToArray(), PropertyOverrides.ToArray());
+                solution.GenerateSolution(
+                    MasterConfiguration,
+                    defineSymbols.ToArray(),
+                    PropertyOverrides.ToArray(),
+                    string.IsNullOrEmpty(BuildConfiguration) ? null : new[] {BuildConfiguration});
                 
                 // If MasterConfiguration was null or empty, the generator will select a default.
                 MasterConfiguration = solution.MasterConfiguration;

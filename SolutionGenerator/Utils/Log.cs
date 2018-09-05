@@ -164,10 +164,10 @@ namespace SolutionGen.Utils
         }
 
         public static void IndentedCollection<T>(IEnumerable<T> collection, Action<string, object[]> logger)
-            => IndentedCollection(collection, x => x.ToString(), logger);
+            => IndentedCollection(collection, x => x?.ToString() ?? "<null>", logger);
         
         public static string GetIndentedCollection<T>(IEnumerable<T> collection)
-            => GetIndentedCollection(collection, x => x.ToString());
+            => GetIndentedCollection(collection, x => x?.ToString() ?? "<null>");
 
         public static void Heading(string format, params object[] args)
         {

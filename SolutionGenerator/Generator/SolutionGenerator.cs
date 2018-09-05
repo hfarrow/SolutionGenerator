@@ -81,9 +81,10 @@ namespace SolutionGen
 
         public void GenerateSolution(string masterConfiguration,
             string[] externalDefineConstants,
-            PropertyElement[] propertyOverrides)
+            PropertyElement[] propertyOverrides,
+            string[] configurationFilter = null)
         {
-            Reader.ReadFullSolution(propertyOverrides);
+            Reader.ReadFullSolution(propertyOverrides, masterConfiguration, configurationFilter);
             projectIdLookup = Reader.Modules
                 .SelectMany(kvp => kvp.Value.ProjectIdLookup)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);

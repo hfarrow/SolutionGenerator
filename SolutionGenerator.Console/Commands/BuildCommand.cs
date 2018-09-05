@@ -36,9 +36,7 @@ namespace SolutionGen.Console.Commands
                     () => LogDuration(typeof(BuildCommand).Name),
                 }
                 .Select(step => step())
-                .Any(errorCode => errorCode != ErrorCode.Success)
-                ? ErrorCode.CliError
-                : ErrorCode.Success;
+                .FirstOrDefault(errorCode => errorCode != ErrorCode.Success) ?? ErrorCode.Success;
         }
         
         private ErrorCode BuildSolution()

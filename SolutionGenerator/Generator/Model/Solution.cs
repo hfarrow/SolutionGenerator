@@ -12,7 +12,7 @@ namespace SolutionGen.Generator.Model
         public readonly Guid Guid;
         public string SolutionConfigDir { get; }
         public readonly Settings Settings;
-        public readonly IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups;
+        public IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups { get; private set; }
         
         public string OutputDir =>
             new DirectoryInfo(Settings.GetProperty<string>(Settings.PROP_OUTPUT_DIR)).FullName;
@@ -101,6 +101,47 @@ namespace SolutionGen.Generator.Model
         {
             return BuildTasksFiles
                 .Select(f => Path.GetRelativePath(Path.Combine(OutputDir, project.RelativeSourcePath), f)).ToHashSet();
+        }
+
+        public void FilterConfigurations(string[] nameFilter)
+        {
+            Log.Info("Filtering configurations with provided filter:");
+            Log.IndentedCollection(nameFilter, Log.Info);
+            
+            var filteredGroups = new Dictionary<string, ConfigurationGroup>();
+            foreach (KeyValuePair<string,ConfigurationGroup> kvp in ConfigurationGroups)
+            {
+                filteredGroups[kvp.Key] = new ConfigurationGroup(kvp.Key,
+                    kvp.Value.Configurations.Values.Where(c => nameFilter.Contains(c.Name))
+                        .ToDictionary(c => c.Name, c => c));
+            }
+
+            ConfigurationGroups = filteredGroups;
+
+            ConfigurationGroup[] emptyGroups = ConfigurationGroups.Values
+                .Where(g => !g.Configurations.Any()).ToArray();
+            
+            foreach (ConfigurationGroup emptyGroup in emptyGroups)
+            {
+                Log.Error(
+                    "The provided configuration filter resulted in group '{0}' containing no configurations. The provided filter was:",
+                    emptyGroup.Name);
+                Log.IndentedCollection(nameFilter, Log.Error);
+            }
+
+            if (emptyGroups.Any())
+            {
+                throw new ArgumentException("Invalid filter results in one more more groups with zero configurations.",
+                    nameof(nameFilter));
+            }
+            
+            ConfigurationGroups = filteredGroups;
+        }
+
+        public void FilterMasterConfigurations(string[] nameFilter)
+        {
+            ConfigurationGroups = ConfigurationGroups.Values.Where(c => nameFilter.Contains(c.Name))
+                .ToDictionary(c => c.Name, c => c);
         }
     }
 }
