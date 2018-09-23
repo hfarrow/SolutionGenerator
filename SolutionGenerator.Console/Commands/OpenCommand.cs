@@ -50,7 +50,7 @@ namespace SolutionGen.Console.Commands
 
             try
             {
-                string command = ExpandableVar.ExpandAllInString(solution.OpenCommand);
+                string command = ExpandableVars.Instance.ExpandAllInString(solution.OpenCommand);
                 string process = command;
                 string args = "";
                 int argsIndex = command.IndexOf(' ') + 1;

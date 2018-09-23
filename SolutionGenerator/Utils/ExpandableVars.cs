@@ -3,12 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using SolutionGen.Generator.Model;
 
 namespace SolutionGen.Utils
 {
-    public static class ExpandableVar
+    public class ExpandableVars
     {
+        public static ExpandableVars Init(Dictionary<string, string> baseVars)
+        {
+            instance.Value = new ExpandableVars {variables = baseVars};
+            return instance.Value;
+        }
+        
+        private static readonly AsyncLocal<ExpandableVars> instance = new AsyncLocal<ExpandableVars> { Value = new ExpandableVars() };
+        public static ExpandableVars Instance => instance.Value;
+
         public const string VAR_SOLUTION_NAME = "SOLUTION_NAME";
         public const string VAR_SOLUTION_PATH = "SOLUTION_PATH";
         public const string VAR_CONFIG_DIR = "CONFIG_DIR";
@@ -16,73 +26,76 @@ namespace SolutionGen.Utils
         public const string VAR_PROJECT_NAME = "PROJECT_NAME";
         public const string VAR_CONFIGURATION = "CONFIGURATION";
         
-        private static Dictionary<string, string> expandableVariables = new Dictionary<string, string>();
-        public static IReadOnlyDictionary<string, string> ExpandableVariables => expandableVariables;
+        private Dictionary<string, string> variables = new Dictionary<string, string>();
+        public IReadOnlyDictionary<string, string> Variables => variables;
 
         public class ScopedVariable : IDisposable
         {
+            private readonly ExpandableVars container;
             private readonly string varName;
             private readonly string prevExpansion;
 
-            public ScopedVariable(string varName, string varExpansion)
+            public ScopedVariable(ExpandableVars container, string varName, string varExpansion)
             {
+                this.container = container;
                 this.varName = varName;
-                expandableVariables.TryGetValue(varName, out prevExpansion);
-                
-                SetExpandableVariable(varName, varExpansion);
+                container.variables.TryGetValue(varName, out prevExpansion);
+                container.SetExpandableVariable(varName, varExpansion);
             }
             
             public void Dispose()
             {
                 if (prevExpansion == null)
                 {
-                    ClearExpandableVariable(varName);
+                    container.ClearExpandableVariable(varName);
                 }
                 else
                 {
-                    SetExpandableVariable(varName, prevExpansion);
+                    container.SetExpandableVariable(varName, prevExpansion);
                 }
             }
         }
 
         public class ScopedState : IDisposable
         {
+            private readonly ExpandableVars container;
             private readonly Dictionary<string, string> prevVars;
             
-            public ScopedState()
+            public ScopedState(ExpandableVars container)
             {
+                this.container = container;
                 Log.Debug("Saving expandable variable state:");
-                Log.IndentedCollection(expandableVariables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
-                prevVars = new Dictionary<string, string>(expandableVariables);
+                Log.IndentedCollection(container.variables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
+                prevVars = new Dictionary<string, string>(container.variables);
             }
             
             public void Dispose()
             {
-                expandableVariables = prevVars;
+                container.variables = prevVars;
                 Log.Debug("Restoring expandable variable state:");
-                Log.IndentedCollection(expandableVariables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
+                Log.IndentedCollection(container.variables, kvp => $"{kvp.Key} => {kvp.Value}", Log.Debug);
             }
         }
 
-        public static void SetExpandableVariable(string varName, string varExpansion)
+        public void SetExpandableVariable(string varName, string varExpansion)
         {
-            expandableVariables.TryGetValue(varName, out string previous);
+            variables.TryGetValue(varName, out string previous);
             
             Log.Debug("Setting expandable variable: {0} = {1} (previously {2})",
                 varName,
                 varExpansion != null ? $"'{varExpansion}'" : "<null>",
                 previous != null ? $"'{previous}'" : "<null>");
             
-            expandableVariables[varName] = varExpansion;
+            variables[varName] = varExpansion;
         }
 
-        public static void ClearExpandableVariable(string varName)
+        public void ClearExpandableVariable(string varName)
         {
             Log.Debug("Clearing expandable variable: {0}", varName);
-            expandableVariables.Remove(varName);
+            variables.Remove(varName);
         }
         
-        public static void ExpandInPlace(object obj, string varName, string varExpansion)
+        public void ExpandInPlace(object obj, string varName, string varExpansion)
         {
             switch (obj)
             {
@@ -146,13 +159,12 @@ namespace SolutionGen.Utils
 
             outObj = obj;
             return didStrip;
-            
         }
 
-        public static string ExpandAllInString(string obj) =>
-            (string) ExpandAllInCopy(obj, expandableVariables);
+        public string ExpandAllInString(string obj) =>
+            (string) ExpandAllInCopy(obj, variables);
 
-        public static object ExpandAllInCopy(object obj, IReadOnlyDictionary<string, string> varExpansions)
+        public object ExpandAllInCopy(object obj, IReadOnlyDictionary<string, string> varExpansions)
         {
             obj = varExpansions.Aggregate(obj, (current, kvp) =>
             {
@@ -175,7 +187,6 @@ namespace SolutionGen.Utils
                     didExpand |= definition.ExpandVariable(current, kvp.Key, kvp.Value, out object copy);
                     return copy;
                 });
-            
 
             if (didExpand)
             {
@@ -231,7 +242,7 @@ namespace SolutionGen.Utils
             return Regex.Replace(str, @"\$\(.*\)", string.Empty);
         }
         
-        public static object ExpandModuleNameInCopy(object obj, string moduleName)
+        public object ExpandModuleNameInCopy(object obj, string moduleName)
         {
             ExpandInCopy(obj, VAR_MODULE_NAME, moduleName, out object copy);
             return copy;

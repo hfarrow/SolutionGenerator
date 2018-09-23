@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -17,7 +20,7 @@ namespace SolutionGen.Generator.Reader
         public Solution Solution { get; private set; }
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
-        public IReadOnlyCollection<string> ExcludedProjects { get; private set; }
+        public IReadOnlyCollection<string> ExcludedProjects => excludedProjects;
         
         public ObjectElement SolutionElement { get; private set; }
 
@@ -25,6 +28,7 @@ namespace SolutionGen.Generator.Reader
         public IReadOnlyList<ObjectElement> ModuleElements => moduleElements;
         private readonly List<ObjectElement> templateElements = new List<ObjectElement>();
         private readonly List<ObjectElement> moduleElements = new List<ObjectElement>();
+        private HashSet<string> excludedProjects = new HashSet<string>();
         
         public DocumentReader(ConfigDocument configDoc, string solutionConfigDir)
         {
@@ -166,23 +170,82 @@ namespace SolutionGen.Generator.Reader
         
         private void ReadModules(IEnumerable<ObjectElement> allElements)
         {
-            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
-            var reader = new ModuleReader(Solution, Templates, templateReader);
-            foreach (ObjectElement moduleElement in allElements)
+            allElements = allElements as ObjectElement[] ?? allElements.ToArray();
+            
+            IEnumerable<IGrouping<string, ObjectElement>> groups =
+                allElements.GroupBy(t => t.ElementHeading.Name);
+
+            IGrouping<string, ObjectElement>[] duplicates = groups
+                .Where(g => g.Count() > 1)
+                .ToArray();
+
+            foreach (IGrouping<string,ObjectElement> duplicate in duplicates)
             {
-                if (Modules.ContainsKey(moduleElement.ElementHeading.Name))
+                Log.Error(
+                    "Duplicate module name '{0}' detected. Module names must be unique. See the module headings below:",
+                    duplicate.First());
+                Log.IndentedCollection(duplicate, Log.Error);
+            }
+
+            if (duplicates.Length > 0)
+            {
+                ObjectElement[] duplicate = duplicates.First().ToArray();
+                throw new DuplicateModuleNameException(duplicate[0], duplicate[1]);
+            }
+
+            
+            // One module at a time for debugging if needed.
+//            foreach (ObjectElement element in allElements)
+//            {
+//                Task<ModuleReader.Result> task = ReadModuleAsync(element);
+//                task.Wait();
+//                excludedProjects.UnionWith(task.Result.ExcludedProjects);
+//                Modules[task.Result.Module.Name] = task.Result.Module;
+//            }
+
+            Task<ModuleReader.Result>[] tasks = allElements.Select(ReadModuleAsync).ToArray();
+            try
+            {
+                Task.WaitAll(tasks.Cast<Task>().ToArray());
+            }
+            catch (AggregateException ae)
+            {
+                Log.Error("One or more exceptions occured while reading modules asynchronously:");
+                foreach (Exception ex in ae.Flatten().InnerExceptions)
                 {
-                    throw new DuplicateModuleNameException(moduleElement,
-                        parsedObjectsLookup[moduleElement.ElementHeading.Name]);
+                    Log.Error(ex.Message);
                 }
-                
-                parsedObjectsLookup[moduleElement.ElementHeading.Name] = moduleElement;
-                Modules[moduleElement.ElementHeading.Name] = reader.Read(moduleElement);
-                ExcludedProjects = reader.ExcludedProjects;
+
+                throw;
+            }
+            
+            foreach (Task<ModuleReader.Result> taskResult in tasks)
+            {
+                ModuleReader.Result result = taskResult.Result;
+                excludedProjects.UnionWith(result.ExcludedProjects);
+                Modules[result.Module.Name] = result.Module;
             }
         }
-    }
 
+        private Task<ModuleReader.Result> ReadModuleAsync(ObjectElement moduleElement)
+        {
+            var reader = new ModuleReader(Solution, Templates, templateReader);
+            var baseVars = new Dictionary<string, string>(ExpandableVars.Instance.Variables);
+            return Task.Run(() =>
+            {
+                Thread.CurrentThread.Name = "RM-" + moduleElement.ElementHeading.Name;
+                Log.InitBufferedLog();
+                ExpandableVars.Init(baseVars);
+                ModuleReader.Result module = reader.Read(moduleElement);
+                lock (this)
+                {
+                    Log.FlushBufferedLog();
+                }
+                return module;
+            });
+        }
+    }
+    
     public sealed class InvalidObjectType : Exception
     {
         public InvalidObjectType(ObjectElement obj, params string[] expectedTypes)

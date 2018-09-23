@@ -88,7 +88,7 @@ namespace SolutionGen.Generator.Model
             var modifiedValues = new Dictionary<string, TValue>();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
-                if (ExpandableVar.ExpandInCopy(kvp.Key, varName, varExpansion, out object copy))
+                if (ExpandableVars.ExpandInCopy(kvp.Key, varName, varExpansion, out object copy))
                 {
                     didExpand = true;
                     modifiedValues[kvp.Key] = (TValue) copy;
@@ -114,7 +114,7 @@ namespace SolutionGen.Generator.Model
             var modifiedValues = new Dictionary<string, TValue>();
             foreach (KeyValuePair<string, TValue> kvp in castedDictionary)
             {
-                if (ExpandableVar.StripEscapedVariablesInCopy(kvp.Key, out object copy))
+                if (ExpandableVars.StripEscapedVariablesInCopy(kvp.Key, out object copy))
                 {
                     didStrip = true;
                     modifiedValues[kvp.Key] = (TValue) copy;

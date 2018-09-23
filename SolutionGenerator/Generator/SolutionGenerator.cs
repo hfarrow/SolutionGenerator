@@ -177,9 +177,9 @@ namespace SolutionGen
                         module.Name, module.ProjectIdLookup.Count);
                     using (new CompositeDisposable(
                         new Log.ScopedIndent(),
-                        new ExpandableVar.ScopedState()))
+                        new ExpandableVars.ScopedState(ExpandableVars.Instance)))
                     {
-                        ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
+                        ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_MODULE_NAME, module.Name);
                         foreach (Project.Identifier projectId in module.ProjectIdLookup.Values)
                         {
                             if (!module.Configurations[currentConfiguration].Projects.ContainsKey(projectId.Name))
@@ -198,7 +198,7 @@ namespace SolutionGen
 
                             using (new Log.ScopedIndent())
                             {
-                                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
+                                ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_PROJECT_NAME,
                                     projectId.Name);
 
                                 var removedRefs = new HashSet<string>();

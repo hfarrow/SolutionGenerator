@@ -221,7 +221,7 @@ namespace SolutionGen.Console.Commands
         {
             foreach (KeyValuePair<string, string> kvp in Variables)
             {
-                ExpandableVar.SetExpandableVariable(kvp.Key, kvp.Value);
+                ExpandableVars.Instance.SetExpandableVariable(kvp.Key, kvp.Value);
             }
             return ErrorCode.Success;
         }
@@ -230,7 +230,7 @@ namespace SolutionGen.Console.Commands
         {
             foreach (KeyValuePair<string, string> kvp in Variables)
             {
-                ExpandableVar.ClearExpandableVariable(kvp.Key);
+                ExpandableVars.Instance.ClearExpandableVariable(kvp.Key);
             }
             return ErrorCode.Success;
         }

@@ -89,7 +89,7 @@ namespace SolutionGen.Generator.Model
             var collectionCopy = new TCollection();
             foreach (TValue value in castedCollection)
             {
-                if (ExpandableVar.ExpandInCopy(value, varName, varExpansion, out object copy))
+                if (ExpandableVars.ExpandInCopy(value, varName, varExpansion, out object copy))
                 {
                     didExpand = true;
                 }
@@ -109,7 +109,7 @@ namespace SolutionGen.Generator.Model
             var collectionCopy = new TCollection();
             foreach (TValue value in castedCollection)
             {
-                if (ExpandableVar.StripEscapedVariablesInCopy(value, out object copy))
+                if (ExpandableVars.StripEscapedVariablesInCopy(value, out object copy))
                 {
                     didStrip = true;
                 }

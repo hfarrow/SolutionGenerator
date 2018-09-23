@@ -78,9 +78,9 @@ namespace SolutionGen.Builder
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Info, string.Format("Build Configuration '{0} - {1}'",
                     configuration.GroupName, configuration.Name)),
-                new ExpandableVar.ScopedState()))
+                new ExpandableVars.ScopedState(ExpandableVars.Instance)))
             {
-                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIGURATION, configuration.Name);
+                ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_CONFIGURATION, configuration.Name);
                 ExecuteCommands(solution.BeforeBuildCommands, Settings.PROP_BEFORE_BUILD_COMMANDS);
                 ExecuteCommands(solution.BuildCommands, Settings.PROP_BUILD_COMMANDS);
                 ExecuteCommands(solution.AfterBuildCommands, Settings.PROP_AFTER_BUILD_COMMANDS);
@@ -97,8 +97,8 @@ namespace SolutionGen.Builder
 
         private void ExecuteCommand(string command, string commandType)
         {
-            command = ExpandableVar.ExpandAllInString(command);
-            command = ExpandableVar.ExpandToEmptyInString(command);
+            command = ExpandableVars.Instance.ExpandAllInString(command);
+            command = ExpandableVars.ExpandToEmptyInString(command);
             Log.Info("Executing '{0}' process: {1}", commandType, command);
 
             string process = command;

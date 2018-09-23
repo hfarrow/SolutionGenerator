@@ -27,18 +27,18 @@ namespace SolutionGen.Generator.Reader
             Log.Heading("Reading solution element: {0}", solutionElement);
             using (new Log.ScopedIndent())
             {
-                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
+                ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
                 
-                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIG_DIR, solutionConfigDir);
+                ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_CONFIG_DIR, solutionConfigDir);
                                
-                settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
+                settingsReader = new SolutionSettingsReader(ExpandableVars.Instance.Variables);
                 Settings settings = settingsReader.Read(solutionElement);
 
                 Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir,
                     GetConfigurationGroups(settings));
                 
-                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_PATH,
+                ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_SOLUTION_PATH,
                     Path.Combine(Solution.OutputDir, solutionElement.ElementHeading.Name + ".sln"));
                 
                 ObjectElement settingsElement = solutionElement.Elements
@@ -65,7 +65,7 @@ namespace SolutionGen.Generator.Reader
                     using (new Log.ScopedIndent())
                     {
                         TemplateDefaultSettings =
-                            new ProjectSettingsReader(ExpandableVar.ExpandableVariables)
+                            new ProjectSettingsReader(ExpandableVars.Instance.Variables)
                                 .Read(settingsElement);
                     }
                 }

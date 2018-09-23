@@ -102,7 +102,7 @@ namespace SolutionGen.Generator.Model
 
         public override bool ExpandVariable(object value, string varName, string varExpansion, out object newValue)
         {
-            if (!ExpandableVar.ExpandInCopy(value, varName, varExpansion, out object copy))
+            if (!ExpandableVars.ExpandInCopy(value, varName, varExpansion, out object copy))
             {
                 newValue = value;
                 return false;
@@ -114,7 +114,7 @@ namespace SolutionGen.Generator.Model
 
         public override bool StripEscapedVariables(object value, out object newValue)
         {
-            if (!ExpandableVar.StripEscapedVariablesInCopy(value, out object copy))
+            if (!ExpandableVars.StripEscapedVariablesInCopy(value, out object copy))
             {
                 newValue = value;
                 return false;

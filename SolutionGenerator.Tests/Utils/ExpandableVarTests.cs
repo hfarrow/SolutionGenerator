@@ -9,7 +9,7 @@ namespace SolutionGen.Tests.Utils
         public void CanExpandInputWithNoOccurences()
         {
             const string input = "text with no occurences";
-            string result = ExpandableVar.ReplaceOccurences("VAR", "EXP", input);
+            string result = ExpandableVars.ReplaceOccurences("VAR", "EXP", input);
             Assert.Equal(input, result);
         }
         
@@ -17,7 +17,7 @@ namespace SolutionGen.Tests.Utils
         public void CanExpandInputWithSingleOccurence()
         {
             const string input = "text with $(VAR) occurence";
-            string result = ExpandableVar.ReplaceOccurences("VAR", "EXP", input);
+            string result = ExpandableVars.ReplaceOccurences("VAR", "EXP", input);
             Assert.Equal(input.Replace("$(VAR)", "EXP"), result);
         }
         
@@ -25,7 +25,7 @@ namespace SolutionGen.Tests.Utils
         public void CanExpandInputWithManyOccurences()
         {
             const string input = "text with $(VAR) - ${VAR) occurences";
-            string result = ExpandableVar.ReplaceOccurences("VAR", "EXP", input);
+            string result = ExpandableVars.ReplaceOccurences("VAR", "EXP", input);
             Assert.Equal(input.Replace("$(VAR)", "EXP"), result);
         }
 
@@ -33,7 +33,7 @@ namespace SolutionGen.Tests.Utils
         public void CannotExpandInputWithEscapedOccurence()
         {
             const string input = "text with escaped \\$(VAR) occurence";
-            string result = ExpandableVar.ReplaceOccurences("VAR", "EXP", input);
+            string result = ExpandableVars.ReplaceOccurences("VAR", "EXP", input);
             Assert.DoesNotContain("EXP", result);
         }
         
@@ -41,7 +41,7 @@ namespace SolutionGen.Tests.Utils
         public void CanStripEscapedVariables()
         {
             const string input = "text with escaped \\$(VAR) occurence";
-            bool didStrip = ExpandableVar.StripEscapedVariablesInCopy(input, out object result);
+            bool didStrip = ExpandableVars.StripEscapedVariablesInCopy(input, out object result);
             Assert.True(didStrip);
             Assert.DoesNotContain("\\$", result.ToString());
         }

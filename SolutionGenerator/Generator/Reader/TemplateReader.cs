@@ -44,7 +44,12 @@ namespace SolutionGen.Generator.Reader
                     templateElement,
                     settingsSourceElements,
                     templateConfigurations);
-                cachedTemplates[template.Name] = template;
+                
+                lock (cachedTemplates)
+                {
+                    cachedTemplates[template.Name] = template;
+                }
+                
                 return template;
             }
         }
@@ -60,10 +65,14 @@ namespace SolutionGen.Generator.Reader
 
                 Template baseTemplate = null;
                 Settings baseTemplateSettings = null;
-                if (!string.IsNullOrEmpty(baseTemplateName) &&
-                    cachedTemplates.TryGetValue(baseTemplateName, out baseTemplate))
+                
+                lock (cachedTemplates)
                 {
-                    baseTemplateSettings = baseTemplate.Configurations[configuration].TemplateSettings;
+                    if (!string.IsNullOrEmpty(baseTemplateName) &&
+                        cachedTemplates.TryGetValue(baseTemplateName, out baseTemplate))
+                    {
+                        baseTemplateSettings = baseTemplate.Configurations[configuration].TemplateSettings;
+                    }
                 }
 
                 var rootReader = new ProjectSettingsReader(configuration, baseTemplateSettings, null);

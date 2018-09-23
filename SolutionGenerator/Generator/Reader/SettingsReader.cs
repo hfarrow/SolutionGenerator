@@ -306,7 +306,7 @@ namespace SolutionGen.Generator.Reader
                 
                 foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
-                    object expanded = ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions,
+                    object expanded = ExpandableVars.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions,
                         GetPropertyDefinition);
                     
                     modifiedProperties[kvp.Key] = expanded;

@@ -14,7 +14,7 @@ namespace SolutionGen.Generator.Reader
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_GUID, string.Empty),
             
             new PropertyDefinition<string, StringPropertyReader>(
-                Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVar.VAR_SOLUTION_NAME})"),
+                Settings.PROP_ROOT_NAMESPACE, $"$({ExpandableVars.VAR_SOLUTION_NAME})"),
             
             new PropertyDefinition<string, StringPropertyReader>(Settings.PROP_PROJECT_SOURCE_PATH, string.Empty),
             

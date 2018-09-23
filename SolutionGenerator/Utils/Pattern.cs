@@ -40,7 +40,7 @@ namespace SolutionGen.Utils
 
         public void ExpandVariableInPlace(string varName, string varExpansion)
         {
-            ExpandableVar.ExpandInCopy(Value, varName, varExpansion, out object value);
+            ExpandableVars.ExpandInCopy(Value, varName, varExpansion, out object value);
             Value = (string) value;
         }
 
@@ -48,7 +48,7 @@ namespace SolutionGen.Utils
         {
             bool didCopy = false;
             Pattern newCopy = Copy();
-            if (ExpandableVar.ExpandInCopy(Value, varName, varExpansion, out object value))
+            if (ExpandableVars.ExpandInCopy(Value, varName, varExpansion, out object value))
             {
                 didCopy = true;
                 newCopy.Value = (string) value;
@@ -61,7 +61,7 @@ namespace SolutionGen.Utils
         {
             bool didStrip = false;
             Pattern newCopy = Copy();
-            if (ExpandableVar.StripEscapedVariablesInCopy(Value, out object value))
+            if (ExpandableVars.StripEscapedVariablesInCopy(Value, out object value))
             {
                 didStrip = true;
                 newCopy.Value = (string) value;

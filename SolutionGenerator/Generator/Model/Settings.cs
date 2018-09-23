@@ -75,8 +75,8 @@ namespace SolutionGen.Generator.Model
             var copy = new Dictionary<string, object>(properties);
             foreach (string propertyName in properties.Keys)
             {
-                copy[propertyName] = ExpandableVar.ExpandAllForProperty(propertyName, copy[propertyName],
-                    ExpandableVar.ExpandableVariables, PropertyDefinitionGetter);
+                copy[propertyName] = ExpandableVars.ExpandAllForProperty(propertyName, copy[propertyName],
+                    ExpandableVars.Instance.Variables, PropertyDefinitionGetter);
 
             }
             

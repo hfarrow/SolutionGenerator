@@ -10,13 +10,24 @@ namespace SolutionGen.Generator.Reader
 {
     public class ModuleReader
     {
+        public struct Result
+        {
+            public readonly Module Module;
+            public readonly IReadOnlyCollection<string> ExcludedProjects;
+
+            public Result(Module module, IReadOnlyCollection<string> excludedProjects)
+            {
+                Module = module;
+                ExcludedProjects = excludedProjects;
+            }
+        }
+        
         private readonly Solution solution;
         private readonly IReadOnlyDictionary<string, Template> templates;
         private readonly TemplateReader templateReader;
         private Dictionary<string, Project.Identifier> idLookup;
 
-        private readonly HashSet<string> excludedProjects = new HashSet<string>();
-        public IReadOnlyCollection<string> ExcludedProjects => excludedProjects;
+        private HashSet<string> excludedProjects;
 
         public ModuleReader(Solution solution, IReadOnlyDictionary<string, Template> templates,
             TemplateReader templateReader)
@@ -26,7 +37,7 @@ namespace SolutionGen.Generator.Reader
             this.templateReader = templateReader;
         }
 
-        public Module Read(ObjectElement moduleElement)
+        public Result Read(ObjectElement moduleElement)
         {
             Log.Heading("Reading module element: {0}", moduleElement);
 
@@ -37,6 +48,7 @@ namespace SolutionGen.Generator.Reader
                 string moduleName = moduleElement.ElementHeading.Name;
                 string templateName = moduleElement.ElementHeading.InheritedObjectName;
                 
+                excludedProjects = new HashSet<string>();
                 idLookup = new Dictionary<string, Project.Identifier>();
 
                 if (!string.IsNullOrEmpty(templateName) && !templates.ContainsKey(templateName))
@@ -45,13 +57,14 @@ namespace SolutionGen.Generator.Reader
                 }
 
                 Template template = templateReader.Read(moduleElement);
-                
-                using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_MODULE_NAME, moduleName))
+
+                using (new ExpandableVars.ScopedVariable(ExpandableVars.Instance, ExpandableVars.VAR_MODULE_NAME,
+                    moduleName))
                 {
                     Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
                         CreateModuleConfigs(template, moduleName);
-                    
-                    return new Module(solution, moduleName, moduleConfigs, idLookup);
+
+                    return new Result(new Module(solution, moduleName, moduleConfigs, idLookup), excludedProjects);
                 }
             }
         }
@@ -80,16 +93,17 @@ namespace SolutionGen.Generator.Reader
             var projects = new List<Project>();
             foreach (ProjectDelcaration declaration in templateConfig.ProjectDeclarations.Values)
             {
-                string projectName = ExpandableVar.ExpandModuleNameInCopy(declaration.ProjectName, moduleName)
+                string projectName = ExpandableVars.Instance.ExpandModuleNameInCopy(declaration.ProjectName, moduleName)
                     .ToString();
-                
-                using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_PROJECT_NAME, projectName))
+
+                using (new ExpandableVars.ScopedVariable(ExpandableVars.Instance, ExpandableVars.VAR_PROJECT_NAME,
+                    projectName))
                 {
-                    
+
                     Log.Heading(
                         "Creating project config '{0} - {1}' for project '{2}' (module '{3}') with settings '{4}'",
                         config.GroupName, config.Name, projectName, moduleName, declaration.SettingsName);
-                    
+
 
                     using (new Log.ScopedIndent())
                     {
@@ -100,7 +114,7 @@ namespace SolutionGen.Generator.Reader
                             excludedProjects.Add(projectName);
                             continue;
                         }
-                        
+
                         Settings projectSettings = templateConfig.ProjectSettingsLookup[declaration.SettingsName];
                         if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
                         {
@@ -122,7 +136,7 @@ namespace SolutionGen.Generator.Reader
                         {
                             string relativeSourcePath =
                                 Path.GetRelativePath(solution.SolutionConfigDir, moduleSourcePath);
-                            
+
                             id = new Project.Identifier(projectName, guid, moduleSourcePath, relativeSourcePath);
                             idLookup[projectName] = id;
                         }
@@ -134,7 +148,7 @@ namespace SolutionGen.Generator.Reader
                             string[] invalidProjectRefs = project.ProjectRefs
                                 .Where(r => !solution.CanIncludeProject(r))
                                 .ToArray();
-                            
+
                             if (invalidProjectRefs.Length > 0)
                             {
                                 throw new InvalidProjectReferenceException(project,
