@@ -39,14 +39,7 @@ namespace SolutionGen.Generator.Reader
                 
                 idLookup = new Dictionary<string, Project.Identifier>();
 
-                if (string.IsNullOrEmpty(templateName))
-                {
-                    throw new NotImplementedException(
-                        $"Module named '{moduleName} must inherit from a template" +
-                        "but this could be supported in the future");
-                }
-
-                if (!templates.ContainsKey(templateName))
+                if (!string.IsNullOrEmpty(templateName) && !templates.ContainsKey(templateName))
                 {
                     throw new UndefinedTemplateException(templateName);
                 }
