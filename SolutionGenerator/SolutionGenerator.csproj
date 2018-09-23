@@ -24,7 +24,7 @@
     <Exec Command="dotnet tt -c SolutionGen.Templates.DotNetSolution -o Templates/DotNetSolution.cs Templates/DotNetSolution.tt" />
     <Exec Command="dotnet tt -c SolutionGen.Templates.DotNetProject -o Templates/DotNetProject.cs Templates/DotNetProject.tt" />
     <ItemGroup>
-      <!-- Refresh included source files to include generated templated but exclude files that are already part of the project. -->
+      <!-- Refresh included source files to include generated templates but exclude files that are already part of the project. -->
       <Compile Include="**/*$(DefaultLanguageSourceExtension)" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder);$(BaseIntermediateOutputPath)**;$(BaseOutputPath)**;@(Compile)" />
     </ItemGroup>
   </Target>

@@ -11,6 +11,7 @@ namespace SolutionGen.Utils
     {
         public const string VAR_SOLUTION_NAME = "SOLUTION_NAME";
         public const string VAR_SOLUTION_PATH = "SOLUTION_PATH";
+        public const string VAR_CONFIG_DIR = "CONFIG_DIR";
         public const string VAR_MODULE_NAME = "MODULE_NAME";
         public const string VAR_PROJECT_NAME = "PROJECT_NAME";
         public const string VAR_CONFIGURATION = "CONFIGURATION";

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using SolutionGen.Generator.Reader;
 using SolutionGen.Parser.Model;
 
 namespace SolutionGen.Generator.Model
@@ -25,14 +27,32 @@ namespace SolutionGen.Generator.Model
     public class TemplateConfiguration
     {
         public IReadOnlyDictionary<string, ProjectDelcaration> ProjectDeclarations { get; }
-        public IReadOnlyDictionary<string, Settings> Settings { get; }
+        public IReadOnlyDictionary<string, Settings> ProjectSettingsLookup { get; }
+        public Settings TemplateSettings { get; }
 
         public TemplateConfiguration(
-            IReadOnlyDictionary<string, ProjectDelcaration> projectDelcarations,
-            IReadOnlyDictionary<string, Settings> settings)
+            IReadOnlyDictionary<string, Settings> projectSettingsLookup,
+            Settings templateSettings)
         {
-            ProjectDeclarations = projectDelcarations;
-            Settings = settings;
+            ProjectSettingsLookup = projectSettingsLookup;
+            TemplateSettings = templateSettings;
+
+            if (templateSettings.TryGetProperty(Settings.PROP_PROJECT_DELCARATIONS, out HashSet<string> declarations))
+            {
+                var projectDelcarations = new List<ProjectDelcaration>();
+                foreach (string declaration in declarations)
+                {
+                    string[] parts = declaration.Split(':');
+                    if (parts.Length != 2)
+                    {
+                        throw new InvalidProjectDeclarationException(declaration);
+                    }
+                    
+                    projectDelcarations.Add(new ProjectDelcaration(parts[0].Trim(), parts[1].Trim()));
+                }
+
+                ProjectDeclarations = projectDelcarations.ToDictionary(d => d.ProjectName, d => d);
+            }
         }
     }
     
@@ -47,11 +67,12 @@ namespace SolutionGen.Generator.Model
             SettingsName = settingsName;
         }
     }
-
-    public sealed class DuplicateProjectNameException : Exception
+    
+    public sealed class InvalidProjectDeclarationException : Exception
     {
-        public DuplicateProjectNameException(string name)
-            : base($"Project with name '{name}' has already been declared. Projects must have a unique name.")
+        public InvalidProjectDeclarationException(string declaration)
+            : base($"Project declaration '{declaration}' must contain a project name and settings name delimited by" +
+                   " a colon. Example: MyProject : My Settings")
         {
             
         }

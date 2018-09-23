@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Xml;
 using SolutionGen.Generator.Model;
 using Path = System.IO.Path;
 
@@ -19,7 +17,7 @@ namespace SolutionGen.Templates
         public Dictionary<string, Project.Identifier> ProjectIdLookup { get; set; }
         public HashSet<string> ExternalDefineConstants { get; set; }
         public string ProjectNamePostfix { get; set; }
-        
+
         public Project Project => Module.Configurations[CurrentConfiguration].Projects[ProjectName];
 
         public string DefaultConfiguration

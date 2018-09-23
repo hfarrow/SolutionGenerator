@@ -29,6 +29,8 @@ namespace SolutionGen.Generator.Reader
             {
                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_SOLUTION_NAME,
                     solutionElement.ElementHeading.Name);
+                
+                ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_CONFIG_DIR, solutionConfigDir);
                                
                 settingsReader = new SolutionSettingsReader(ExpandableVar.ExpandableVariables);
                 Settings settings = settingsReader.Read(solutionElement);

@@ -12,12 +12,18 @@ namespace SolutionGen.Generator.Reader
     {
         private readonly Solution solution;
         private readonly IReadOnlyDictionary<string, Template> templates;
+        private readonly TemplateReader templateReader;
         private Dictionary<string, Project.Identifier> idLookup;
-            
-        public ModuleReader(Solution solution, IReadOnlyDictionary<string, Template> templates)
+
+        private readonly HashSet<string> excludedProjects = new HashSet<string>();
+        public IReadOnlyCollection<string> ExcludedProjects => excludedProjects;
+
+        public ModuleReader(Solution solution, IReadOnlyDictionary<string, Template> templates,
+            TemplateReader templateReader)
         {
             this.solution = solution;
             this.templates = templates;
+            this.templateReader = templateReader;
         }
 
         public Module Read(ObjectElement moduleElement)
@@ -40,12 +46,11 @@ namespace SolutionGen.Generator.Reader
                         "but this could be supported in the future");
                 }
 
-                if (!templates.TryGetValue(templateName, out Template baseTemplate))
+                if (!templates.ContainsKey(templateName))
                 {
                     throw new UndefinedTemplateException(templateName);
                 }
 
-                var templateReader = new TemplateReader(solution.ConfigurationGroups, baseTemplate, null);
                 Template template = templateReader.Read(moduleElement);
                 
                 using (new ExpandableVar.ScopedVariable(ExpandableVar.VAR_MODULE_NAME, moduleName))
@@ -99,14 +104,16 @@ namespace SolutionGen.Generator.Reader
                         {
                             Log.Info("Project '{0}' is excluded by solution '{1}' property white list",
                                 projectName, Settings.PROP_INCLUDE_PROJECTS);
+                            excludedProjects.Add(projectName);
                             continue;
                         }
                         
-                        Settings projectSettings = templateConfig.Settings[declaration.SettingsName];
+                        Settings projectSettings = templateConfig.ProjectSettingsLookup[declaration.SettingsName];
                         if (projectSettings.GetProperty<string>(Settings.PROP_EXCLUDE) == "true")
                         {
                             Log.Info("Project '{0}' is excluded from configuration '{1} - {2}'",
                                 projectName, config.GroupName, config.Name);
+                            excludedProjects.Add(projectName);
                             continue;
                         }
 

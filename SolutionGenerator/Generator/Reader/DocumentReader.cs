@@ -11,11 +11,13 @@ namespace SolutionGen.Generator.Reader
     {
         private readonly ConfigDocument configDoc;
         private SolutionReader solutionReader;
+        private TemplateReader templateReader;
         
         public string SolutionConfigDir { get; }
         public Solution Solution { get; private set; }
         public Dictionary<string, Template> Templates { get; } = new Dictionary<string, Template>();
         public Dictionary<string, Module> Modules { get; } = new Dictionary<string, Module>();
+        public IReadOnlyCollection<string> ExcludedProjects { get; private set; }
         
         public ObjectElement SolutionElement { get; private set; }
 
@@ -72,6 +74,10 @@ namespace SolutionGen.Generator.Reader
                 
                 solutionReader.ApplyPropertyOverrides(propertyOverrides);
                 solutionReader.LoadIncludes();
+                
+                templateReader = new TemplateReader(Solution.ConfigurationGroups,
+                    solutionReader.TemplateDefaultSettings);
+                
                 ReadTemplates(TemplateElements.Concat(solutionReader.IncludedTemplates));
                 ReadModules(ModuleElements.Concat(solutionReader.IncludedModules));
             }
@@ -104,30 +110,65 @@ namespace SolutionGen.Generator.Reader
             }
         }
 
-        private void ReadTemplates(IEnumerable<ObjectElement> templateElements)
+        private void ReadTemplates(IEnumerable<ObjectElement> allTemplateElements)
         {
-            var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
+            List<ObjectElement> templateList =
+                allTemplateElements as List<ObjectElement> ?? allTemplateElements.ToList();
 
-            var reader = new TemplateReader(Solution.ConfigurationGroups,
-                solutionReader.TemplateDefaultSettings);
-            foreach (ObjectElement templateElement in templateElements)
+            IEnumerable<IGrouping<string, ObjectElement>> groups =
+                templateList.GroupBy(t => t.ElementHeading.Name);
+
+            IGrouping<string, ObjectElement>[] duplicates = groups
+                .Where(g => g.Count() > 1)
+                .ToArray();
+
+            foreach (IGrouping<string,ObjectElement> duplicate in duplicates)
             {
-                if (Templates.ContainsKey(templateElement.ElementHeading.Name))
+                Log.Error(
+                    "Duplicate template name '{0}' detected. Template names must be unique. See the template headings below:",
+                    duplicate.First());
+                Log.IndentedCollection(duplicate, Log.Error);
+            }
+
+            if (duplicates.Length > 0)
+            {
+                ObjectElement[] duplicate = duplicates.First().ToArray();
+                throw new DuplicateTemplateNameException(duplicate[0], duplicate[1]);
+            }
+
+            // Basic technique for processing templates in dependency order and catch cyclic dependency
+            // A template can only be processed after the template it inherits has been processed.
+            while (templateList.Count > 0)
+            {
+                var readTemplates = new List<ObjectElement>();
+                foreach (ObjectElement template in templateList)
                 {
-                    throw new DuplicateTemplateNameException(templateElement,
-                        parsedObjectsLookup[templateElement.ElementHeading.Name]);
+                    if (string.IsNullOrEmpty(template.ElementHeading.InheritedObjectName) ||
+                        Templates.ContainsKey(template.ElementHeading.InheritedObjectName))
+                    {
+                        Templates[template.ElementHeading.Name] = templateReader.Read(template);
+                        readTemplates.Add(template);
+                    }
                 }
 
-                parsedObjectsLookup[templateElement.ElementHeading.Name] = templateElement;
-                Templates[templateElement.ElementHeading.Name] = reader.Read(templateElement);
+                if (readTemplates.Count > 0)
+                {
+                    templateList.RemoveAll(t => readTemplates.Contains(t));
+                }
+                else if (templateList.Count > 0)
+                {
+                    throw new InvalidOperationException(
+                        "A cyclic dependency was detected in template inheritance. These templates could not be read: " +
+                        string.Join(", ", templateList));
+                }
             }
         }
         
-        private void ReadModules(IEnumerable<ObjectElement> moduleElements)
+        private void ReadModules(IEnumerable<ObjectElement> allElements)
         {
             var parsedObjectsLookup = new Dictionary<string, ObjectElement>();
-            var reader = new ModuleReader(Solution, Templates);
-            foreach (ObjectElement moduleElement in moduleElements)
+            var reader = new ModuleReader(Solution, Templates, templateReader);
+            foreach (ObjectElement moduleElement in allElements)
             {
                 if (Modules.ContainsKey(moduleElement.ElementHeading.Name))
                 {
@@ -137,6 +178,7 @@ namespace SolutionGen.Generator.Reader
                 
                 parsedObjectsLookup[moduleElement.ElementHeading.Name] = moduleElement;
                 Modules[moduleElement.ElementHeading.Name] = reader.Read(moduleElement);
+                ExcludedProjects = reader.ExcludedProjects;
             }
         }
     }

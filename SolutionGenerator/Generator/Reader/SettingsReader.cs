@@ -301,6 +301,9 @@ namespace SolutionGen.Generator.Reader
             var modifiedProperties = new Dictionary<string, object>();
             if (variableExpansions != null && variableExpansions.Count > 0)
             {
+                Log.Debug("Expanding variables. {0} properties to check for {1} defined variables.",
+                    expandableProperties.Count, variableExpansions.Count);
+                
                 foreach (KeyValuePair<string, object> kvp in expandableProperties)
                 {
                     object expanded = ExpandableVar.ExpandAllForProperty(kvp.Key, kvp.Value, variableExpansions,
@@ -313,6 +316,11 @@ namespace SolutionGen.Generator.Reader
                 {
                     expandableProperties[kvp.Key] = kvp.Value;
                 }
+            }
+            else
+            {
+                Log.Debug("No expandable variables set... skipping expansion of {0} read properties.",
+                    expandableProperties.Count);
             }
         }
     }

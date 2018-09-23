@@ -88,6 +88,8 @@ namespace SolutionGen
             projectIdLookup = Reader.Modules
                 .SelectMany(kvp => kvp.Value.ProjectIdLookup)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            ValidateProjectIds();
             
             externalDefineConstants = externalDefineConstants ?? new string[0];
 
@@ -134,6 +136,26 @@ namespace SolutionGen
             }
         }
 
+        private void ValidateProjectIds()
+        {
+            Log.Info("Validating project guids are unique ");
+            using (new Log.ScopedIndent())
+            {
+
+                var guidLookup = new Dictionary<Guid, Project.Identifier>();
+                foreach (Project.Identifier id in projectIdLookup.Values)
+                {
+                    Log.Debug("Checking {{{0}}} for project '{1}'", id.Guid, id.Name);
+                    if (guidLookup.TryGetValue(id.Guid, out Project.Identifier dupe))
+                    {
+                        throw new DuplicateProjectGuidException(id, dupe);
+                    }
+
+                    guidLookup[id.Guid] = id;
+                }
+            }
+        }
+
         private void GenerateSolutionFiles(string namePostfix, IEnumerable<Module> modules, string configurationGroup,
             HashSet<string> projectWhitelist, params string[] externalDefineConstants)
         {
@@ -151,40 +173,56 @@ namespace SolutionGen
 
                 foreach (Module module in modules)
                 {
-                    Log.Info("Generating module '{0}' with project count of {1}",
+                    Log.Heading("Generating module '{0}' with project count of {1}",
                         module.Name, module.ProjectIdLookup.Count);
                     using (new CompositeDisposable(
                         new Log.ScopedIndent(),
                         new ExpandableVar.ScopedState()))
                     {
                         ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_MODULE_NAME, module.Name);
-                        foreach (Project.Identifier project in module.ProjectIdLookup.Values)
+                        foreach (Project.Identifier projectId in module.ProjectIdLookup.Values)
                         {
-                            if (!module.Configurations[currentConfiguration].Projects.ContainsKey(project.Name))
+                            if (!module.Configurations[currentConfiguration].Projects.ContainsKey(projectId.Name))
                             {
                                 // Project was excluded for this configuration group.
                                 Log.Info(
                                     "Project '{0}' for configuration '{1} - {2}' is excluded from generation",
-                                    project.Name,
+                                    projectId.Name,
                                     currentConfiguration.GroupName,
                                     currentConfiguration.Name);
                                 continue;
                             }
 
                             Log.Heading("Generating project '{0}' with GUID '{1}' at source path '{2}'",
-                                project.Name, project.Guid, project.AbsoluteSourcePath);
+                                projectId.Name, projectId.Guid, projectId.AbsoluteSourcePath);
 
                             using (new Log.ScopedIndent())
                             {
                                 ExpandableVar.SetExpandableVariable(ExpandableVar.VAR_PROJECT_NAME,
-                                    project.Name);
+                                    projectId.Name);
+
+                                var removedRefs = new HashSet<string>();
+                                foreach (Project project in module.Configurations.Values
+                                    .SelectMany(c => c.Projects.Values).Where(p => p.Name == projectId.Name))
+                                {
+                                    foreach (string r in project.ExcludeProjectRefs(Reader.ExcludedProjects))
+                                    {
+                                        removedRefs.Add(r);
+                                    }
+                                }
+
+                                if (removedRefs.Count > 0)
+                                {
+                                    Log.Debug("Removing excluded projects refs:");
+                                    Log.IndentedCollection(removedRefs, Log.Debug);
+                                }
 
                                 var projectTemplate = new DotNetProject
                                 {
                                     Generator = this,
                                     Solution = Reader.Solution,
                                     Module = module,
-                                    ProjectName = project.Name,
+                                    ProjectName = projectId.Name,
                                     ProjectIdLookup = projectIdLookup,
                                     CurrentConfiguration = currentConfiguration,
                                     ExternalDefineConstants = externalDefineConstants.ToHashSet(),
@@ -195,8 +233,8 @@ namespace SolutionGen
                                 string projectPath =
                                     Path.Combine(
                                         Reader.Solution.OutputDir,
-                                        project.AbsoluteSourcePath, 
-                                        project.Name + namePostfix) + ".csproj";
+                                        projectId.AbsoluteSourcePath, 
+                                        projectId.Name + namePostfix) + ".csproj";
 
                                 Log.Info("Writing project to disk at path '{0}'", projectPath);
                                 Directory.CreateDirectory(Path.GetDirectoryName(projectPath));
@@ -332,5 +370,16 @@ namespace SolutionGen
         {
             
         }
+    }
+
+    public sealed class DuplicateProjectGuidException : Exception
+    {
+        public DuplicateProjectGuidException(Project.Identifier a, Project.Identifier b)
+            : base(string.Format("Project '{0}' guid {{{1}}} was already used by project '{2}'.",
+                b.Name, b.Guid, a.Name))
+        {
+            
+        }
+        
     }
 }

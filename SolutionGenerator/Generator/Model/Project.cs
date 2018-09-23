@@ -36,7 +36,7 @@ namespace SolutionGen.Generator.Model
         
         public IReadOnlyCollection<string> IncludeFiles { get; }
         public IReadOnlyCollection<string> LibRefs { get; }
-        public IReadOnlyCollection<string> ProjectRefs { get; }
+        public IReadOnlyCollection<string> ProjectRefs { get; private set; }
         public IReadOnlyCollection<string> CustomContents { get; }
 
         public readonly Identifier Id;
@@ -109,6 +109,13 @@ namespace SolutionGen.Generator.Model
             
             ProjectRefs = projectRefsValues
                 .ToHashSet();
+        }
+
+        public IReadOnlyCollection<string> ExcludeProjectRefs(IReadOnlyCollection<string> excludedProjects)
+        {
+            string[] removedRefs = ProjectRefs.Intersect(excludedProjects).ToArray();
+            ProjectRefs = ProjectRefs.Except(removedRefs).ToHashSet();
+            return removedRefs;
         }
     }
 }
