@@ -101,7 +101,11 @@ namespace SolutionGen.Utils
 
                 lock (cache)
                 {
-                    return isHandlerOwner ? (hash, false, null) : (hash, true, cache[hash].Files);
+                    return isHandlerOwner 
+                        // The caller is expected to get the files and call CacheResults.
+                        ? (hash, false, null)
+                        // Results are cached, return a copy so that caller can modify the collection as needed.
+                        : (hash, true, new HashSet<string>(cache[hash].Files));
                 }
             }
 
