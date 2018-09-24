@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using SolutionGen.Generator.Model;
@@ -41,12 +42,14 @@ namespace SolutionGen.Generator.Reader
         {
             Log.Heading("Reading module element: {0}", moduleElement);
 
+            Result result;
+            
             using (new CompositeDisposable(
                 new Log.ScopedIndent(),
-                new Log.ScopedTimer(Log.Level.Debug, "Read Module")))
+                new Log.ScopedTimer(Log.Level.Debug, "Read Module", moduleElement)))
             {
-                string moduleName = moduleElement.ElementHeading.Name;
-                string templateName = moduleElement.ElementHeading.InheritedObjectName;
+                string moduleName = moduleElement.Heading.Name;
+                string templateName = moduleElement.Heading.InheritedObjectName;
                 
                 excludedProjects = new HashSet<string>();
                 idLookup = new Dictionary<string, Project.Identifier>();
@@ -64,9 +67,11 @@ namespace SolutionGen.Generator.Reader
                     Dictionary<Configuration, ModuleConfiguration> moduleConfigs =
                         CreateModuleConfigs(template, moduleName);
 
-                    return new Result(new Module(solution, moduleName, moduleConfigs, idLookup), excludedProjects);
+                    result =  new Result(new Module(solution, moduleName, moduleConfigs, idLookup), excludedProjects);
                 }
             }
+
+            return result;
         }
 
         private Dictionary<Configuration, ModuleConfiguration> CreateModuleConfigs(Template template, string moduleName)

@@ -20,7 +20,7 @@ namespace SolutionGen.Generator.Reader
             
             var dictionary = new Dictionary<string, object>();
 
-            foreach (PropertyElement innerPropertyElement in objElement.Elements.OfType<PropertyElement>())
+            foreach (PropertyElement innerPropertyElement in objElement.Children.OfType<PropertyElement>())
             {
                 string key = innerPropertyElement.FullName;
                 object value;

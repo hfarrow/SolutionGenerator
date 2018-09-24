@@ -27,24 +27,28 @@ namespace SolutionGen.Generator.Reader
             Log.Heading("Reading solution element: {0}", solutionElement);
             using (new Log.ScopedIndent())
             {
+                if (ExpandableVars.Instance == null)
+                {
+                    throw new InvalidOperationException("ExpandableVars are null");
+                }
                 ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_SOLUTION_NAME,
-                    solutionElement.ElementHeading.Name);
+                    solutionElement.Heading.Name);
                 
                 ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_CONFIG_DIR, solutionConfigDir);
                                
                 settingsReader = new SolutionSettingsReader(ExpandableVars.Instance.Variables);
                 Settings settings = settingsReader.Read(solutionElement);
 
-                Solution = new Solution(solutionElement.ElementHeading.Name, settings, solutionConfigDir,
+                Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir,
                     GetConfigurationGroups(settings));
                 
                 ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_SOLUTION_PATH,
-                    Path.Combine(Solution.OutputDir, solutionElement.ElementHeading.Name + ".sln"));
+                    Path.Combine(Solution.OutputDir, solutionElement.Heading.Name + ".sln"));
                 
-                ObjectElement settingsElement = solutionElement.Elements
+                ObjectElement settingsElement = solutionElement.Children
                     .OfType<ObjectElement>()
-                    .FirstOrDefault(obj => obj.ElementHeading.Type == SectionType.SETTINGS &&
-                        obj.ElementHeading.Name == DEFAULT_TEMPLATE_SETTINGS);
+                    .FirstOrDefault(obj => obj.Heading.Type == SectionType.SETTINGS &&
+                        obj.Heading.Name == DEFAULT_TEMPLATE_SETTINGS);
 
                 if (settingsElement == null)
                 {
@@ -157,7 +161,9 @@ namespace SolutionGen.Generator.Reader
         private DocumentReader ParseInclude(string filePath)
         {
             Log.Info("Parsing included document at path '{0}'", filePath);
-            using (new Log.ScopedIndent())
+            using (new CompositeDisposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Debug, "Parse Include File", filePath)))
             {
                 string configText = File.ReadAllText(filePath);
                 IResult<ConfigDocument> result = DocumentParser.Document.TryParse(configText);

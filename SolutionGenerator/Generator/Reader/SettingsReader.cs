@@ -109,7 +109,11 @@ namespace SolutionGen.Generator.Reader
                 Log.Heading("Reading settings element for static configuration: {0}", settingsObject);
             }
 
-            using (new Log.ScopedIndent())
+            using (new CompositeDisposable(
+                new Log.ScopedIndent(),
+                new Log.ScopedTimer(Log.Level.Info, "Read Settings Object",
+                    $"{settingsObject.Heading} - {Configuration?.Name} - {(settingsObject.ParentElement)}"))
+            )
             {
                 if (baseSettings == null)
                 {
@@ -129,7 +133,7 @@ namespace SolutionGen.Generator.Reader
                     }
                 }
 
-                IEnumerable<ConfigElement> elements = EvaluateConditionalBlocks(settingsObject.Elements);
+                IEnumerable<ConfigElement> elements = EvaluateConditionalBlocks(settingsObject.Children);
                 foreach (ConfigElement element in elements)
                 {
                     bool terminate;
@@ -138,7 +142,7 @@ namespace SolutionGen.Generator.Reader
                         case ObjectElement _:
                             terminate = false;
                             break;
-                        
+
                         case PropertyElement propertyElement:
                             terminate = ReadProperty(propertyElement);
                             break;
@@ -201,11 +205,11 @@ namespace SolutionGen.Generator.Reader
         {
             foreach (ConfigElement element in elements)
             {
-                if (element is GroupElement group)
+                if (element is BlockElement block)
                 {
-                    if (ElementReader.EvaluateConditional(group.ConditionalExpression, conditionalParser))
+                    if (ElementReader.EvaluateConditional(block.ConditionalExpression, conditionalParser))
                     {
-                        foreach (ConfigElement blockElement in EvaluateConditionalBlocks(group.Elements))
+                        foreach (ConfigElement blockElement in EvaluateConditionalBlocks(block.Children))
                         {
                             yield return blockElement;
                         }

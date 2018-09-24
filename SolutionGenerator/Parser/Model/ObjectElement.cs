@@ -3,41 +3,19 @@ using System.Linq;
 
 namespace SolutionGen.Parser.Model
 {
-    public class ObjectElement : ConfigElement
+    public sealed class ObjectElement : ContainerElement
     {
-        public ObjectElementHeading ElementHeading { get; }
-        public IEnumerable<ConfigElement> Elements { get; }
+        public ObjectElementHeading Heading { get; }
         
-        public ObjectElement(ObjectElementHeading elementHeading, IEnumerable<ConfigElement> elements) : base("true")
+        public ObjectElement(ObjectElementHeading heading, IEnumerable<ConfigElement> children) 
+            : base(children, "true")
         {
-            ElementHeading = elementHeading;
-            Elements = elements;
-        }
-
-        public IEnumerable<ConfigElement> EnumerateRecursively()
-        {
-            return Elements.SelectMany(EnumerateRecursively);
-        }
-
-        private static IEnumerable<ConfigElement> EnumerateRecursively(ConfigElement root)
-        {
-            yield return root;
-
-            if (root is ObjectElement obj)
-            {
-                foreach (ConfigElement child in obj.Elements)
-                {
-                    foreach (ConfigElement element in EnumerateRecursively(child))
-                    {
-                        yield return element;
-                    }
-                }
-            }
+            Heading = heading;
         }
 
         public override string ToString()
         {
-            return "Object" + ElementHeading;
+            return "Object" + Heading;
         }
     }
 }

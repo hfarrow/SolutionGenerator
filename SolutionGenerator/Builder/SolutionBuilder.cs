@@ -87,7 +87,7 @@ namespace SolutionGen.Builder
             }
         }
 
-        private void ExecuteCommands(IReadOnlyCollection<string> commands, string commandType)
+        private static void ExecuteCommands(IReadOnlyCollection<string> commands, string commandType)
         {
             foreach (string command in commands)
             {
@@ -95,7 +95,7 @@ namespace SolutionGen.Builder
             }
         }
 
-        private void ExecuteCommand(string command, string commandType)
+        private static void ExecuteCommand(string command, string commandType)
         {
             command = ExpandableVars.Instance.ExpandAllInString(command);
             command = ExpandableVars.ExpandToEmptyInString(command);

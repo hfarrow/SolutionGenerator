@@ -2,19 +2,16 @@
 
 namespace SolutionGen.Parser.Model
 {
-    public class GroupElement : ConfigElement
+    public class BlockElement : ContainerElement
     {
-        public IEnumerable<ConfigElement> Elements { get; }
-        
-        public GroupElement(string conditionalExpression, IEnumerable<ConfigElement> elements)
-            : base(conditionalExpression)
+        public BlockElement(string conditionalExpression, IEnumerable<ConfigElement> children)
+            : base(children, conditionalExpression)
         {
-            Elements = elements;
         }
         
         public override string ToString()
         {
-            return $"ConditionalBlock{{{ConditionalExpression}}}";
+            return $"Block{{{ConditionalExpression}}}";
         }
     }
 }

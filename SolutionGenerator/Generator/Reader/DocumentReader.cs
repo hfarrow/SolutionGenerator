@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -28,7 +26,7 @@ namespace SolutionGen.Generator.Reader
         public IReadOnlyList<ObjectElement> ModuleElements => moduleElements;
         private readonly List<ObjectElement> templateElements = new List<ObjectElement>();
         private readonly List<ObjectElement> moduleElements = new List<ObjectElement>();
-        private HashSet<string> excludedProjects = new HashSet<string>();
+        private readonly HashSet<string> excludedProjects = new HashSet<string>();
         
         public DocumentReader(ConfigDocument configDoc, string solutionConfigDir)
         {
@@ -89,19 +87,19 @@ namespace SolutionGen.Generator.Reader
         
         public void ParseElements()
         {
-            foreach (ConfigElement element in configDoc.RootElements)
+            foreach (ConfigElement element in configDoc.Children)
             {
                 if (element is ObjectElement obj)
                 {
-                    if (obj.ElementHeading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
+                    if (obj.Heading.Type.Equals(SectionType.SOLUTION, StringComparison.OrdinalIgnoreCase))
                     {
                         SolutionElement = obj;
                     }
-                    else if (obj.ElementHeading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
+                    else if (obj.Heading.Type.Equals(SectionType.MODULE, StringComparison.OrdinalIgnoreCase))
                     {
                         moduleElements.Add(obj);
                     }
-                    else if (obj.ElementHeading.Type.Equals(SectionType.TEMPLATE, StringComparison.OrdinalIgnoreCase))
+                    else if (obj.Heading.Type.Equals(SectionType.TEMPLATE, StringComparison.OrdinalIgnoreCase))
                     {
                         templateElements.Add(obj);
                     }
@@ -120,7 +118,7 @@ namespace SolutionGen.Generator.Reader
                 allTemplateElements as List<ObjectElement> ?? allTemplateElements.ToList();
 
             IEnumerable<IGrouping<string, ObjectElement>> groups =
-                templateList.GroupBy(t => t.ElementHeading.Name);
+                templateList.GroupBy(t => t.Heading.Name);
 
             IGrouping<string, ObjectElement>[] duplicates = groups
                 .Where(g => g.Count() > 1)
@@ -147,10 +145,10 @@ namespace SolutionGen.Generator.Reader
                 var readTemplates = new List<ObjectElement>();
                 foreach (ObjectElement template in templateList)
                 {
-                    if (string.IsNullOrEmpty(template.ElementHeading.InheritedObjectName) ||
-                        Templates.ContainsKey(template.ElementHeading.InheritedObjectName))
+                    if (string.IsNullOrEmpty(template.Heading.InheritedObjectName) ||
+                        Templates.ContainsKey(template.Heading.InheritedObjectName))
                     {
-                        Templates[template.ElementHeading.Name] = templateReader.Read(template);
+                        Templates[template.Heading.Name] = templateReader.Read(template);
                         readTemplates.Add(template);
                     }
                 }
@@ -173,7 +171,7 @@ namespace SolutionGen.Generator.Reader
             allElements = allElements as ObjectElement[] ?? allElements.ToArray();
             
             IEnumerable<IGrouping<string, ObjectElement>> groups =
-                allElements.GroupBy(t => t.ElementHeading.Name);
+                allElements.GroupBy(t => t.Heading.Name);
 
             IGrouping<string, ObjectElement>[] duplicates = groups
                 .Where(g => g.Count() > 1)
@@ -193,8 +191,9 @@ namespace SolutionGen.Generator.Reader
                 throw new DuplicateModuleNameException(duplicate[0], duplicate[1]);
             }
 
-            
-            // One module at a time for debugging if needed.
+            using (new Log.ScopedTimer(Log.Level.Info, "Read All Modules (Async)"))
+            {
+                // One module at a time for debugging if needed.
 //            foreach (ObjectElement element in allElements)
 //            {
 //                Task<ModuleReader.Result> task = ReadModuleAsync(element);
@@ -203,27 +202,28 @@ namespace SolutionGen.Generator.Reader
 //                Modules[task.Result.Module.Name] = task.Result.Module;
 //            }
 
-            Task<ModuleReader.Result>[] tasks = allElements.Select(ReadModuleAsync).ToArray();
-            try
-            {
-                Task.WaitAll(tasks.Cast<Task>().ToArray());
-            }
-            catch (AggregateException ae)
-            {
-                Log.Error("One or more exceptions occured while reading modules asynchronously:");
-                foreach (Exception ex in ae.Flatten().InnerExceptions)
+                Task<ModuleReader.Result>[] tasks = allElements.Select(ReadModuleAsync).ToArray();
+                try
                 {
-                    Log.Error(ex.Message);
+                    Task.WaitAll(tasks.Cast<Task>().ToArray());
+                }
+                catch (AggregateException ae)
+                {
+                    Log.Error("One or more exceptions occured while reading modules asynchronously:");
+                    foreach (Exception ex in ae.Flatten().InnerExceptions)
+                    {
+                        Log.Error(ex.Message);
+                    }
+
+                    throw;
                 }
 
-                throw;
-            }
-            
-            foreach (Task<ModuleReader.Result> taskResult in tasks)
-            {
-                ModuleReader.Result result = taskResult.Result;
-                excludedProjects.UnionWith(result.ExcludedProjects);
-                Modules[result.Module.Name] = result.Module;
+                foreach (Task<ModuleReader.Result> taskResult in tasks)
+                {
+                    ModuleReader.Result result = taskResult.Result;
+                    excludedProjects.UnionWith(result.ExcludedProjects);
+                    Modules[result.Module.Name] = result.Module;
+                }
             }
         }
 
@@ -231,17 +231,15 @@ namespace SolutionGen.Generator.Reader
         {
             var reader = new ModuleReader(Solution, Templates, templateReader);
             var baseVars = new Dictionary<string, string>(ExpandableVars.Instance.Variables);
+            int indentLevel = Log.Instance.IndentLevel;
             return Task.Run(() =>
             {
-                Thread.CurrentThread.Name = "RM-" + moduleElement.ElementHeading.Name;
-                Log.InitBufferedLog();
-                ExpandableVars.Init(baseVars);
-                ModuleReader.Result module = reader.Read(moduleElement);
-                lock (this)
+                using (new Log.BufferedTaskOutput("RM-" + moduleElement.Heading.Name, indentLevel))
                 {
-                    Log.FlushBufferedLog();
+                    ExpandableVars.Init(baseVars);
+                    ModuleReader.Result moduleResult = reader.Read(moduleElement);
+                    return moduleResult;
                 }
-                return module;
             });
         }
     }
@@ -250,7 +248,7 @@ namespace SolutionGen.Generator.Reader
     {
         public InvalidObjectType(ObjectElement obj, params string[] expectedTypes)
             : base(string.Format("'{0}' is not one of the expected types: {1}",
-                obj.ElementHeading.Type, string.Join(", ", expectedTypes)))
+                obj.Heading.Type, string.Join(", ", expectedTypes)))
         {
             
         }
@@ -262,7 +260,7 @@ namespace SolutionGen.Generator.Reader
             : base(string.Format("{0} object with name '{1}' has already been defined:\n" +
                                  "Existing object:\n{2}\n" +
                                  "Duplicate object:\n{3}",
-                objectType, newElement.ElementHeading.Name, existingElement, newElement))
+                objectType, newElement.Heading.Name, existingElement, newElement))
         {
             
         }

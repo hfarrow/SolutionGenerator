@@ -58,7 +58,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <TestSolutionFiles Include="$(SolutionDir)\SolutionGenerator.Tests\TestSolution\**\*"/>
+    <TestSolutionFiles Include="$(SolutionDir)\SolutionGenerator.Tests\TestSolution\**\*" />
   </ItemGroup>
   <Target Name="CopyTestSolution" BeforeTargets="AfterBuild">
     <Message Importance="high" Text="Copying TestSolution to $(TargetDir))" />

@@ -61,10 +61,13 @@ namespace SolutionGen.Generator.Model
                 "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, AbsoluteSourcePath);
 
-            IncludeFiles = FileUtil.GetFiles(RelativeSourcePath,
-                includeFilesProperty.Where(p => !p.Negated),
-                includeFilesProperty.Where(p => p.Negated),
-                RelativeSourcePath);
+            using (new Log.ScopedTimer(Log.Level.Debug, "Get Include Files", id.Name))
+            {
+                IncludeFiles = FileUtil.GetFiles(RelativeSourcePath,
+                    includeFilesProperty.Where(p => !p.Negated),
+                    includeFilesProperty.Where(p => p.Negated),
+                    RelativeSourcePath);
+            }
 
             IPattern[] invalidPatternTypes = libSearchPaths.Where(p => !(p is LiteralPattern)).ToArray();
             if (invalidPatternTypes.Length > 0)
@@ -85,11 +88,16 @@ namespace SolutionGen.Generator.Model
             IEnumerable<LiteralPattern> absoluteLibIncludes =
                 libIncludes.OfType<LiteralPattern>().Where(p => Path.IsPathRooted(p.Value)).ToArray();
             libIncludes = libIncludes.Except(absoluteLibIncludes);
-            
-            HashSet<string> libRefs = FileUtil.GetFiles(directories,
-                libIncludes,
-                libRefsValues.Where(p => p.Negated),
-                Solution.SolutionConfigDir);
+
+
+            HashSet<string> libRefs;
+            using (new Log.ScopedTimer(Log.Level.Debug, "Get Lib Ref Files", id.Name))
+            {
+                 libRefs = FileUtil.GetFiles(directories,
+                    libIncludes,
+                    libRefsValues.Where(p => p.Negated),
+                    Solution.SolutionConfigDir);
+            }
 
             foreach (LiteralPattern pattern in absoluteLibIncludes)
             {

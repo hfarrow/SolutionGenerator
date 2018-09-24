@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SolutionGen.Generator.Model;
 using SolutionGen.Parser.Model;
 using SolutionGen.Utils;
@@ -23,24 +24,50 @@ namespace SolutionGen.Generator.Reader
         public Template Read(ObjectElement templateElement)
         {
             Log.Info("Reading template element '{0} : {1}'",
-                templateElement.ElementHeading.Name,
-                templateElement.ElementHeading.InheritedObjectName);
+                templateElement.Heading.Name,
+                templateElement.Heading.InheritedObjectName);
 
             using (new CompositeDisposable(
                 new Log.ScopedIndent(),
-                new Log.ScopedTimer(Log.Level.Debug, "Read Template")))
+                new Log.ScopedTimer(Log.Level.Debug, "Read Template", templateElement)))
             {
-
+                // Not parallel... In testing parallel code was slower but keeping the code so that it can be checked
+                // after other improvements and on larger solutions.
                 Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
                     configurationGroups.Values.SelectMany(g => g.Configurations.Values)
                         .ToDictionary(cfg => cfg, cfg => CreateTemplateConfig(templateElement, cfg));
 
-                Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Elements
-                    .Where(e => e is ObjectElement obj && obj.ElementHeading.Type == SectionType.SETTINGS)
-                    .Cast<ObjectElement>().ToDictionary(obj => obj.ElementHeading.Name, obj => obj);
+                // Parallel
+//                IEnumerable<Configuration> configs = configurationGroups.Values
+//                    .SelectMany(g => g.Configurations.Values);
+//                
+//                Task<(Configuration cfg, TemplateConfiguration templateConfig)>[] tasks =
+//                    configs.Select(cfg => CreateTemplateConfigAsync(templateElement, cfg)).ToArray();
+//                
+//                try
+//                {
+//                    Task.WaitAll(tasks.Cast<Task>().ToArray());
+//                }
+//                catch (AggregateException ae)
+//                {
+//                    Log.Error("One or more exceptions occured while creating template config asynchronously:");
+//                    foreach (Exception ex in ae.Flatten().InnerExceptions)
+//                    {
+//                        Log.Error(ex.Message);
+//                    }
+//
+//                    throw;
+//                }
+//                
+//                Dictionary<Configuration, TemplateConfiguration> templateConfigurations = tasks.Select(task => task.Result)
+//                    .ToDictionary(pair => pair.cfg, pair => pair.templateConfig);
+
+                Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Children
+                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
+                    .Cast<ObjectElement>().ToDictionary(obj => obj.Heading.Name, obj => obj);
                 
                 var template = new Template(
-                    templateElement.ElementHeading.Name,
+                    templateElement.Heading.Name,
                     templateElement,
                     settingsSourceElements,
                     templateConfigurations);
@@ -54,14 +81,28 @@ namespace SolutionGen.Generator.Reader
             }
         }
 
+//        private Task<(Configuration cfg, TemplateConfiguration templateConfig)> CreateTemplateConfigAsync(
+//            ObjectElement templateElement, Configuration configuration)
+//        {
+//            var baseVars = new Dictionary<string, string>(ExpandableVars.Instance.Variables);
+//            return Task.Run(() =>
+//            {
+//                using (new Log.BufferedTaskOutput($"CTC-{templateElement.ElementHeading.Name}-{configuration.Name}"))
+//                {
+//                    ExpandableVars.Init(baseVars);
+//                    return (configuration, CreateTemplateConfig(templateElement, configuration));
+//                }
+//            });
+//        }
+
         private TemplateConfiguration CreateTemplateConfig(ObjectElement templateElement, Configuration configuration)
         {
             Log.Heading("Creating template config '{0} - {1}' for template '{2}'",
-                configuration.GroupName, configuration.Name, templateElement.ElementHeading.Name);
+                configuration.GroupName, configuration.Name, templateElement.Heading.Name);
 
             using (new Log.ScopedIndent())
             {
-                string baseTemplateName = templateElement.ElementHeading.InheritedObjectName;
+                string baseTemplateName = templateElement.Heading.InheritedObjectName;
 
                 Template baseTemplate = null;
                 Settings baseTemplateSettings = null;
@@ -82,12 +123,12 @@ namespace SolutionGen.Generator.Reader
                     ? new Dictionary<string, Settings>(baseTemplate.Configurations[configuration].ProjectSettingsLookup)
                     : new Dictionary<string, Settings>();
 
-                foreach (ConfigElement element in templateElement.Elements)
+                foreach (ConfigElement element in templateElement.Children)
                 {
-                    if (element is ObjectElement objElement && objElement.ElementHeading.Type == SectionType.SETTINGS)
+                    if (element is ObjectElement objElement && objElement.Heading.Type == SectionType.SETTINGS)
                     {
-                        string settingsName = objElement.ElementHeading.Name;
-                        string inheritedSettingsName = objElement.ElementHeading.InheritedObjectName;
+                        string settingsName = objElement.Heading.Name;
+                        string inheritedSettingsName = objElement.Heading.InheritedObjectName;
 
                         Settings inheritedSettings = null;
                         if (!string.IsNullOrEmpty(inheritedSettingsName) &&

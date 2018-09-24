@@ -137,9 +137,9 @@ namespace SolutionGen.Console.Commands
             return ErrorCode.Success;
         }
 
-        protected ErrorCode LogDuration(string description)
+        protected ErrorCode LogDuration(string description, Log.Level level = Log.Level.Info)
         {
-            Log.Timer(Log.Level.Info, description, timer);
+            Log.Timer(level, description, timer);
             timer.Restart();
             return ErrorCode.Success;
         }

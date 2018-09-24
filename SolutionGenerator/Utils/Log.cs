@@ -10,26 +10,30 @@ namespace SolutionGen.Utils
 {
     public class Log
     {
-        public static Log InitBufferedLog()
+        private static readonly AsyncLocal<Log> instance = new AsyncLocal<Log> { Value = new Log() };
+        public static Log Instance => instance.Value ?? (instance.Value = new Log());
+        
+        public static Log InitBufferedTaskOutput(string bufferName, int indentLevel)
         {
-            instance.Value = new Log(true);
+            instance.Value = new Log(bufferName) {IndentLevel = indentLevel};
+            instance.Value.info("Start Buffered Task Output".PadRight(50, '-'));
             return instance.Value;
         }
 
+        private static readonly object flushLock = new object();
         public static void FlushBufferedLog()
         {
             if (Instance.buffer != null)
             {
-                WriteLineToConsole(ConsoleColor.Gray, ConsoleColor.Black, "".PadRight(40, '-'));
-                Instance.buffer.ForEach(msg => msg());
-                WriteLineToConsole(ConsoleColor.Gray, ConsoleColor.Black, "".PadRight(40, '-'));
-                Instance.buffer.Clear();
+                lock (flushLock)
+                {
+                    Info("End Buffered Task Output".PadRight(50, '-'));
+                    Instance.buffer.ForEach(msg => msg());
+                    Instance.buffer.Clear();
+                }
             }
         }
         
-        private static readonly AsyncLocal<Log> instance = new AsyncLocal<Log> { Value = new Log() };
-        public static Log Instance => instance.Value ?? (instance.Value = new Log());
-
         public enum Level
         {
             Debug,
@@ -37,6 +41,19 @@ namespace SolutionGen.Utils
             Heading,
             Warn,
             Error
+        }
+
+        public class BufferedTaskOutput : IDisposable
+        {
+            public BufferedTaskOutput(string bufferName, int indentLevel)
+            {
+                InitBufferedTaskOutput(bufferName, indentLevel);
+            }
+            
+            public void Dispose()
+            {
+                FlushBufferedLog();
+            }
         }
         
         public class ScopedIndent : IDisposable
@@ -56,27 +73,31 @@ namespace SolutionGen.Utils
         {
             private readonly Level level;
             private readonly string description;
+            private readonly object data;
             private readonly Stopwatch timer = Stopwatch.StartNew();
             
-            public ScopedTimer(Level level, string description)
+            public ScopedTimer(Level level, string description, object data = null)
             {
                 this.level = level;
                 this.description = description;
+                this.data = data;
             }
             
             public void Dispose()
             {
                 timer.Stop();
-                Timer(level, description, timer);
+                Timer(level, description, timer, data);
             }
 
             public struct Result
             {
                 public readonly TimeSpan Duration;
+                public readonly object Data;
 
-                public Result(TimeSpan duration)
+                public Result(TimeSpan duration, object data)
                 {
                     Duration = duration;
+                    Data = data;
                 }
             }
 
@@ -100,6 +121,7 @@ namespace SolutionGen.Utils
                         Timer(level, "Timer results for \"{0}\":", kvp.Key);
                         using (new ScopedIndent())
                         {
+                            kvp.Value.Sort((a, b) => b.Duration.Ticks.CompareTo(a.Duration.Ticks));
                             long sum = kvp.Value.Sum(r => r.Duration.Ticks);
                             long min = kvp.Value.Min(r => r.Duration.Ticks);
                             long max = kvp.Value.Max(r => r.Duration.Ticks);
@@ -111,14 +133,14 @@ namespace SolutionGen.Utils
                                 new TimeSpan(max).TotalSeconds);
 
                             IndentedCollection(kvp.Value,
-                                r => $"{r.Duration.TotalSeconds:g}",
+                                r => $"{r.Duration.TotalSeconds,-15:g}{r.Data}",
                                 (fmt, args) => Timer(level, fmt, args));
                         }
                     }
                 }
             }
 
-            internal static void TrackTimerResult(string description, TimeSpan duration)
+            internal static void TrackTimerResult(string description, TimeSpan duration, object data)
             {
                 lock (results)
                 {
@@ -128,17 +150,18 @@ namespace SolutionGen.Utils
                         results[description] = list;
                     }
 
-                    list.Add(new Result(duration));
+                    list.Add(new Result(duration, data));
                 }
             }
         }
 
-        private List<Action> buffer;
-        private int indentLevel;
+        private readonly List<Action> buffer;
+        private readonly string bufferName;
+        public int IndentLevel { get; private set; }
         public const int INDENT_SIZE = 2;
 
-        public void pushIndentLevel() => ++indentLevel;
-        public void popIndentLevel() => indentLevel = Math.Max(0, --indentLevel);
+        public void pushIndentLevel() => ++IndentLevel;
+        public void popIndentLevel() => IndentLevel = Math.Max(0, --IndentLevel);
 
         public static void PushIndentLevel()
             => Instance.pushIndentLevel();
@@ -149,19 +172,16 @@ namespace SolutionGen.Utils
         public static Level LogLevel { get; set; } = Level.Warn;
 
         public Log()
-            :this(false)
         {
         }
 
-        public Log(bool isBuffered)
+        public Log(string bufferName)
         {
-            if (isBuffered)
-            {
-                buffer = new List<Action>();
-            }
+            this.bufferName = bufferName;
+            buffer = new List<Action>();
         }
 
-        private void ProcessIndentedCollection<T>(
+        private static void ProcessIndentedCollection<T>(
             IEnumerable<T> collection,
             Func<T, string> formatter,
             Action<string, object[]> logger)
@@ -178,23 +198,26 @@ namespace SolutionGen.Utils
             }
         }
         
-        private void ProcessIndentedCollection(
+        private static void ProcessIndentedCollection(
             IEnumerable collection,
             Func<object, string> formatter,
             Action<string, object[]> logger)
         {
             ProcessIndentedCollection(collection.Cast<object>(), formatter, logger);
         }
-
-        public void indentedCollection<T>(
+        
+        public static void IndentedCollection<T>(
             IEnumerable<T> collection,
             Func<T, string> formatter,
             Action<string, object[]> logger)
         {
             ProcessIndentedCollection(collection, formatter, logger);
         }
+        
+        public static void IndentedCollection<T>(IEnumerable<T> collection, Action<string, object[]> logger)
+            => IndentedCollection(collection, x => x?.ToString() ?? "<null>", logger);
 
-        public string getIndentedCollection<T>(
+        public static string GetIndentedCollection<T>(
             IEnumerable<T> collection,
             Func<T, string> formatter)
         {
@@ -215,18 +238,15 @@ namespace SolutionGen.Utils
                 (f, a) => builder.AppendFormat("\n" + GetIndent() + f, a));
             return builder.ToString();
         }
-
-        public void indentedCollection<T>(IEnumerable<T> collection, Action<string, object[]> logger)
-            => IndentedCollection(collection, x => x?.ToString() ?? "<null>", logger);
         
         public string getIndentedCollection<T>(IEnumerable<T> collection)
-            => GetIndentedCollection(collection, x => x?.ToString() ?? "<null>");
+            => getIndentedCollection(collection, x => x?.ToString() ?? "<null>");
 
         public void heading(string format, params object[] args)
         {
             if (LogLevel <= Level.Heading)
             {
-                WriteLine(ConsoleColor.White, ConsoleColor.Black, format, args);
+                writeLine(ConsoleColor.White, ConsoleColor.Black, format, args);
             }
         }
         
@@ -234,7 +254,7 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= Level.Info)
             {
-                WriteLine(ConsoleColor.Gray, ConsoleColor.Black, format, args);
+                writeLine(ConsoleColor.Gray, ConsoleColor.Black, format, args);
             }
         }
         
@@ -242,7 +262,7 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= Level.Debug)
             {
-                WriteLine(ConsoleColor.DarkGray, ConsoleColor.Black, format, args);
+                writeLine(ConsoleColor.DarkGray, ConsoleColor.Black, format, args);
             }
         }
 
@@ -250,7 +270,7 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= Level.Warn)
             {
-                WriteLine(ConsoleColor.DarkYellow, ConsoleColor.Black, "[WARNING] " + format, args);
+                writeLine(ConsoleColor.DarkYellow, ConsoleColor.Black, "[WARNING] " + format, args);
             }
         }
         
@@ -258,17 +278,17 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= Level.Error)
             {
-                WriteLine(ConsoleColor.Red, ConsoleColor.Black, "[ERROR] " + format, args);
+                writeLine(ConsoleColor.Red, ConsoleColor.Black, "[ERROR] " + format, args);
             }
         }
 
-        public void timer(Level level, string description, Stopwatch timer)
+        public void timer(Level level, string description, Stopwatch stopwatch, object data)
         {
             if (LogLevel <= level)
             {
-                TimeSpan duration = timer.Elapsed;
-                ScopedTimer.TrackTimerResult(description, duration);
-                Timer(level, "Finished timer \"{0}\" with duration '{1:g}'",
+                TimeSpan duration = stopwatch.Elapsed;
+                ScopedTimer.TrackTimerResult(description, duration, data);
+                timer(level, "Finished timer \"{0}\" with duration '{1:g}'",
                     description, duration.TotalSeconds);
             }
         }
@@ -277,7 +297,7 @@ namespace SolutionGen.Utils
         {
             if (LogLevel <= level)
             {
-                WriteLine(ConsoleColor.Blue, ConsoleColor.Black, format, args);
+                writeLine(ConsoleColor.Blue, ConsoleColor.Black, format, args);
             }
         }
         
@@ -311,29 +331,11 @@ namespace SolutionGen.Utils
 
         public string getIndent()
         {
-            return $"{Thread.CurrentThread.Name}:{"".PadRight(indentLevel * INDENT_SIZE, ' ')}";
-        }
-        
-        public static void IndentedCollection<T>(
-            IEnumerable<T> collection,
-            Func<T, string> formatter,
-            Action<string, object[]> logger)
-        {
-            Instance.indentedCollection(collection, formatter, logger);
-        }
-
-        public static string GetIndentedCollection<T>(
-            IEnumerable<T> collection,
-            Func<T, string> formatter)
-        {
-            return Instance.getIndentedCollection(collection, formatter);
+            return $"{bufferName}:{"".PadRight(IndentLevel * INDENT_SIZE, ' ')}";
         }
 
         public static string GetIndentedCollection(IEnumerable collection, Func<object, string> formatter)
             => Instance.getIndentedCollection(collection, formatter);
-
-        public static void IndentedCollection<T>(IEnumerable<T> collection, Action<string, object[]> logger)
-            => Instance.indentedCollection(collection, logger);
 
         public static string GetIndentedCollection<T>(IEnumerable<T> collection)
             => Instance.getIndentedCollection(collection);
@@ -353,8 +355,8 @@ namespace SolutionGen.Utils
         public static void Error(string format, params object[] args)
             => Instance.error(format, args);
 
-        public static void Timer(Level level, string description, Stopwatch timer)
-            => Instance.timer(level, description, timer);
+        public static void Timer(Level level, string description, Stopwatch timer, object data = null)
+            => Instance.timer(level, description, timer, data);
 
         public static void Timer(Level level, string format, params object[] args)
             => Instance.timer(level, format, args);

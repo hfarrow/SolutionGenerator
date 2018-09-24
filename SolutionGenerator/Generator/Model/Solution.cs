@@ -46,7 +46,16 @@ namespace SolutionGen.Generator.Model
         
         private readonly Dictionary<string, bool> includedProjectMap  = new Dictionary<string, bool>();
         private readonly Dictionary<string, bool> generatedProjectMap  = new Dictionary<string, bool>();
-        public HashSet<string> IncludedProjects => includedProjectMap.Keys.ToHashSet();
+        public HashSet<string> IncludedProjects
+        {
+            get
+            {
+                lock (includedProjectMap)
+                {
+                    return includedProjectMap.Keys.ToHashSet();
+                }
+            }
+        }
 
         public IReadOnlyCollection<string> BuildTasksFiles { get; }
         
@@ -59,10 +68,13 @@ namespace SolutionGen.Generator.Model
             SolutionConfigDir = solutionConfigDir;
             ConfigurationGroups = configurationGroups;
 
-            BuildTasksFiles = FileUtil.GetFiles(
-                Path.GetRelativePath(Directory.GetCurrentDirectory(), SolutionConfigDir),
-                IncludeBuildTasksPattern.Where(p => !p.Negated),
-                IncludeBuildTasksPattern.Where(p => p.Negated));
+            using (new Log.ScopedTimer(Log.Level.Debug, "Get Build Task Files"))
+            {
+                BuildTasksFiles = FileUtil.GetFiles(
+                    Path.GetRelativePath(Directory.GetCurrentDirectory(), SolutionConfigDir),
+                    IncludeBuildTasksPattern.Where(p => !p.Negated),
+                    IncludeBuildTasksPattern.Where(p => p.Negated));
+            }
         }
 
         public bool CanIncludeProject(string projectName)
@@ -71,11 +83,16 @@ namespace SolutionGen.Generator.Model
             // Inlining the out variable would cause it to default to false instead of true.
             bool canInclude = true;
             
-            if (IncludedProjectsPatterns.Count > 0 &&
-                !includedProjectMap.TryGetValue(projectName, out canInclude))
+            // TODO: Keep this cached list of project directly in module reader so no synchronization is required.
+            // Would require the reader task to provide the included projects as a result
+            lock (includedProjectMap)
             {
-                canInclude = IncludedProjectsPatterns.Any(p => p.IsMatch(projectName));
-                includedProjectMap[projectName] = canInclude;
+                if (IncludedProjectsPatterns.Count > 0 &&
+                    !includedProjectMap.TryGetValue(projectName, out canInclude))
+                {
+                    canInclude = IncludedProjectsPatterns.Any(p => p.IsMatch(projectName));
+                    includedProjectMap[projectName] = canInclude;
+                }
             }
 
             return canInclude;

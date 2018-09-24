@@ -16,8 +16,9 @@ namespace SolutionGen.Utils
             return instance.Value;
         }
         
-        private static readonly AsyncLocal<ExpandableVars> instance = new AsyncLocal<ExpandableVars> { Value = new ExpandableVars() };
-        public static ExpandableVars Instance => instance.Value;
+        private static readonly AsyncLocal<ExpandableVars> instance = new AsyncLocal<ExpandableVars>();
+        private static readonly ExpandableVars rootInstance = new ExpandableVars();
+        public static ExpandableVars Instance => instance.Value ?? rootInstance;
 
         public const string VAR_SOLUTION_NAME = "SOLUTION_NAME";
         public const string VAR_SOLUTION_PATH = "SOLUTION_PATH";

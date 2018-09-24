@@ -75,7 +75,7 @@ namespace SolutionGen.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "define constants", "true", ValidatePropertyArrayValues(new[]{"DEFINE_A", "DEFINE_B"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "debug", ValidatePropertyArrayValues(new[]{"DEBUG", "TRACE"})),
                 ValidateProperty(PropertyAction.Add, "define constants", "release", ValidatePropertyArrayValues(new[]{"RELEASE"})),
-                ValidateNestedConditionalBlocks(),
+                ValidateNestedConditionalBlocks(), SkipElement(), SkipElement(),
                 ValidateConfigObject("settings", "project.tests", "project", false),
                 ValidateSimpleCommand("exclude", "no-tests", string.Empty),
                 ValidateSimpleCommand("skip", "!test", string.Empty),
@@ -84,10 +84,11 @@ namespace SolutionGen.Tests.Parsing
                 ValidateProperty(PropertyAction.Add, "project refs", "true", ValidatePropertyArrayValues(new[]{"$(MODULE_NAME)"})),
             };
 
-            ConfigElement[] allElements = fixture.Config.EnumerateRecursively().ToArray();
+            (ConfigElement parent, ConfigElement child)[] allElements = fixture.Config.EnumerateDecendants().ToArray();
 
-            Dictionary<ConfigElement, Action<ConfigElement>> zipped = 
-                allElements.Zip(validators, (k, v) => new {k, v})
+            Dictionary<ConfigElement, Action<ConfigElement>> zipped = allElements
+                .Select(v => v.child)
+                .Zip(validators, (k, v) => new {k, v})
                 .ToDictionary(x => x.k, x => x.v);
             
             Assert.Equal(validators.Length, zipped.Count);
@@ -119,16 +120,16 @@ namespace SolutionGen.Tests.Parsing
             {
                 Assert.IsType<ObjectElement>(element);
                 var obj = (ObjectElement) element;
-                Assert.Equal(type, obj.ElementHeading.Type);
-                Assert.Equal(name, obj.ElementHeading.Name);
-                Assert.Equal(inherits, obj.ElementHeading.InheritedObjectName);
+                Assert.Equal(type, obj.Heading.Type);
+                Assert.Equal(name, obj.Heading.Name);
+                Assert.Equal(inherits, obj.Heading.InheritedObjectName);
                 if (isEmpty)
                 {
-                    Assert.False(obj.Elements.Any());
+                    Assert.False(obj.Children.Any());
                 }
                 else
                 {
-                    Assert.True(obj.Elements.Any());
+                    Assert.True(obj.Children.Any());
                 }
             };
         }
@@ -190,21 +191,26 @@ namespace SolutionGen.Tests.Parsing
         {
             return (element) =>
             {
-                Assert.IsType<GroupElement>(element);
-                var block = (GroupElement) element;
-                Assert.Single(block.Elements);
+                Assert.IsType<BlockElement>(element);
+                var block = (BlockElement) element;
+                Assert.Single(block.Children);
                 Assert.Equal("true", block.ConditionalExpression);
-                ConfigElement innerElement = block.Elements.First();
-                Assert.IsType<GroupElement>(innerElement);
-                var innerBlock = (GroupElement) innerElement;
-                Assert.Single(innerBlock.Elements);
+                ConfigElement innerElement = block.Children.First();
+                Assert.IsType<BlockElement>(innerElement);
+                var innerBlock = (BlockElement) innerElement;
+                Assert.Single(innerBlock.Children);
                 Assert.Equal("true", innerBlock.ConditionalExpression);
-                ConfigElement propertyElement = innerBlock.Elements.First();
+                ConfigElement propertyElement = innerBlock.Children.First();
                 Assert.IsType<PropertyElement>(propertyElement);
                 var property = (PropertyElement) propertyElement;
                 Assert.Equal("nested block test", property.FullName);
                 Assert.Equal("true", property.ValueElement.Value.ToString());
             };
+        }
+
+        private static Action<ConfigElement> SkipElement()
+        {
+            return (element) => { };
         }
     }
 }

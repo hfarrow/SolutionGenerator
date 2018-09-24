@@ -50,7 +50,7 @@ namespace SolutionGen.Console.Commands
                     ParseConfiguration,
                     GenerateSolution,
                     ClearExpandableVars,
-                    () => LogDuration(typeof(GenerateCommand).Name),
+                    () => LogDuration(typeof(GenerateCommand).Name, Log.Level.Warn),
                 }
                 .Select(step => step())
                 .FirstOrDefault(errorCode => errorCode != ErrorCode.Success) ?? ErrorCode.Success;

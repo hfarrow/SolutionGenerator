@@ -2,32 +2,14 @@
 
 namespace SolutionGen.Parser.Model
 {
-    public class ConfigDocument
+    public sealed class ConfigDocument : ContainerElement
     {
-        public IEnumerable<ConfigElement> RootElements { get; }
-
         public ConfigDocument(IEnumerable<ConfigElement> rootElements)
+            : base(rootElements, "true")
         {
-            RootElements = rootElements;
-        }
-
-        public IEnumerable<ConfigElement> EnumerateRecursively()
-        {
-            foreach (ConfigElement root in RootElements)
+            foreach ((ConfigElement parent, ConfigElement child) tuple in EnumerateDecendants())
             {
-                if (root is ObjectElement obj)
-                {
-                    yield return obj;
-                    foreach (ConfigElement child in obj.EnumerateRecursively())
-                    {
-                        yield return child;
-                    }
-                }
-                else
-                {
-                    yield return root;
-                }
-                
+                tuple.child.ParentElement = tuple.parent;
             }
         }
     }

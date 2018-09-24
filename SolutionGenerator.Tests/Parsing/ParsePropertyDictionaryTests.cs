@@ -19,10 +19,10 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(property.ValueElement.Value);
             
             var obj = (ObjectElement) property.ValueElement.Value;
-            Assert.Equal("<inline>", obj.ElementHeading.Type);
-            Assert.Empty(obj.ElementHeading.Name);
-            Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Empty(obj.Elements);
+            Assert.Equal("<inline>", obj.Heading.Type);
+            Assert.Empty(obj.Heading.Name);
+            Assert.Null(obj.Heading.InheritedObjectName);
+            Assert.Empty(obj.Children);
         }
         
         [Fact]
@@ -41,12 +41,12 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(property.ValueElement.Value);
             
             var obj = (ObjectElement) property.ValueElement.Value;
-            Assert.Equal("<inline>", obj.ElementHeading.Type);
-            Assert.Empty(obj.ElementHeading.Name);
-            Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Single(obj.Elements);
+            Assert.Equal("<inline>", obj.Heading.Type);
+            Assert.Empty(obj.Heading.Name);
+            Assert.Null(obj.Heading.InheritedObjectName);
+            Assert.Single(obj.Children);
 
-            var innerProperty = obj.Elements.First() as PropertyElement;
+            var innerProperty = obj.Children.First() as PropertyElement;
             Assert.NotNull(innerProperty);
             Assert.NotNull(innerProperty);
             Assert.Equal("dictionary", property.FullName);
@@ -54,10 +54,10 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(innerProperty.ValueElement.Value);
             
             var innerObj = (ObjectElement) innerProperty.ValueElement.Value;
-            Assert.Equal("<inline>", innerObj.ElementHeading.Type);
-            Assert.Empty(innerObj.ElementHeading.Name);
-            Assert.Null(innerObj.ElementHeading.InheritedObjectName);
-            Assert.Empty(innerObj.Elements);
+            Assert.Equal("<inline>", innerObj.Heading.Type);
+            Assert.Empty(innerObj.Heading.Name);
+            Assert.Null(innerObj.Heading.InheritedObjectName);
+            Assert.Empty(innerObj.Children);
         }
         
         [Fact]
@@ -76,12 +76,12 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(property.ValueElement.Value);
             
             var obj = (ObjectElement) property.ValueElement.Value;
-            Assert.Equal("<inline>", obj.ElementHeading.Type);
-            Assert.Empty(obj.ElementHeading.Name);
-            Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Single(obj.Elements);
+            Assert.Equal("<inline>", obj.Heading.Type);
+            Assert.Empty(obj.Heading.Name);
+            Assert.Null(obj.Heading.InheritedObjectName);
+            Assert.Single(obj.Children);
 
-            var innerProperty = obj.Elements.First() as PropertyElement;
+            var innerProperty = obj.Children.First() as PropertyElement;
             Assert.NotNull(innerProperty);
             Assert.Equal("property", innerProperty.FullName);
             Assert.Equal("value", innerProperty.ValueElement.Value.ToString());
@@ -106,12 +106,12 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(property.ValueElement.Value);
             
             var obj = (ObjectElement) property.ValueElement.Value;
-            Assert.Equal("<inline>", obj.ElementHeading.Type);
-            Assert.Empty(obj.ElementHeading.Name);
-            Assert.Null(obj.ElementHeading.InheritedObjectName);
-            Assert.Single(obj.Elements);
+            Assert.Equal("<inline>", obj.Heading.Type);
+            Assert.Empty(obj.Heading.Name);
+            Assert.Null(obj.Heading.InheritedObjectName);
+            Assert.Single(obj.Children);
             
-            var innerProperty = obj.Elements.First() as PropertyElement;
+            var innerProperty = obj.Children.First() as PropertyElement;
             Assert.NotNull(innerProperty);
             Assert.NotNull(innerProperty);
             Assert.Equal("dictionary", property.FullName);
@@ -119,12 +119,12 @@ namespace SolutionGen.Tests.Parsing
             Assert.IsType<ObjectElement>(innerProperty.ValueElement.Value);
             
             var innerObj = (ObjectElement) innerProperty.ValueElement.Value;
-            Assert.Equal("<inline>", innerObj.ElementHeading.Type);
-            Assert.Empty(innerObj.ElementHeading.Name);
-            Assert.Null(innerObj.ElementHeading.InheritedObjectName);
-            Assert.Single(innerObj.Elements);
+            Assert.Equal("<inline>", innerObj.Heading.Type);
+            Assert.Empty(innerObj.Heading.Name);
+            Assert.Null(innerObj.Heading.InheritedObjectName);
+            Assert.Single(innerObj.Children);
 
-            var innerInnerProperty = innerObj.Elements.First() as PropertyElement;
+            var innerInnerProperty = innerObj.Children.First() as PropertyElement;
             Assert.NotNull(innerInnerProperty);
             Assert.Equal("property", innerInnerProperty.FullName);
             Assert.Equal("value", innerInnerProperty.ValueElement.Value.ToString());
