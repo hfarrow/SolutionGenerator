@@ -13,6 +13,7 @@ namespace SolutionGen.Generator.Model
         public string SolutionConfigDir { get; }
         public readonly Settings Settings;
         public IReadOnlyDictionary<string, ConfigurationGroup> ConfigurationGroups { get; private set; }
+        public readonly FileUtil.ResultCache FileCache;
         
         public string OutputDir =>
             new DirectoryInfo(Settings.GetProperty<string>(Settings.PROP_OUTPUT_DIR)).FullName;
@@ -59,18 +60,24 @@ namespace SolutionGen.Generator.Model
 
         public IReadOnlyCollection<string> BuildTasksFiles { get; }
         
-        public Solution(string name, Settings settings, string solutionConfigDir,
-            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups)
+        public Solution(
+            string name,
+            Settings settings,
+            string solutionConfigDir,
+            IReadOnlyDictionary<string, ConfigurationGroup> configurationGroups,
+            FileUtil.ResultCache fileCache)
         {
             Name = name;
             Guid = Guid.NewGuid();
             Settings = settings;
             SolutionConfigDir = solutionConfigDir;
             ConfigurationGroups = configurationGroups;
+            FileCache = fileCache;
 
             using (new Log.ScopedTimer(Log.Level.Debug, "Get Build Task Files"))
             {
                 BuildTasksFiles = FileUtil.GetFiles(
+                    fileCache,
                     Path.GetRelativePath(Directory.GetCurrentDirectory(), SolutionConfigDir),
                     IncludeBuildTasksPattern.Where(p => !p.Negated),
                     IncludeBuildTasksPattern.Where(p => p.Negated));

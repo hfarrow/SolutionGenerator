@@ -51,7 +51,7 @@ namespace SolutionGen.Tests.Utils
             IPattern pattern = GetPattern(input);
             string currentDir = new DirectoryInfo(Directory.GetCurrentDirectory()).FullName;
 
-            HashSet<string> result = FileUtil.GetFiles("./",
+            HashSet<string> result = FileUtil.GetFiles(null, "./",
                 new[] {pattern},
                 null,
                 currentDir);
@@ -64,7 +64,7 @@ namespace SolutionGen.Tests.Utils
             });
             
             // sub dir for search path and current dir for base path
-            result = FileUtil.GetFiles("MyModule",
+            result = FileUtil.GetFiles(null, "MyModule",
                 new[] {pattern},
                 null,
                 currentDir);
@@ -77,7 +77,7 @@ namespace SolutionGen.Tests.Utils
             });
             
             // sub dir for search path and sub dir for base path
-            result = FileUtil.GetFiles("MyModule",
+            result = FileUtil.GetFiles(null, "MyModule",
                 new[] {pattern},
                 null,
                 Path.Combine(currentDir, "MyModule"));
@@ -113,7 +113,7 @@ namespace SolutionGen.Tests.Utils
             IPattern pattern = GetPattern(input);
 
             // current dir for both search path and base path
-            HashSet<string> result = FileUtil.GetFiles("./",
+            HashSet<string> result = FileUtil.GetFiles(null,"./",
                 new[] {pattern},
                 null,
                 currentDir);
@@ -126,7 +126,7 @@ namespace SolutionGen.Tests.Utils
             });
             
             // sub dir for search path and current dir for base path
-            result = FileUtil.GetFiles("MyModule",
+            result = FileUtil.GetFiles(null,"MyModule",
                 new[] {pattern},
                 null,
                 currentDir);
@@ -139,7 +139,7 @@ namespace SolutionGen.Tests.Utils
             });
             
             // sub dir for search path and sub dir for base path
-            result = FileUtil.GetFiles("MyModule",
+            result = FileUtil.GetFiles(null,"MyModule",
                 new[] {pattern},
                 null,
                 "MyModule");
@@ -156,7 +156,7 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void GlobReturnsManyFiles()
         {
-            HashSet<string> results = FileUtil.GetFiles("./",
+            HashSet<string> results = FileUtil.GetFiles(null,"./",
                 new[]
                 {
                     new GlobPattern("**/*.*", false),
@@ -169,7 +169,7 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void RegexReturnsManyFiles()
         {
-            HashSet<string> results = FileUtil.GetFiles("./",
+            HashSet<string> results = FileUtil.GetFiles(null,"./",
                 new[]
                 {
                     new RegexPattern(".*", false),
@@ -182,7 +182,7 @@ namespace SolutionGen.Tests.Utils
         [Fact]
         public void LiteralReturnsSingleFile()
         {
-            HashSet<string> results = FileUtil.GetFiles("./",
+            HashSet<string> results = FileUtil.GetFiles(null,"./",
                 new[]
                 {
                     new LiteralPattern("Class.cs", false), 
@@ -196,7 +196,7 @@ namespace SolutionGen.Tests.Utils
         public void LiteralMatchesFirstWhenManyMatches()
         {
             HashSet<string> result =
-                FileUtil.GetFiles("./",
+                FileUtil.GetFiles(null,"./",
                     new IPattern[] {new LiteralPattern("Class.cs", false)},
                     null);
 
@@ -212,7 +212,7 @@ namespace SolutionGen.Tests.Utils
             IPattern pattern = GetPattern(input);
             
             HashSet<string> result =
-                FileUtil.GetFiles("./",
+                FileUtil.GetFiles(null,"./",
                     new[] {pattern},
                     null);
             
@@ -233,7 +233,7 @@ namespace SolutionGen.Tests.Utils
             };
 
             HashSet<string> result =
-                FileUtil.GetFiles(searchPaths,
+                FileUtil.GetFiles(null,searchPaths,
                     new[] {pattern},
                     null);
 
@@ -250,7 +250,7 @@ namespace SolutionGen.Tests.Utils
             IPattern pattern = GetPattern(input);
             
             HashSet<string> result =
-                FileUtil.GetFiles("./",
+                FileUtil.GetFiles(null,"./",
                     new[] {pattern},
                     new[] {pattern});
             

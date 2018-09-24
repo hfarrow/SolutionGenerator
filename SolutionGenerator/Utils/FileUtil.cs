@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Path = System.IO.Path;
 using GLOB = Glob.Glob;
 
@@ -34,17 +35,122 @@ namespace SolutionGen.Utils
                 }
             }
         }
-        
-        public static HashSet<string> GetFiles(string searchableDirectory,
-            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
+
+        public class ResultCache
         {
-            return GetFiles(new[] {searchableDirectory}, includePaths, excludePaths, basePath);
+            private class Result
+            {
+                public HashSet<string> Files;
+                public EventWaitHandle Handle;
+            }
+            
+            private readonly Dictionary<int, Result> cache =
+                new Dictionary<int, Result>();
+
+            public void CacheResults(HashSet<string> files, int hash)
+            {
+                EventWaitHandle handle;
+                lock (cache)
+                {
+                    Result entry = cache[hash];
+                    handle = entry.Handle;
+                    entry.Files = files;
+                    entry.Handle = null;
+                }
+
+                handle.Set();
+            }
+
+            public (int hash, bool hasResults, HashSet<string> files) GetResultsOrReserve(
+                IEnumerable<string> searchablePaths,
+                IEnumerable<IPattern> includePaths,
+                IEnumerable<IPattern> excludePaths,
+                string basePath)
+            {
+                int hash = GetQueryHashCode(searchablePaths, includePaths, excludePaths, basePath);
+
+                EventWaitHandle pendingHandle = null;
+                bool isHandlerOwner = false;
+                lock (cache)
+                {
+                    // If another task is already working on the same query wait for it to finish so that work is not
+                    // duplicated the current task.
+                    if (cache.TryGetValue(hash, out Result entry))
+                    {
+                        if (entry.Handle != null && entry.Files == null)
+                        {
+                            pendingHandle = entry.Handle;
+                        }
+                    }
+                    else
+                    {
+                        cache[hash] = new Result {Files = null, Handle = new ManualResetEvent(false)};
+                        isHandlerOwner = true;
+                    }
+                }
+
+                if (pendingHandle != null)
+                {
+                    using (new Log.ScopedTimer(Log.Level.Debug, "GetFiles(...) waiting for query", $"{{{hash}}}"))
+                    {
+                        Log.Debug("Waiting for another task to complete identical query with hash {{{0}}}", hash);
+                        pendingHandle.WaitOne();
+
+                    }
+                }
+
+                lock (cache)
+                {
+                    return isHandlerOwner ? (hash, false, null) : (hash, true, cache[hash].Files);
+                }
+            }
+
+            private static int GetQueryHashCode(
+                IEnumerable<string> searchablePaths,
+                IEnumerable<IPattern> includePaths,
+                IEnumerable<IPattern> excludePaths,
+                string basePath)
+            {
+                int hash = 13;
+
+                hash = searchablePaths.Aggregate(hash, (a, b) => (a * 7) + b.GetHashCode());
+                hash = includePaths.Aggregate(hash, (a, b) => (a * 7) + b.ToString().GetHashCode());
+                hash = excludePaths.Aggregate(hash, (a, b) => (a * 7) + b.ToString().GetHashCode());
+                hash = (hash * 7) + basePath.GetHashCode();
+
+                return hash;
+            }
+        }
+        
+        public static HashSet<string> GetFiles(
+            ResultCache cache,
+            string searchableDirectory,
+            IEnumerable<IPattern> includePaths,
+            IEnumerable<IPattern> excludePaths,
+            string basePath = null)
+        {
+            return GetFiles(cache, new[] {searchableDirectory}, includePaths, excludePaths, basePath);
         }
 
-        public static HashSet<string> GetFiles(IEnumerable<string> searchablePaths,
-            IEnumerable<IPattern> includePaths, IEnumerable<IPattern> excludePaths, string basePath = null)
+        public static HashSet<string> GetFiles(
+            ResultCache cache,
+            IEnumerable<string> searchablePaths,
+            IEnumerable<IPattern> includePaths,
+            IEnumerable<IPattern> excludePaths,
+            string basePath = null)
         {
+            searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
             includePaths = includePaths as IPattern[] ?? includePaths.ToArray();
+
+            if (excludePaths != null)
+            {
+                excludePaths = excludePaths as IPattern[] ?? excludePaths.ToArray();
+            }
+            else
+            {
+                excludePaths = new List<IPattern>();
+            }
+            
             basePath = basePath ?? "./";
             bool returnAbsolutePaths = Path.IsPathRooted(basePath);
             string absBasePath;
@@ -57,12 +163,30 @@ namespace SolutionGen.Utils
                 absBasePath = new DirectoryInfo(basePath).FullName;
             }
 
-            Log.Debug("Getting files using base path '{0}' and provided include/exclude paths:", basePath);
+            (int hash, bool hasResults, HashSet<string> files) cacheRequest =
+                cache?.GetResultsOrReserve(
+                    searchablePaths,
+                    includePaths,
+                    excludePaths,
+                    basePath)
+                ?? (0, false, null);
+
+            if (cacheRequest.hasResults)
+            {
+                Log.Debug("Getting files for queury hash {{{0}}} from cached results for base path '{1}':",
+                    cacheRequest.hash, basePath);
+                
+                Log.IndentedCollection(cacheRequest.files, Log.Debug);
+                return cacheRequest.files;
+            }
+            
+            Log.Debug("Getting files for query hash {{{0}}} using base path '{1}' and provided include/exclude paths:",
+                cacheRequest.hash, basePath);
+            
             using (new CompositeDisposable(
                 new Log.ScopedIndent(),
-                new Log.ScopedTimer(Log.Level.Debug, "GetFiles(...)", basePath ?? string.Empty)))
+                new Log.ScopedTimer(Log.Level.Debug, "GetFiles(...)", $"{{{cacheRequest.hash,-11}}} {basePath}")))
             {
-                searchablePaths = searchablePaths as string[] ?? searchablePaths.ToArray();
                 Log.Debug("search paths:");
                 Log.IndentedCollection(searchablePaths, Log.Debug);
 
@@ -80,7 +204,6 @@ namespace SolutionGen.Utils
                 foreach (string currentSearchPath in searchablePaths)
                 {
                     var currentMatches = new List<PatternMatch>();
-
 
                     var dir = new DirectoryInfo(new DirectoryInfo(
                         currentSearchPath == "./" || currentSearchPath == "."
@@ -227,6 +350,7 @@ namespace SolutionGen.Utils
                 Log.Debug("matched files:");
                 Log.IndentedCollection(allMatchedFiles, Log.Debug);
 
+                cache?.CacheResults(allMatchedFiles, cacheRequest.hash);
                 return allMatchedFiles;
                 #endregion
             }

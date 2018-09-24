@@ -63,7 +63,9 @@ namespace SolutionGen.Generator.Model
 
             using (new Log.ScopedTimer(Log.Level.Debug, "Get Include Files", id.Name))
             {
-                IncludeFiles = FileUtil.GetFiles(RelativeSourcePath,
+                IncludeFiles = FileUtil.GetFiles(
+                    Solution.FileCache,
+                    RelativeSourcePath,
                     includeFilesProperty.Where(p => !p.Negated),
                     includeFilesProperty.Where(p => p.Negated),
                     RelativeSourcePath);
@@ -93,7 +95,9 @@ namespace SolutionGen.Generator.Model
             HashSet<string> libRefs;
             using (new Log.ScopedTimer(Log.Level.Debug, "Get Lib Ref Files", id.Name))
             {
-                 libRefs = FileUtil.GetFiles(directories,
+                 libRefs = FileUtil.GetFiles(
+                    Solution.FileCache,
+                    directories,
                     libIncludes,
                     libRefsValues.Where(p => p.Negated),
                     Solution.SolutionConfigDir);

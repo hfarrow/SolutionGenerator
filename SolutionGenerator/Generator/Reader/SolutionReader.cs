@@ -40,7 +40,7 @@ namespace SolutionGen.Generator.Reader
                 Settings settings = settingsReader.Read(solutionElement);
 
                 Solution = new Solution(solutionElement.Heading.Name, settings, solutionConfigDir,
-                    GetConfigurationGroups(settings));
+                    GetConfigurationGroups(settings), new FileUtil.ResultCache());
                 
                 ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_SOLUTION_PATH,
                     Path.Combine(Solution.OutputDir, solutionElement.Heading.Name + ".sln"));
@@ -144,8 +144,11 @@ namespace SolutionGen.Generator.Reader
                 IEnumerable<ObjectElement> modules = new List<ObjectElement>();
                 var includes = Solution.Settings.GetProperty<HashSet<IPattern>>(pathsPropertyName);
                 HashSet<string> includePaths =
-                    FileUtil.GetFiles(Path.GetRelativePath(Directory.GetCurrentDirectory(), Solution.SolutionConfigDir),
-                        includes, null);
+                    FileUtil.GetFiles(
+                        Solution.FileCache,
+                        Path.GetRelativePath(Directory.GetCurrentDirectory(), Solution.SolutionConfigDir),
+                        includes,
+                        null);
 
                 foreach (string includePath in includePaths)
                 {
