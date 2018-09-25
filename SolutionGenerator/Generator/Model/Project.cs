@@ -61,7 +61,7 @@ namespace SolutionGen.Generator.Model
                 "Matching path patterns to source files for project '{0}' as configuration '{1} - {2}' at base directory '{3}'",
                 id.Name, configuration.GroupName, configuration.Name, AbsoluteSourcePath);
 
-            using (new Log.ScopedTimer(Log.Level.Debug, "Get Include Files", id.Name))
+//            using (new Log.ScopedTimer(Log.Level.Debug, "Get Include Files", id.Name))
             {
                 IncludeFiles = FileUtil.GetFiles(
                     Solution.FileCache,
@@ -93,7 +93,7 @@ namespace SolutionGen.Generator.Model
 
 
             HashSet<string> libRefs;
-            using (new Log.ScopedTimer(Log.Level.Debug, "Get Lib Ref Files", id.Name))
+//            using (new Log.ScopedTimer(Log.Level.Debug, "Get Lib Ref Files", id.Name))
             {
                  libRefs = FileUtil.GetFiles(
                     Solution.FileCache,

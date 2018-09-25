@@ -331,7 +331,7 @@ namespace SolutionGen.Utils
 
         public string getIndent()
         {
-            return $"{bufferName}:{"".PadRight(IndentLevel * INDENT_SIZE, ' ')}";
+            return $"({Thread.CurrentThread.ManagedThreadId}){bufferName}:{"".PadRight(IndentLevel * INDENT_SIZE, ' ')}";
         }
 
         public static string GetIndentedCollection(IEnumerable collection, Func<object, string> formatter)

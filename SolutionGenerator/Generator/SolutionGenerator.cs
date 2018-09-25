@@ -145,7 +145,7 @@ namespace SolutionGen
                 var guidLookup = new Dictionary<Guid, Project.Identifier>();
                 foreach (Project.Identifier id in projectIdLookup.Values)
                 {
-                    Log.Debug("Checking {{{0}}} for project '{1}'", id.Guid, id.Name);
+                    Log.Debug("Checking {{{0}}} for project '{1}'", id.Guid.ToString().ToUpper(), id.Name);
                     if (guidLookup.TryGetValue(id.Guid, out Project.Identifier dupe))
                     {
                         throw new DuplicateProjectGuidException(id, dupe);
@@ -176,8 +176,7 @@ namespace SolutionGen
                     Log.Heading("Generating module '{0}' with project count of {1}",
                         module.Name, module.ProjectIdLookup.Count);
                     using (new CompositeDisposable(
-                        new Log.ScopedIndent(),
-                        new ExpandableVars.ScopedState(ExpandableVars.Instance)))
+                        new Log.ScopedIndent()))
                     {
                         ExpandableVars.Instance.SetExpandableVariable(ExpandableVars.VAR_MODULE_NAME, module.Name);
                         foreach (Project.Identifier projectId in module.ProjectIdLookup.Values)
@@ -228,6 +227,8 @@ namespace SolutionGen
                                     ExternalDefineConstants = externalDefineConstants.ToHashSet(),
                                     ProjectNamePostfix = namePostfix,
                                 };
+
+                                Log.Debug("Project name is {0}", projectId.Name);
 
                                 string projectText = projectTemplate.TransformText();
                                 string projectPath =

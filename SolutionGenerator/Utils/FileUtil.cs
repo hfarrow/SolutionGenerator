@@ -99,14 +99,17 @@ namespace SolutionGen.Utils
                     }
                 }
 
+                HashSet<string> cachedFiles = null;
                 lock (cache)
                 {
-                    return isHandlerOwner 
-                        // The caller is expected to get the files and call CacheResults.
-                        ? (hash, false, null)
-                        // Results are cached, return a copy so that caller can modify the collection as needed.
-                        : (hash, true, new HashSet<string>(cache[hash].Files));
+                    if (!isHandlerOwner)
+                    {
+                        // Return a copy of the cached files so that caller may safely modify the collection.
+                        cachedFiles = new HashSet<string>(cache[hash].Files);
+                    }
                 }
+
+                return (hash, cachedFiles != null, cachedFiles);
             }
 
             private static int GetQueryHashCode(
@@ -177,7 +180,7 @@ namespace SolutionGen.Utils
 
             if (cacheRequest.hasResults)
             {
-                Log.Debug("Getting files for queury hash {{{0}}} from cached results for base path '{1}':",
+                Log.Debug("Getting files for query hash {{{0}}} from cached results for base path '{1}':",
                     cacheRequest.hash, basePath);
                 
                 Log.IndentedCollection(cacheRequest.files, Log.Debug);

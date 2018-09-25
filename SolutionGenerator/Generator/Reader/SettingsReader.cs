@@ -110,10 +110,9 @@ namespace SolutionGen.Generator.Reader
             }
 
             using (new CompositeDisposable(
-                new Log.ScopedIndent(),
-                new Log.ScopedTimer(Log.Level.Info, "Read Settings Object",
-                    $"{settingsObject.Heading} - {Configuration?.Name} - {(settingsObject.ParentElement)}"))
-            )
+                new Log.ScopedIndent()))
+//                new Log.ScopedTimer(Log.Level.Info, "Read Settings Object",
+//                    $"{settingsObject.Heading} - {Configuration?.Name} - {(settingsObject.ParentElement)}")))
             {
                 if (baseSettings == null)
                 {

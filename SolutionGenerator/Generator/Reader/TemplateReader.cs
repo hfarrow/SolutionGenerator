@@ -31,7 +31,31 @@ namespace SolutionGen.Generator.Reader
                 new Log.ScopedIndent(),
                 new Log.ScopedTimer(Log.Level.Debug, "Read Template", templateElement)))
             {
-                // Not parallel... In testing parallel code was slower but keeping the code so that it can be checked
+                IEnumerable<ObjectElement> settingsObjects = templateElement.Children
+                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
+                    .Cast<ObjectElement>();
+
+                IGrouping<string, ObjectElement>[] duplicates = settingsObjects
+                    .GroupBy(s => s.Heading.Name)
+                    .Where(g => g.Count() > 1)
+                    .ToArray();
+                
+                foreach (IGrouping<string,ObjectElement> duplicate in duplicates)
+                {
+                    Log.Error("Duplicate settings object name found in template {0}:", templateElement);
+                    Log.IndentedCollection(duplicate, Log.Error);
+                }
+
+                if (duplicates.Length > 0)
+                {
+                    throw new DuplicateSettingsNameException(duplicates.First().Key);
+                }
+                
+                Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Children
+                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
+                    .Cast<ObjectElement>().ToDictionary(obj => obj.Heading.Name, obj => obj);
+                
+                // Not parallel... In testing parallel code was slower. Keeping the code so that it can be checked
                 // after other improvements and on larger solutions.
                 Dictionary<Configuration, TemplateConfiguration> templateConfigurations =
                     configurationGroups.Values.SelectMany(g => g.Configurations.Values)
@@ -62,10 +86,6 @@ namespace SolutionGen.Generator.Reader
 //                Dictionary<Configuration, TemplateConfiguration> templateConfigurations = tasks.Select(task => task.Result)
 //                    .ToDictionary(pair => pair.cfg, pair => pair.templateConfig);
 
-                Dictionary<string, ObjectElement> settingsSourceElements = templateElement.Children
-                    .Where(e => e is ObjectElement obj && obj.Heading.Type == SectionType.SETTINGS)
-                    .Cast<ObjectElement>().ToDictionary(obj => obj.Heading.Name, obj => obj);
-                
                 var template = new Template(
                     templateElement.Heading.Name,
                     templateElement,
@@ -135,13 +155,6 @@ namespace SolutionGen.Generator.Reader
                             !settingsLookup.TryGetValue(inheritedSettingsName, out inheritedSettings))
                         {
                             throw new UndefinedInheritedSettingsException(settingsName, inheritedSettingsName);
-                        }
-                        
-                        // Only check for duplicate settings when reading a template object. Module objects get a copy of
-                        // their template's settings. The module can then overwrite the settings as needed.
-                        if (baseTemplate == null && settingsLookup.ContainsKey(settingsName))
-                        {
-                            throw new DuplicateSettingsNameException(settingsName);
                         }
 
                         Settings baseSettings;

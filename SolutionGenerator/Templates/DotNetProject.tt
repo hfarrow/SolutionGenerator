@@ -17,7 +17,7 @@
         <OutputType>Library</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace><#= RootNamespace #></RootNamespace>
-        <AssemblyName><#= Project.Name #></AssemblyName>
+        <AssemblyName><#= ProjectName #></AssemblyName>
         <TargetFrameworkVersion><#= TargetFrameworkVersion #></TargetFrameworkVersion>
         <LangVersion><#= LanguageVersion #></LangVersion>
         <FileAlignment>512</FileAlignment>
